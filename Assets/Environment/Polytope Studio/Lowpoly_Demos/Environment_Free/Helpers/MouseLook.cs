@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class MouseLook : MonoBehaviour
 {
@@ -18,11 +17,17 @@ public class MouseLook : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
+        Vector2 delta = mouse.delta.ReadValue();
+        float mouseX = delta.x * mouseSensitivity * 0.01f;
+        float mouseY = delta.y * mouseSensitivity * 0.01f;
+
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         transform.localRotation = Quaternion.Euler(xRotation, 0, 0);
-        playerBody.Rotate(Vector3.up * mouseX);
+        if (playerBody != null)
+            playerBody.Rotate(Vector3.up * mouseX);
     }
 }

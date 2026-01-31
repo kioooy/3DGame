@@ -3,41 +3,91 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     [SerializeField] Animator animator;
     [SerializeField] float moveSpeed;
+    [SerializeField] float runSpeedMultiplier = 3f;  // Shift = chạy nhanh gấp 3
+    [SerializeField] float jumpForce = 6f;
+    [SerializeField] float gravity = -20f;
     [SerializeField] Rigidbody rb;
-    Vector3 _moveInput;
+    [SerializeField] LayerMask groundLayer = ~0;
+    [SerializeField] float groundCheckOffset = 0.1f;    // Điểm bắt đầu raycast (trên chân)
+    [SerializeField] float groundCheckLength = 1.2f;    // Độ dài raycast xuống đất (từ trung tâm đến chân)
 
-    
+    Vector3 _moveInput;
+    bool _isRunning;
+    bool _wantsToJump;
+    float _verticalVelocity;
+
     void Start()
     {
-        
+        if (rb != null)
+            rb.useGravity = false;  // Tự xử lý trọng lực trong script
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // New Input System (Project Settings -> Active Input Handling: Input System Package)
-        float h = 0f;
-        float v = 0f;
         var kb = Keyboard.current;
         if (kb != null)
         {
-            h = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
-            v = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
+            float h = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
+            float v = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
+            _moveInput = new Vector3(h, 0f, v).normalized;
+
+            _isRunning = kb.leftShiftKey.isPressed;
+            if (kb.spaceKey.wasPressedThisFrame)
+                _wantsToJump = true;
         }
-        _moveInput = new Vector3(h, 0f, v).normalized;
-
-
-        
     }
+
+    bool IsGrounded()
+    {
+        Vector3 origin = transform.position + Vector3.up * groundCheckOffset;
+        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, groundCheckLength, groundLayer);
+        foreach (var hit in hits)
+        {
+            // Bỏ qua nếu trúng chính nhân vật
+            if (hit.collider.transform.root == transform.root)
+                continue;
+            return true;
+        }
+        return false;
+    }
+
     private void FixedUpdate()
     {
-        Vector3 moveVelocity = _moveInput * moveSpeed;
-        Vector3 newPosition = rb.position + moveVelocity * Time.deltaTime;
-        rb.MovePosition(newPosition);
+        bool grounded = IsGrounded();
+
+        // Xử lý nhảy và trọng lực (tự quản lý, tránh xung đột với Rigidbody)
+        if (grounded)
+        {
+            if (_wantsToJump)
+            {
+                _verticalVelocity = jumpForce;
+                _wantsToJump = false;
+            }
+            else
+            {
+                _verticalVelocity = 0f;   // Đứng yên trên mặt đất
+            }
+        }
+        else
+        {
+            _wantsToJump = false;
+            _verticalVelocity += gravity * Time.fixedDeltaTime;
+        }
+
+        // Di chuyển ngang
+        Vector3 moveDir = (transform.forward * _moveInput.z + transform.right * _moveInput.x);
+        moveDir.y = 0f;
+        if (moveDir.sqrMagnitude > 0.01f)
+            moveDir.Normalize();
+
+        float speed = _isRunning ? moveSpeed * runSpeedMultiplier : moveSpeed;
+        Vector3 moveDelta = (moveDir * speed + Vector3.up * _verticalVelocity) * Time.fixedDeltaTime;
+
+        rb.MovePosition(rb.position + moveDelta);
+
         animator.SetFloat("MoveX", _moveInput.x);
-        animator.SetFloat("MoveZ", _moveInput.z);
+        animator.SetFloat("MoveY", _moveInput.z);
     }
 }
