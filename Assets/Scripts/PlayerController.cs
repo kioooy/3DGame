@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviour
     bool _isRunning;
     bool _wantsToJump;
     float _verticalVelocity;
+    bool _isGrounded;
+    bool _justJumped;
 
     void Start()
     {
@@ -37,6 +39,20 @@ public class PlayerController : MonoBehaviour
             if (kb.spaceKey.wasPressedThisFrame)
                 _wantsToJump = true;
         }
+
+        // Set animator trong Update để đồng bộ với Animator (chạy trước Animator)
+        if (animator != null)
+        {
+            animator.SetFloat("MoveX", _moveInput.x);
+            animator.SetFloat("MoveY", _moveInput.z);
+            animator.SetFloat("Speed", (_isRunning && _moveInput.sqrMagnitude > 0.01f) ? 1f : 0f);
+            animator.SetBool("IsJumping", !_isGrounded);
+            if (_justJumped)
+            {
+                animator.SetTrigger("Jump");
+                _justJumped = false;
+            }
+        }
     }
 
     bool IsGrounded()
@@ -55,15 +71,16 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        bool grounded = IsGrounded();
+        _isGrounded = IsGrounded();
 
         // Xử lý nhảy và trọng lực (tự quản lý, tránh xung đột với Rigidbody)
-        if (grounded)
+        if (_isGrounded)
         {
             if (_wantsToJump)
             {
                 _verticalVelocity = jumpForce;
                 _wantsToJump = false;
+                _justJumped = true;
             }
             else
             {
@@ -86,8 +103,5 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDelta = (moveDir * speed + Vector3.up * _verticalVelocity) * Time.fixedDeltaTime;
 
         rb.MovePosition(rb.position + moveDelta);
-
-        animator.SetFloat("MoveX", _moveInput.x);
-        animator.SetFloat("MoveY", _moveInput.z);
     }
 }
