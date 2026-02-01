@@ -5,125 +5,111 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] Animator animator;
     [SerializeField] float moveSpeed = 5f;
-    [SerializeField] float runSpeedMultiplier = 3f;  // Shift = chạy nhanh gấp 3
-    [SerializeField] float jumpForce = 7f;
-    [SerializeField] float gravity = -20f;
+    [SerializeField] float runSpeedMultiplier = 3f;
+    [SerializeField] float jumpForce = 8f;
+    [SerializeField] float gravity = -25f;
     [SerializeField] Rigidbody rb;
-    [SerializeField] LayerMask groundLayer = ~0;
-    [SerializeField] float groundCheckOffset = 0.1f;    // Điểm bắt đầu raycast (trên chân)
-    [SerializeField] float groundCheckLength = 0.5f;    // Độ dài raycast xuống đất
 
     Vector3 _moveInput;
     bool _isRunning;
-    bool _wantsToJump;
     float _verticalVelocity;
     bool _isGrounded;
-    bool _wasGrounded;  // Trạng thái ground frame trước
-    bool _triggerJump;  // Flag để trigger animation jump
-    bool _justLanded;   // Vừa tiếp đất
+    bool _isJumping;
+    int _groundContactCount;
 
     void Start()
     {
         if (rb != null)
-            rb.useGravity = false;  // Tự xử lý trọng lực trong script
+        {
+            rb.useGravity = false;
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        }
     }
 
     void Update()
     {
-        // Check ground trong Update để animator có giá trị chính xác ngay lập tức
-        _isGrounded = IsGrounded();
-        
+        // Ground = có ít nhất 1 contact với mặt đất
+        _isGrounded = _groundContactCount > 0;
+
         var kb = Keyboard.current;
         if (kb != null)
         {
+            // Input di chuyển
             float h = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
             float v = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
             _moveInput = new Vector3(h, 0f, v).normalized;
 
             _isRunning = kb.leftShiftKey.isPressed;
             
-            // Xử lý nhảy ngay trong Update để không bị delay
-            if (kb.spaceKey.wasPressedThisFrame && _isGrounded)
+            // Nhảy - chỉ khi đang chạm đất và không đang nhảy
+            if (kb.spaceKey.wasPressedThisFrame && _isGrounded && !_isJumping)
             {
-                _wantsToJump = true;
-                _triggerJump = true;  // Set flag để trigger animation
+                Jump();
             }
         }
 
-        // Phát hiện khi vừa tiếp đất
-        _justLanded = _isGrounded && !_wasGrounded;
-        
-        // Set animator trong Update để đồng bộ với Animator
+        // Áp dụng gravity
+        if (_isGrounded && _verticalVelocity < 0)
+        {
+            _verticalVelocity = 0f;
+        }
+        else
+        {
+            _verticalVelocity += gravity * Time.deltaTime;
+            _verticalVelocity = Mathf.Max(_verticalVelocity, -30f);
+        }
+
+        // Reset trạng thái nhảy khi chạm đất
+        if (_isGrounded && _isJumping && _verticalVelocity <= 0)
+        {
+            _isJumping = false;
+        }
+
         UpdateAnimator();
+    }
+
+    void Jump()
+    {
+        _verticalVelocity = jumpForce;
+        _isJumping = true;
+        _groundContactCount = 0;  // Force không chạm đất khi nhảy
         
-        // Lưu trạng thái ground cho frame sau
-        _wasGrounded = _isGrounded;
+        if (animator != null)
+        {
+            animator.SetTrigger("Jump");
+            animator.SetBool("IsJumping", true);
+        }
+        
+        Debug.Log("JUMP!");
     }
 
     void UpdateAnimator()
     {
         if (animator == null) return;
         
-        // Khi vừa tiếp đất, force chuyển về Blend Tree state
-        if (_justLanded)
+        // Khi chạm đất và không nhảy
+        if (_isGrounded && !_isJumping)
         {
-            animator.ResetTrigger("Jump");
             animator.SetBool("IsJumping", false);
-            // Force play Blend Tree state
-            animator.Play("Blend Tree", 0, 0f);
-            Debug.Log("Just landed - forcing Blend Tree state");
+            animator.ResetTrigger("Jump");
+            
+            // Force về Blend Tree nếu bị stuck ở Jump state
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.IsName("Jump"))
+            {
+                animator.Play("Blend Tree", 0, 0f);
+            }
         }
         
-        // Luôn set các giá trị di chuyển - để blend tree hoạt động đúng
+        // Set các giá trị di chuyển - luôn hoạt động
         animator.SetFloat("MoveX", _moveInput.x);
         animator.SetFloat("MoveY", _moveInput.z);
         animator.SetFloat("Speed", (_isRunning && _moveInput.sqrMagnitude > 0.01f) ? 1f : 0f);
-        
-        animator.SetBool("IsJumping", !_isGrounded);
-        
-        // Trigger jump animation
-        if (_triggerJump)
-        {
-            animator.SetTrigger("Jump");
-            _triggerJump = false;
-        }
-    }
-
-    bool IsGrounded()
-    {
-        Vector3 origin = transform.position + Vector3.up * groundCheckOffset;
-        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, groundCheckLength, groundLayer);
-        foreach (var hit in hits)
-        {
-            // Bỏ qua nếu trúng chính nhân vật
-            if (hit.collider.transform.root == transform.root)
-                continue;
-            return true;
-        }
-        return false;
     }
 
     private void FixedUpdate()
     {
-        // Xử lý nhảy và trọng lực (tự quản lý, tránh xung đột với Rigidbody)
-        if (_isGrounded)
-        {
-            if (_wantsToJump)
-            {
-                _verticalVelocity = jumpForce;
-                _wantsToJump = false;
-            }
-            else
-            {
-                _verticalVelocity = 0f;   // Đứng yên trên mặt đất
-            }
-        }
-        else
-        {
-            _wantsToJump = false;
-            _verticalVelocity += gravity * Time.fixedDeltaTime;
-        }
-
         // Di chuyển ngang
         Vector3 moveDir = (transform.forward * _moveInput.z + transform.right * _moveInput.x);
         moveDir.y = 0f;
@@ -131,16 +117,32 @@ public class PlayerController : MonoBehaviour
             moveDir.Normalize();
 
         float speed = _isRunning ? moveSpeed * runSpeedMultiplier : moveSpeed;
-        Vector3 moveDelta = (moveDir * speed + Vector3.up * _verticalVelocity) * Time.fixedDeltaTime;
+        Vector3 horizontalMove = moveDir * speed * Time.fixedDeltaTime;
+        Vector3 verticalMove = Vector3.up * _verticalVelocity * Time.fixedDeltaTime;
 
-        rb.MovePosition(rb.position + moveDelta);
+        rb.MovePosition(rb.position + horizontalMove + verticalMove);
     }
 
-    // Debug: Vẽ raycast trong Scene view
-    void OnDrawGizmosSelected()
+    // Khi bắt đầu chạm collider
+    void OnCollisionEnter(Collision collision)
     {
-        Vector3 origin = transform.position + Vector3.up * groundCheckOffset;
-        Gizmos.color = _isGrounded ? Color.green : Color.red;
-        Gizmos.DrawLine(origin, origin + Vector3.down * groundCheckLength);
+        foreach (ContactPoint contact in collision.contacts)
+        {
+            // Nếu normal hướng lên = đang đứng trên vật
+            if (contact.normal.y > 0.5f)
+            {
+                _groundContactCount++;
+                Debug.Log($"Ground ENTER: {collision.gameObject.name}, count={_groundContactCount}");
+                break;
+            }
+        }
+    }
+
+    // Khi rời collider
+    void OnCollisionExit(Collision collision)
+    {
+        _groundContactCount--;
+        if (_groundContactCount < 0) _groundContactCount = 0;
+        Debug.Log($"Ground EXIT: {collision.gameObject.name}, count={_groundContactCount}");
     }
 }

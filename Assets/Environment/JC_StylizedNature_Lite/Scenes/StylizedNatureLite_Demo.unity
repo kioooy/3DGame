@@ -206,7 +206,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c288e9b7fb9b9db43b4c96086992bbb5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -15.859
+      value: -15.93
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c288e9b7fb9b9db43b4c96086992bbb5, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2748,11 +2748,6 @@ MonoBehaviour:
   jumpForce: 7
   gravity: -20
   rb: {fileID: 641992251}
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  groundCheckOffset: 0.05
-  groundCheckLength: 0.4
 --- !u!95 &641992256 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: c288e9b7fb9b9db43b4c96086992bbb5, type: 3}
