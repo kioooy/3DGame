@@ -4,21 +4,23 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] Animator animator;
-    [SerializeField] float moveSpeed;
+    [SerializeField] float moveSpeed = 5f;
     [SerializeField] float runSpeedMultiplier = 3f;  // Shift = chạy nhanh gấp 3
-    [SerializeField] float jumpForce = 6f;
+    [SerializeField] float jumpForce = 7f;
     [SerializeField] float gravity = -20f;
     [SerializeField] Rigidbody rb;
     [SerializeField] LayerMask groundLayer = ~0;
     [SerializeField] float groundCheckOffset = 0.1f;    // Điểm bắt đầu raycast (trên chân)
-    [SerializeField] float groundCheckLength = 1.2f;    // Độ dài raycast xuống đất (từ trung tâm đến chân)
+    [SerializeField] float groundCheckLength = 0.5f;    // Độ dài raycast xuống đất
 
     Vector3 _moveInput;
     bool _isRunning;
     bool _wantsToJump;
     float _verticalVelocity;
     bool _isGrounded;
-    bool _justJumped;
+    bool _wasGrounded;  // Trạng thái ground frame trước
+    bool _triggerJump;  // Flag để trigger animation jump
+    bool _justLanded;   // Vừa tiếp đất
 
     void Start()
     {
@@ -28,6 +30,9 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        // Check ground trong Update để animator có giá trị chính xác ngay lập tức
+        _isGrounded = IsGrounded();
+        
         var kb = Keyboard.current;
         if (kb != null)
         {
@@ -36,22 +41,51 @@ public class PlayerController : MonoBehaviour
             _moveInput = new Vector3(h, 0f, v).normalized;
 
             _isRunning = kb.leftShiftKey.isPressed;
-            if (kb.spaceKey.wasPressedThisFrame)
+            
+            // Xử lý nhảy ngay trong Update để không bị delay
+            if (kb.spaceKey.wasPressedThisFrame && _isGrounded)
+            {
                 _wantsToJump = true;
+                _triggerJump = true;  // Set flag để trigger animation
+            }
         }
 
-        // Set animator trong Update để đồng bộ với Animator (chạy trước Animator)
-        if (animator != null)
+        // Phát hiện khi vừa tiếp đất
+        _justLanded = _isGrounded && !_wasGrounded;
+        
+        // Set animator trong Update để đồng bộ với Animator
+        UpdateAnimator();
+        
+        // Lưu trạng thái ground cho frame sau
+        _wasGrounded = _isGrounded;
+    }
+
+    void UpdateAnimator()
+    {
+        if (animator == null) return;
+        
+        // Khi vừa tiếp đất, force chuyển về Blend Tree state
+        if (_justLanded)
         {
-            animator.SetFloat("MoveX", _moveInput.x);
-            animator.SetFloat("MoveY", _moveInput.z);
-            animator.SetFloat("Speed", (_isRunning && _moveInput.sqrMagnitude > 0.01f) ? 1f : 0f);
-            animator.SetBool("IsJumping", !_isGrounded);
-            if (_justJumped)
-            {
-                animator.SetTrigger("Jump");
-                _justJumped = false;
-            }
+            animator.ResetTrigger("Jump");
+            animator.SetBool("IsJumping", false);
+            // Force play Blend Tree state
+            animator.Play("Blend Tree", 0, 0f);
+            Debug.Log("Just landed - forcing Blend Tree state");
+        }
+        
+        // Luôn set các giá trị di chuyển - để blend tree hoạt động đúng
+        animator.SetFloat("MoveX", _moveInput.x);
+        animator.SetFloat("MoveY", _moveInput.z);
+        animator.SetFloat("Speed", (_isRunning && _moveInput.sqrMagnitude > 0.01f) ? 1f : 0f);
+        
+        animator.SetBool("IsJumping", !_isGrounded);
+        
+        // Trigger jump animation
+        if (_triggerJump)
+        {
+            animator.SetTrigger("Jump");
+            _triggerJump = false;
         }
     }
 
@@ -71,8 +105,6 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        _isGrounded = IsGrounded();
-
         // Xử lý nhảy và trọng lực (tự quản lý, tránh xung đột với Rigidbody)
         if (_isGrounded)
         {
@@ -80,7 +112,6 @@ public class PlayerController : MonoBehaviour
             {
                 _verticalVelocity = jumpForce;
                 _wantsToJump = false;
-                _justJumped = true;
             }
             else
             {
@@ -103,5 +134,13 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDelta = (moveDir * speed + Vector3.up * _verticalVelocity) * Time.fixedDeltaTime;
 
         rb.MovePosition(rb.position + moveDelta);
+    }
+
+    // Debug: Vẽ raycast trong Scene view
+    void OnDrawGizmosSelected()
+    {
+        Vector3 origin = transform.position + Vector3.up * groundCheckOffset;
+        Gizmos.color = _isGrounded ? Color.green : Color.red;
+        Gizmos.DrawLine(origin, origin + Vector3.down * groundCheckLength);
     }
 }
