@@ -55,7 +55,7 @@ public class ChatBubbleSetupTool : EditorWindow
         textComp.alignment = TextAlignmentOptions.Center;
         textComp.fontSize = 42; 
         textComp.color = Color.white;
-        textComp.enableWordWrapping = true;
+        textComp.textWrappingMode = TextWrappingModes.Normal;
         
         RectTransform textRect = textObj.GetComponent<RectTransform>();
         textRect.anchorMin = new Vector2(0.05f, 0.1f);

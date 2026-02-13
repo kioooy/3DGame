@@ -17,11 +17,20 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float groundCheckDistance = 0.4f;
     [SerializeField] Vector3 groundCheckOffset = new Vector3(0, 0.1f, 0);
 
+    [Header("Interaction Settings")]
+    [SerializeField] float interactionRange = 3.5f;
+    [SerializeField] LayerMask itemLayer;
+    [SerializeField] Transform cameraTransform;
+
     Vector3 _moveInput;
     bool _isRunning;
     float _verticalVelocity;
     bool _isGrounded;
     bool _isJumping;
+    
+    // Interaction
+    private PickableItem _currentLookingItem;
+    private bool _inventoryOpen = false;
 
     void Awake()
     {
@@ -30,6 +39,9 @@ public class PlayerController : MonoBehaviour
         
         if (rb == null)
             rb = GetComponent<Rigidbody>();
+        
+        if (cameraTransform == null)
+            cameraTransform = Camera.main?.transform;
     }
 
     void Start()
@@ -52,17 +64,45 @@ public class PlayerController : MonoBehaviour
     {
         _isGrounded = Physics.Raycast(transform.position + groundCheckOffset, Vector3.down, groundCheckDistance);
 
+        // Check inventory state
+        _inventoryOpen = InventoryUI.Instance != null && InventoryUI.Instance.IsOpen;
+
+        // Detect pickable items
+        DetectPickableItems();
+
         var kb = Keyboard.current;
         if (kb != null)
         {
-            float h = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
-            float v = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
-            _moveInput = new Vector3(h, 0f, v).normalized;
-            _isRunning = kb.leftShiftKey.isPressed;
-
-            if (kb.spaceKey.wasPressedThisFrame && _isGrounded)
+            // Toggle inventory với Tab
+            if (kb.tabKey.wasPressedThisFrame)
             {
-                Jump();
+                if (InventoryUI.Instance != null)
+                    InventoryUI.Instance.ToggleInventory();
+            }
+
+            // Pickup item với E
+            if (kb.eKey.wasPressedThisFrame && _currentLookingItem != null && !_inventoryOpen)
+            {
+                TryPickupItem();
+            }
+
+            // Disable movement khi inventory mở
+            if (!_inventoryOpen)
+            {
+                float h = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
+                float v = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
+                _moveInput = new Vector3(h, 0f, v).normalized;
+                _isRunning = kb.leftShiftKey.isPressed;
+
+                if (kb.spaceKey.wasPressedThisFrame && _isGrounded)
+                {
+                    Jump();
+                }
+            }
+            else
+            {
+                _moveInput = Vector3.zero;
+                _isRunning = false;
             }
         }
 
@@ -126,5 +166,103 @@ public class PlayerController : MonoBehaviour
         Vector3 verticalMove = Vector3.up * _verticalVelocity * Time.fixedDeltaTime;
 
         rb.MovePosition(rb.position + horizontalMove + verticalMove);
+    }
+
+    /// <summary>
+    /// Raycast để detect pickable items
+    /// </summary>
+    void DetectPickableItems()
+    {
+        if (cameraTransform == null)
+        {
+            Debug.LogWarning("PlayerController: Camera Transform chưa được assign!");
+            return;
+        }
+
+        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+        RaycastHit hit;
+
+        PickableItem previousItem = _currentLookingItem;
+
+        // Raycast với hoặc không có layer mask
+        bool hitSomething = false;
+        if (itemLayer.value != 0)
+        {
+            hitSomething = Physics.Raycast(ray, out hit, interactionRange, itemLayer);
+        }
+        else
+        {
+            // Nếu chưa setup layer, raycast tất cả
+            hitSomething = Physics.Raycast(ray, out hit, interactionRange);
+        }
+
+        if (hitSomething)
+        {
+            PickableItem item = hit.collider.GetComponent<PickableItem>();
+            if (item != null)
+            {
+                _currentLookingItem = item;
+                item.Highlight(true);
+
+                // Show pickup prompt
+                if (PickupPromptUI.Instance != null && item.itemData != null)
+                {
+                    PickupPromptUI.Instance.ShowPrompt(item.itemData.itemName);
+                }
+                else
+                {
+                    if (item.itemData == null)
+                    {
+                        Debug.LogWarning($"PickableItem '{item.gameObject.name}' không có ItemData!");
+                    }
+                    if (PickupPromptUI.Instance == null)
+                    {
+                        Debug.LogWarning("PickupPromptUI.Instance is null! Make sure PickupPromptUI exists in the scene.");
+                    }
+                }
+            }
+            else
+            {
+                _currentLookingItem = null;
+            }
+        }
+        else
+        {
+            _currentLookingItem = null;
+        }
+
+        // Remove highlight from previous item
+        if (previousItem != null && previousItem != _currentLookingItem)
+        {
+            previousItem.Highlight(false);
+            if (PickupPromptUI.Instance != null)
+            {
+                PickupPromptUI.Instance.HidePrompt();
+            }
+        }
+
+        // Hide prompt if no item
+        if (_currentLookingItem == null && PickupPromptUI.Instance != null)
+        {
+            PickupPromptUI.Instance.HidePrompt();
+        }
+    }
+
+    /// <summary>
+    /// Thử nhặt item hiện tại
+    /// </summary>
+    void TryPickupItem()
+    {
+        if (_currentLookingItem == null) return;
+
+        bool success = _currentLookingItem.TryPickup();
+        if (success)
+        {
+            _currentLookingItem = null;
+            if (PickupPromptUI.Instance != null)
+            {
+                PickupPromptUI.Instance.HidePrompt();
+            }
+        }
     }
 }
