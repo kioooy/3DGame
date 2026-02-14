@@ -11,7 +11,7 @@ public class InventoryManager : MonoBehaviour
     
     [Header("Inventory Settings")]
     [Tooltip("Số lượng slots trong inventory")]
-    [SerializeField] private int inventorySize = 20;
+    [SerializeField] private int inventorySize = 32;
     
     private InventorySlot[] _slots;
     
@@ -22,14 +22,19 @@ public class InventoryManager : MonoBehaviour
     
     void Awake()
     {
+        Debug.Log("[InventoryManager] Awake called");
+        
         // Singleton pattern
         if (Instance != null && Instance != this)
         {
+            Debug.LogWarning($"[InventoryManager] Duplicate InventoryManager detected! Destroying {gameObject.name}");
             Destroy(gameObject);
             return;
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        Debug.Log($"[InventoryManager] Singleton initialized on {gameObject.name}");
         
         // Khởi tạo inventory
         InitializeInventory();
@@ -37,11 +42,15 @@ public class InventoryManager : MonoBehaviour
     
     void InitializeInventory()
     {
+        Debug.Log($"[InventoryManager] InitializeInventory: Creating {inventorySize} slots");
+        
         _slots = new InventorySlot[inventorySize];
         for (int i = 0; i < inventorySize; i++)
         {
             _slots[i] = new InventorySlot();
         }
+        
+        Debug.Log($"[InventoryManager] ✅ Inventory initialized with {_slots.Length} slots");
     }
     
     /// <summary>
@@ -63,24 +72,43 @@ public class InventoryManager : MonoBehaviour
     /// </summary>
     public bool AddItem(ItemData itemData, int quantity)
     {
+        Debug.Log($"[InventoryManager] AddItem called: {itemData?.itemName ?? "NULL"} x{quantity}");
+        
         if (itemData == null || quantity <= 0)
         {
-            Debug.LogWarning("Không thể thêm item null hoặc quantity <= 0");
+            Debug.LogWarning($"[InventoryManager] ❌ Không thể thêm item null hoặc quantity <= 0. ItemData={itemData}, Quantity={quantity}");
             return false;
         }
+        
+        if (_slots == null)
+        {
+            Debug.LogError("[InventoryManager] ❌ _slots is NULL! Inventory chưa được khởi tạo!");
+            return false;
+        }
+        
+        Debug.Log($"[InventoryManager] Inventory có {_slots.Length} slots, đang thử thêm {quantity}x {itemData.itemName}");
         
         int remainingQty = quantity;
         
         // Bước 1: Thử stack vào các slot đã có item này
         if (itemData.IsStackable)
         {
+            Debug.Log($"[InventoryManager] Item {itemData.itemName} có thể stack (max: {itemData.maxStackSize})");
+            
             for (int i = 0; i < _slots.Length && remainingQty > 0; i++)
             {
                 if (!_slots[i].IsEmpty && _slots[i].item == itemData && !_slots[i].IsFull)
                 {
+                    int beforeQty = remainingQty;
                     remainingQty = _slots[i].AddItem(itemData, remainingQty);
+                    int added = beforeQty - remainingQty;
+                    Debug.Log($"[InventoryManager] Slot {i}: Đã stack thêm {added}, còn lại {remainingQty}");
                 }
             }
+        }
+        else
+        {
+            Debug.Log($"[InventoryManager] Item {itemData.itemName} KHÔNG thể stack");
         }
         
         // Bước 2: Thêm vào các slot trống
@@ -88,21 +116,25 @@ public class InventoryManager : MonoBehaviour
         {
             if (_slots[i].IsEmpty)
             {
+                int beforeQty = remainingQty;
                 remainingQty = _slots[i].AddItem(itemData, remainingQty);
+                int added = beforeQty - remainingQty;
+                Debug.Log($"[InventoryManager] Slot {i}: Đã thêm {added} vào slot trống, còn lại {remainingQty}");
             }
         }
         
         // Notify UI update
+        Debug.Log($"[InventoryManager] Triggering OnInventoryChanged event");
         OnInventoryChanged?.Invoke();
         
         // Kiểm tra xem có thêm hết không
         if (remainingQty > 0)
         {
-            Debug.LogWarning($"Inventory đầy! Không thể thêm {remainingQty} {itemData.itemName}");
+            Debug.LogWarning($"[InventoryManager] ⚠️ Inventory đầy! Không thể thêm {remainingQty} {itemData.itemName}");
             return false;
         }
         
-        Debug.Log($"Đã thêm {quantity}x {itemData.itemName} vào inventory");
+        Debug.Log($"[InventoryManager] ✅ Đã thêm {quantity}x {itemData.itemName} vào inventory thành công!");
         return true;
     }
     
@@ -134,6 +166,34 @@ public class InventoryManager : MonoBehaviour
         
         OnInventoryChanged?.Invoke();
         return true;
+    }
+    
+    /// <summary>
+    /// Xóa item từ slot cụ thể (dùng cho throwing)
+    /// </summary>
+    public bool RemoveItemFromSlot(int slotIndex, int quantity = 1)
+    {
+        if (slotIndex < 0 || slotIndex >= _slots.Length)
+        {
+            Debug.LogWarning($"[InventoryManager] Invalid slot index: {slotIndex}");
+            return false;
+        }
+        
+        if (_slots[slotIndex].IsEmpty)
+        {
+            return false;
+        }
+        
+        int removed = _slots[slotIndex].RemoveItem(quantity);
+        
+        if (removed > 0)
+        {
+            OnInventoryChanged?.Invoke();
+            Debug.Log($"[InventoryManager] Removed {removed}x {_slots[slotIndex].item?.itemName ?? "item"} from slot {slotIndex}");
+            return true;
+        }
+        
+        return false;
     }
     
     /// <summary>

@@ -31,6 +31,28 @@ public class ItemData : ScriptableObject
     [Tooltip("Prefab 3D model cho vật phẩm trong world")]
     public GameObject worldModelPrefab;
     
+    [Tooltip("Prefab 3D model khi cầm trên tay")]
+    public GameObject handModelPrefab;
+    
+    [Header("Equipment")]
+    [Tooltip("Item có thể cầm trên tay không")]
+    public bool isEquippable = true;
+    
+    [Header("Throwable Settings")]
+    [Tooltip("Item có thể ném không")]
+    public bool isThrowable = false;
+    
+    [Tooltip("Lực ném (càng cao ném càng xa)")]
+    [Range(1f, 50f)]
+    public float throwForce = 15f;
+    
+    [Tooltip("Sát thương khi ném trúng")]
+    [Range(0, 100)]
+    public int throwDamage = 10;
+    
+    [Tooltip("Prefab cho projectile khi ném (nếu null sẽ dùng worldModelPrefab)")]
+    public GameObject projectilePrefab;
+    
     /// <summary>
     /// Kiểm tra xem item có thể stack được không
     /// </summary>

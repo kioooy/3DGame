@@ -7,15 +7,25 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class AudioListenerFixer : MonoBehaviour
 {
+    private static bool _hasFixedThisSession = false;
+    
     void Awake()
     {
-        FixDuplicateAudioListeners();
+        if (!_hasFixedThisSession)
+        {
+            FixDuplicateAudioListeners();
+            _hasFixedThisSession = true;
+        }
     }
 
 #if UNITY_EDITOR
     void OnValidate()
     {
-        FixDuplicateAudioListeners();
+        // Only fix in edit mode, not during play
+        if (!Application.isPlaying)
+        {
+            FixDuplicateAudioListeners();
+        }
     }
 #endif
 
@@ -26,23 +36,27 @@ public class AudioListenerFixer : MonoBehaviour
         if (listeners.Length <= 1)
             return;
 
-        Debug.LogWarning($"Tìm thấy {listeners.Length} Audio Listeners! Đang fix...");
+        Debug.LogWarning($"[AudioListenerFixer] Tìm thấy {listeners.Length} Audio Listeners! Đang fix...");
 
         // Tìm Main Camera
         Camera mainCam = Camera.main;
         AudioListener mainListener = mainCam?.GetComponent<AudioListener>();
+
+        int removedCount = 0;
 
         // Disable tất cả listeners trừ main camera
         foreach (AudioListener listener in listeners)
         {
             if (listener != mainListener)
             {
-                Debug.Log($"Xóa Audio Listener khỏi: {listener.gameObject.name}");
+                Debug.Log($"[AudioListenerFixer] Xóa Audio Listener khỏi: {listener.gameObject.name}");
                 
                 if (Application.isPlaying)
                     listener.enabled = false;
                 else
                     DestroyImmediate(listener);
+                
+                removedCount++;
             }
         }
 
@@ -50,7 +64,12 @@ public class AudioListenerFixer : MonoBehaviour
         if (mainCam != null && mainListener == null)
         {
             mainCam.gameObject.AddComponent<AudioListener>();
-            Debug.Log("Đã thêm Audio Listener vào Main Camera");
+            Debug.Log("[AudioListenerFixer] Đã thêm Audio Listener vào Main Camera");
+        }
+        
+        if (removedCount > 0)
+        {
+            Debug.Log($"[AudioListenerFixer] ✅ Đã xóa {removedCount} duplicate Audio Listeners");
         }
     }
 }

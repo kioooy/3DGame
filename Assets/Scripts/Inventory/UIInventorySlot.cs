@@ -26,6 +26,7 @@ public class UIInventorySlot : MonoBehaviour
     {
         _slot = slot;
         _slotIndex = index;
+        Debug.Log($"[UIInventorySlot] Slot {index} setup complete");
         UpdateUI();
     }
     
@@ -34,9 +35,18 @@ public class UIInventorySlot : MonoBehaviour
     /// </summary>
     public void UpdateUI()
     {
-        if (_slot == null) return;
+        if (_slot == null)
+        {
+            Debug.LogWarning($"[UIInventorySlot] Slot {_slotIndex}: _slot is NULL!");
+            return;
+        }
         
         bool hasItem = !_slot.IsEmpty;
+        
+        if (hasItem)
+        {
+            Debug.Log($"[UIInventorySlot] Slot {_slotIndex}: Updating with item {_slot.item.itemName} x{_slot.quantity}");
+        }
         
         // Icon
         if (itemIcon != null)
@@ -45,7 +55,16 @@ public class UIInventorySlot : MonoBehaviour
             if (hasItem && _slot.item.itemIcon != null)
             {
                 itemIcon.sprite = _slot.item.itemIcon;
+                Debug.Log($"[UIInventorySlot] Slot {_slotIndex}: Set icon sprite");
             }
+            else if (hasItem && _slot.item.itemIcon == null)
+            {
+                Debug.LogWarning($"[UIInventorySlot] Slot {_slotIndex}: Item {_slot.item.itemName} has NO ICON!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[UIInventorySlot] Slot {_slotIndex}: itemIcon reference is NULL!");
         }
         
         // Quantity text

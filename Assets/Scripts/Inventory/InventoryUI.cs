@@ -39,10 +39,17 @@ public class InventoryUI : MonoBehaviour
     
     void Start()
     {
+        Debug.Log("[InventoryUI] Start called");
+        
         // Subscribe to inventory changes
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.OnInventoryChanged += RefreshUI;
+            Debug.Log("[InventoryUI] Subscribed to OnInventoryChanged event");
+        }
+        else
+        {
+            Debug.LogError("[InventoryUI] ❌ InventoryManager.Instance is NULL! Cannot subscribe to events!");
         }
         
         // Create UI slots
@@ -74,14 +81,18 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     void CreateSlots()
     {
+        Debug.Log("[InventoryUI] CreateSlots called");
+        
         if (InventoryManager.Instance == null || slotsContainer == null || slotPrefab == null)
         {
-            Debug.LogWarning("InventoryUI: Missing references!");
+            Debug.LogError($"[InventoryUI] ❌ Missing references! InventoryManager={InventoryManager.Instance != null}, SlotsContainer={slotsContainer != null}, SlotPrefab={slotPrefab != null}");
             return;
         }
         
         var slots = InventoryManager.Instance.GetAllSlots();
         _uiSlots = new UIInventorySlot[slots.Length];
+        
+        Debug.Log($"[InventoryUI] Creating {slots.Length} UI slots");
         
         for (int i = 0; i < slots.Length; i++)
         {
@@ -93,7 +104,13 @@ public class InventoryUI : MonoBehaviour
                 uiSlot.Setup(slots[i], i);
                 _uiSlots[i] = uiSlot;
             }
+            else
+            {
+                Debug.LogError($"[InventoryUI] ❌ Slot prefab doesn't have UIInventorySlot component!");
+            }
         }
+        
+        Debug.Log($"[InventoryUI] ✅ Created {_uiSlots.Length} UI slots");
     }
     
     /// <summary>
@@ -101,13 +118,30 @@ public class InventoryUI : MonoBehaviour
     /// </summary>
     void RefreshUI()
     {
-        if (_uiSlots == null) return;
+        Debug.Log("[InventoryUI] RefreshUI called");
         
+        if (_uiSlots == null)
+        {
+            Debug.LogWarning("[InventoryUI] ⚠️ _uiSlots is NULL! Cannot refresh UI");
+            return;
+        }
+        
+        Debug.Log($"[InventoryUI] Refreshing {_uiSlots.Length} slots");
+        
+        int itemCount = 0;
         foreach (var uiSlot in _uiSlots)
         {
             if (uiSlot != null)
+            {
                 uiSlot.UpdateUI();
+                if (uiSlot.Slot != null && !uiSlot.Slot.IsEmpty)
+                {
+                    itemCount++;
+                }
+            }
         }
+        
+        Debug.Log($"[InventoryUI] ✅ Refreshed UI, {itemCount} slots have items");
     }
     
     /// <summary>

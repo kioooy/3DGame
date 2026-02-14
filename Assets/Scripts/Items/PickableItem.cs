@@ -76,27 +76,39 @@ public class PickableItem : MonoBehaviour
     /// </summary>
     public bool TryPickup()
     {
+        Debug.Log($"[PickableItem] TryPickup called on {gameObject.name}");
+        
         if (itemData == null)
         {
-            Debug.LogWarning($"PickableItem '{gameObject.name}' không có ItemData!");
+            Debug.LogError($"[PickableItem] ❌ '{gameObject.name}' KHÔNG CÓ ItemData! Vui lòng assign ItemData trong Inspector!");
+            Debug.LogError($"[PickableItem] → Chọn GameObject '{gameObject.name}' → Inspector → PickableItem component → Kéo ItemData vào field 'Item Data'");
             return false;
         }
+        
+        Debug.Log($"[PickableItem] ItemData OK: {itemData.itemName}");
         
         // Check if InventoryManager exists
         if (InventoryManager.Instance == null)
         {
-            Debug.LogError("InventoryManager.Instance is null! Make sure InventoryManager exists in the scene.");
+            Debug.LogError("[PickableItem] ❌ InventoryManager.Instance is null! Make sure InventoryManager exists in the scene.");
             return false;
         }
+        
+        Debug.Log($"[PickableItem] InventoryManager OK, calling AddItem({itemData.itemName}, {quantity})");
         
         // Thử thêm vào inventory
         bool success = InventoryManager.Instance.AddItem(itemData, quantity);
         
         if (success)
         {
+            Debug.Log($"[PickableItem] ✅ Successfully picked up {quantity}x {itemData.itemName}");
             // TODO: Play pickup sound/effect
             Destroy(gameObject);
             return true;
+        }
+        else
+        {
+            Debug.LogWarning($"[PickableItem] ⚠️ Failed to add {itemData.itemName} to inventory (inventory full?)");
         }
         
         return false;

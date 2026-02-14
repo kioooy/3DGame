@@ -12,7 +12,7 @@ public class InventoryManagerSetupTool : EditorWindow
         GetWindow<InventoryManagerSetupTool>("Inventory Manager Setup");
     }
 
-    private int inventorySize = 20;
+    private int inventorySize = 32;
 
     void OnGUI()
     {

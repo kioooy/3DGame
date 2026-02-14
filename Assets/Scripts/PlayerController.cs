@@ -21,6 +21,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float interactionRange = 3.5f;
     [SerializeField] LayerMask itemLayer;
     [SerializeField] Transform cameraTransform;
+    
+    [Header("Equipment")]
+    [SerializeField] private PlayerEquipment playerEquipment;
 
     Vector3 _moveInput;
     bool _isRunning;
@@ -31,6 +34,7 @@ public class PlayerController : MonoBehaviour
     // Interaction
     private PickableItem _currentLookingItem;
     private bool _inventoryOpen = false;
+    private bool _hasLoggedItemDataWarning = false;
 
     void Awake()
     {
@@ -89,6 +93,16 @@ public class PlayerController : MonoBehaviour
             // Disable movement khi inventory mở
             if (!_inventoryOpen)
             {
+                // Hotbar selection (1-9)
+                HandleHotbarInput(kb);
+                
+                // Throw item (left mouse)
+                var mouse = Mouse.current;
+                if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+                {
+                    TryThrowItem();
+                }
+                
                 float h = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
                 float v = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
                 _moveInput = new Vector3(h, 0f, v).normalized;
@@ -211,14 +225,13 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 {
-                    if (item.itemData == null)
+                    // Only log once to avoid spam
+                    if (item.itemData == null && !_hasLoggedItemDataWarning)
                     {
                         Debug.LogWarning($"PickableItem '{item.gameObject.name}' không có ItemData!");
+                        _hasLoggedItemDataWarning = true;
                     }
-                    if (PickupPromptUI.Instance == null)
-                    {
-                        Debug.LogWarning("PickupPromptUI.Instance is null! Make sure PickupPromptUI exists in the scene.");
-                    }
+                    // Don't log PickupPromptUI warning - it's optional
                 }
             }
             else
@@ -264,5 +277,47 @@ public class PlayerController : MonoBehaviour
                 PickupPromptUI.Instance.HidePrompt();
             }
         }
+    }
+    
+    /// <summary>
+    /// Handle hotbar input (keys 1-9)
+    /// </summary>
+    void HandleHotbarInput(Keyboard kb)
+    {
+        var hotbarUI = FindFirstObjectByType<HotbarUI>();
+        if (hotbarUI == null) return;
+        
+        if (kb.digit1Key.wasPressedThisFrame) hotbarUI.SelectSlot(0);
+        else if (kb.digit2Key.wasPressedThisFrame) hotbarUI.SelectSlot(1);
+        else if (kb.digit3Key.wasPressedThisFrame) hotbarUI.SelectSlot(2);
+        else if (kb.digit4Key.wasPressedThisFrame) hotbarUI.SelectSlot(3);
+        else if (kb.digit5Key.wasPressedThisFrame) hotbarUI.SelectSlot(4);
+        else if (kb.digit6Key.wasPressedThisFrame) hotbarUI.SelectSlot(5);
+        else if (kb.digit7Key.wasPressedThisFrame) hotbarUI.SelectSlot(6);
+        else if (kb.digit8Key.wasPressedThisFrame) hotbarUI.SelectSlot(7);
+        else if (kb.digit9Key.wasPressedThisFrame) hotbarUI.SelectSlot(8);
+    }
+    
+    /// <summary>
+    /// Try to throw equipped item
+    /// </summary>
+    void TryThrowItem()
+    {
+        if (playerEquipment == null)
+        {
+            playerEquipment = GetComponent<PlayerEquipment>();
+        }
+        
+        if (playerEquipment == null || !playerEquipment.HasEquippedItem)
+        {
+            return;
+        }
+        
+        // Get throw direction (camera forward)
+        Vector3 throwDirection = cameraTransform != null ? 
+            cameraTransform.forward : 
+            transform.forward;
+        
+        playerEquipment.ThrowItem(throwDirection);
     }
 }
