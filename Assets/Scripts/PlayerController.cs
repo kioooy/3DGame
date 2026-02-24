@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     [Header("Ground Check")]
     [SerializeField] float groundCheckDistance = 0.4f;
     [SerializeField] Vector3 groundCheckOffset = new Vector3(0, 0.1f, 0);
+    [SerializeField] LayerMask groundLayer; // Layer cho ground (không bao gồm items)
 
     [Header("Interaction Settings")]
     [SerializeField] float interactionRange = 3.5f;
@@ -66,7 +67,18 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        _isGrounded = Physics.Raycast(transform.position + groundCheckOffset, Vector3.down, groundCheckDistance);
+        // Ground check - ignore items layer
+        if (groundLayer.value != 0)
+        {
+            _isGrounded = Physics.Raycast(transform.position + groundCheckOffset, Vector3.down, groundCheckDistance, groundLayer);
+        }
+        else
+        {
+            // Fallback: check everything except items
+            int itemLayerMask = LayerMask.GetMask("Item");
+            int everythingExceptItems = ~itemLayerMask;
+            _isGrounded = Physics.Raycast(transform.position + groundCheckOffset, Vector3.down, groundCheckDistance, everythingExceptItems);
+        }
 
         // Check inventory state
         _inventoryOpen = InventoryUI.Instance != null && InventoryUI.Instance.IsOpen;
@@ -194,54 +206,37 @@ public class PlayerController : MonoBehaviour
         }
 
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        RaycastHit hit;
-
+        
         PickableItem previousItem = _currentLookingItem;
 
-        // Raycast với hoặc không có layer mask
-        bool hitSomething = false;
-        if (itemLayer.value != 0)
-        {
-            hitSomething = Physics.Raycast(ray, out hit, interactionRange, itemLayer);
-        }
-        else
-        {
-            // Nếu chưa setup layer, raycast tất cả
-            hitSomething = Physics.Raycast(ray, out hit, interactionRange);
-        }
-
-        if (hitSomething)
+        // Use RaycastAll to detect ALL colliders including triggers
+        RaycastHit[] hits = Physics.RaycastAll(ray, interactionRange);
+        
+        PickableItem closestItem = null;
+        float closestDistance = float.MaxValue;
+        
+        // Find closest PickableItem
+        foreach (var hit in hits)
         {
             PickableItem item = hit.collider.GetComponent<PickableItem>();
-            if (item != null)
+            if (item != null && hit.distance < closestDistance)
             {
-                _currentLookingItem = item;
-                item.Highlight(true);
-
-                // Show pickup prompt
-                if (PickupPromptUI.Instance != null && item.itemData != null)
-                {
-                    PickupPromptUI.Instance.ShowPrompt(item.itemData.itemName);
-                }
-                else
-                {
-                    // Only log once to avoid spam
-                    if (item.itemData == null && !_hasLoggedItemDataWarning)
-                    {
-                        Debug.LogWarning($"PickableItem '{item.gameObject.name}' không có ItemData!");
-                        _hasLoggedItemDataWarning = true;
-                    }
-                    // Don't log PickupPromptUI warning - it's optional
-                }
-            }
-            else
-            {
-                _currentLookingItem = null;
+                closestItem = item;
+                closestDistance = hit.distance;
             }
         }
-        else
+        
+        _currentLookingItem = closestItem;
+
+        // Update highlight and prompt
+        if (_currentLookingItem != null)
         {
-            _currentLookingItem = null;
+            _currentLookingItem.Highlight(true);
+            
+            if (PickupPromptUI.Instance != null && _currentLookingItem.itemData != null)
+            {
+                PickupPromptUI.Instance.ShowPrompt(_currentLookingItem.itemData.itemName);
+            }
         }
 
         // Remove highlight from previous item
