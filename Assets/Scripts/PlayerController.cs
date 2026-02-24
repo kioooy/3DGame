@@ -35,7 +35,7 @@ public class PlayerController : MonoBehaviour
     // Interaction
     private PickableItem _currentLookingItem;
     private bool _inventoryOpen = false;
-    private bool _hasLoggedItemDataWarning = false;
+
 
     void Awake()
     {
