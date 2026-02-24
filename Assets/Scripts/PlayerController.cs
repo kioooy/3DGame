@@ -17,6 +17,17 @@ public class PlayerController : MonoBehaviour
     bool _isJumping;
     int _groundContactCount;
 
+    void Awake()
+    {
+        // Tự gán Animator nếu chưa gán trong Inspector (tránh lỗi "Animator has not been initialized")
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+            if (animator == null)
+                animator = GetComponentInChildren<Animator>();
+        }
+    }
+
     void Start()
     {
         if (rb != null)
@@ -98,7 +109,7 @@ public class PlayerController : MonoBehaviour
             AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
             if (stateInfo.IsName("Jump"))
             {
-                animator.Play("Blend Tree", 0, 0f);
+                animator.Play("Locomotion", 0, 0f);
             }
         }
         
