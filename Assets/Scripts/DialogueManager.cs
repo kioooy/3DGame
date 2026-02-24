@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections;
@@ -165,7 +166,8 @@ public class DialogueManager : MonoBehaviour
     }
 
     void Update() {
-        if (dialoguePanel != null && dialoguePanel.activeSelf && (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.F))) {
+        var kb = Keyboard.current;
+        if (kb != null && dialoguePanel != null && dialoguePanel.activeSelf && (kb.spaceKey.wasPressedThisFrame || kb.fKey.wasPressedThisFrame)) {
             DisplayNextSentence();
         }
     }

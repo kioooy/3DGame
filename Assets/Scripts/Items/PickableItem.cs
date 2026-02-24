@@ -30,7 +30,7 @@ public class PickableItem : MonoBehaviour
     
     void Awake()
     {
-        // Đảm bảo collider là trigger
+        // Set collider as trigger to avoid physics conflicts
         Collider col = GetComponent<Collider>();
         if (col != null)
             col.isTrigger = true;
@@ -41,8 +41,20 @@ public class PickableItem : MonoBehaviour
         for (int i = 0; i < _renderers.Length; i++)
         {
             if (_renderers[i].material != null)
-                _originalColors[i] = _renderers[i].material.color;
+            {
+                // Check if material has _Color property (some shaders don't)
+                if (_renderers[i].material.HasProperty("_Color"))
+                {
+                    _originalColors[i] = _renderers[i].material.color;
+                }
+                else
+                {
+                    _originalColors[i] = Color.white;
+                }
+            }
         }
+        
+        Debug.Log($"[PickableItem] {gameObject.name} initialized as trigger");
     }
     
     void Update()
@@ -62,11 +74,25 @@ public class PickableItem : MonoBehaviour
         if (_isHighlighted == enable) return;
         _isHighlighted = enable;
         
+        if (_renderers == null || _renderers.Length == 0)
+        {
+            Debug.LogWarning($"[PickableItem] {gameObject.name}: No renderers found for highlight!");
+            return;
+        }
+        
         for (int i = 0; i < _renderers.Length; i++)
         {
             if (_renderers[i] != null && _renderers[i].material != null)
             {
-                _renderers[i].material.color = enable ? highlightColor : _originalColors[i];
+                // Only set color if material has _Color property
+                if (_renderers[i].material.HasProperty("_Color"))
+                {
+                    _renderers[i].material.color = enable ? highlightColor : _originalColors[i];
+                }
+                else
+                {
+                    Debug.LogWarning($"[PickableItem] {gameObject.name}: Material '{_renderers[i].material.name}' doesn't have _Color property");
+                }
             }
         }
     }

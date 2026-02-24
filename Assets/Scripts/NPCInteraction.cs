@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class NPCInteraction : MonoBehaviour
 {
@@ -34,7 +35,7 @@ public class NPCInteraction : MonoBehaviour
                 DialogueManager.Instance.ShowInteractionPrompt(isPlayerNearby);
         }
 
-        if (isPlayerNearby && Input.GetKeyDown(KeyCode.F))
+        if (isPlayerNearby && Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
         {
             if (DialogueManager.Instance != null)
                 DialogueManager.Instance.StartDialogue(npcName, dialogue);
