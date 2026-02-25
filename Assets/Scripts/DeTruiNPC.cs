@@ -142,6 +142,10 @@ public class DeTruiNPC : MonoBehaviour
         
         if (chatBubble != null) chatBubble.Hide();
 
+        // Hoàn thành nhiệm vụ "Nói chuyện với Dế Trũi"
+        if (QuestUIManager.Instance != null)
+            QuestUIManager.Instance.CompleteQuest("talk_detrui");
+
         if (DialogueManager.Instance != null)
         {
              DialogueManager.Instance.ShowInteractionPrompt(false); 
