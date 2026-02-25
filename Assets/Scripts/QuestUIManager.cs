@@ -134,7 +134,7 @@ public class QuestUIManager : MonoBehaviour
             panelImage.color = new Color(0.1f, 0.1f, 0.15f, 0.9f);
 
             RectTransform panelRect = questPanel.GetComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(0.65f, 0.4f);
+            panelRect.anchorMin = new Vector2(0.65f, 0.25f);
             panelRect.anchorMax = new Vector2(1f, 1f);
             panelRect.offsetMin = new Vector2(10, 10);
             panelRect.offsetMax = new Vector2(-20, -20);
@@ -169,8 +169,18 @@ public class QuestUIManager : MonoBehaviour
             lineRect.anchoredPosition = new Vector2(0, -70);
             lineRect.sizeDelta = new Vector2(0, 2);
 
-            // === Quest: Nói chuyện với Dế Trũi ===
-            CreateQuestEntry(questPanel.transform, "talk_detrui", "○ Nói chuyện với Dế Trũi", -90);
+            // === Chương 1: Làng Dế - Sự kiêu ngạo ===
+            CreateQuestEntry(questPanel.transform, "talk_detrui",     "○ Nói chuyện với Dế Trũi", -90f);
+            CreateQuestEntry(questPanel.transform, "explore_village",  "○ Khám phá Làng Dế",       -125f);
+
+            // === Chương 2: Bờ Ruộng - Trách nhiệm ===
+            CreateQuestEntry(questPanel.transform, "collect_items",   "○ Thu thập 3 vật phẩm",    -160f);
+
+            // === Chương 3: Hang Kiến - Đoàn kết ===
+            CreateQuestEntry(questPanel.transform, "find_antcolony",  "○ Tìm đường vào Hang Kiến",-195f);
+
+            // === Chương 4: Đối đầu Xén Tóc ===
+            CreateQuestEntry(questPanel.transform, "defeat_xentoc",   "○ Đánh bại Xén Tóc",       -230f);
 
             // === Hướng dẫn phím tắt ===
             GameObject hintObj = new GameObject("HintText");
