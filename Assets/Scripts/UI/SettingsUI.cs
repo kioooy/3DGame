@@ -39,11 +39,18 @@ public class SettingsUI : MonoBehaviour
     public TMP_Dropdown dropdownResolution;
     public Toggle toggleFullscreen;
 
-    // ── Controls ──
-    [Header("Controls Controls")]
-    public Slider sliderSensitivity;
+    // ── Mouse / Cursor ──
+    [Header("Mouse & Cursor Controls")]
+    public Slider          sliderSensitivity;
     public TextMeshProUGUI labelSensitivity;
-    public Toggle toggleInvertY;
+    public Toggle          toggleInvertY;
+    // Hieu ung con tro chuot moi
+    public Toggle          toggleCursorTrail;
+    public Slider          sliderCursorSize;
+    public TextMeshProUGUI labelCursorSize;
+    public Toggle          toggleSmoothMouse;
+    public Toggle          toggleCursorHighlight;
+    public TMP_Dropdown    dropdownCursorStyle;
 
     // ── Buttons ──
     [Header("Action Buttons")]
@@ -99,12 +106,14 @@ public class SettingsUI : MonoBehaviour
         WireSliderAudio(sliderMusic);
         WireSliderAudio(sliderSFX);
         WireSliderAudio(sliderSensitivity);
+        WireSliderAudio(sliderCursorSize);
 
         // Slider label update
         if (sliderMaster)      sliderMaster.onValueChanged.AddListener(v => UpdateLabel(labelMaster, v));
         if (sliderMusic)       sliderMusic.onValueChanged.AddListener(v  => UpdateLabel(labelMusic, v));
         if (sliderSFX)         sliderSFX.onValueChanged.AddListener(v    => UpdateLabel(labelSFX, v));
         if (sliderSensitivity) sliderSensitivity.onValueChanged.AddListener(v => UpdateLabel(labelSensitivity, v, "x"));
+        if (sliderCursorSize)  sliderCursorSize.onValueChanged.AddListener(v  => UpdateLabel(labelCursorSize, v, "x"));
 
         // Action buttons
         if (btnApply) btnApply.onClick.AddListener(OnClickApply);
@@ -323,8 +332,14 @@ public class SettingsUI : MonoBehaviour
         if (dropdownResolution) dropdownResolution.value = sm.resolutionIdx;
         if (toggleFullscreen)   toggleFullscreen.isOn    = sm.fullscreen;
 
-        if (sliderSensitivity) { sliderSensitivity.value = sm.mouseSensitivity; UpdateLabel(labelSensitivity, sm.mouseSensitivity, "x"); }
-        if (toggleInvertY)      toggleInvertY.isOn        = sm.invertYAxis;
+        if (sliderSensitivity)    { sliderSensitivity.value = sm.mouseSensitivity; UpdateLabel(labelSensitivity, sm.mouseSensitivity, "x"); }
+        if (toggleInvertY)          toggleInvertY.isOn       = sm.invertYAxis;
+        // Cursor fields
+        if (toggleCursorTrail)    toggleCursorTrail.isOn    = sm.cursorTrailEnabled;
+        if (sliderCursorSize)     { sliderCursorSize.value  = sm.cursorSize; UpdateLabel(labelCursorSize, sm.cursorSize, "x"); }
+        if (toggleSmoothMouse)    toggleSmoothMouse.isOn    = sm.smoothMouse;
+        if (toggleCursorHighlight) toggleCursorHighlight.isOn = sm.cursorHighlight;
+        if (dropdownCursorStyle)  dropdownCursorStyle.value  = sm.cursorStyle;
     }
 
     // ──────────────────────────────────────
@@ -335,14 +350,20 @@ public class SettingsUI : MonoBehaviour
         var sm = SettingsManager.Instance;
         if (sm == null) return;
 
-        sm.masterVolume     = sliderMaster      ? sliderMaster.value      : sm.masterVolume;
-        sm.musicVolume      = sliderMusic       ? sliderMusic.value       : sm.musicVolume;
-        sm.sfxVolume        = sliderSFX         ? sliderSFX.value         : sm.sfxVolume;
-        sm.qualityLevel     = dropdownQuality   ? dropdownQuality.value   : sm.qualityLevel;
-        sm.resolutionIdx    = dropdownResolution? dropdownResolution.value : sm.resolutionIdx;
-        sm.fullscreen       = toggleFullscreen  ? toggleFullscreen.isOn   : sm.fullscreen;
-        sm.mouseSensitivity = sliderSensitivity ? sliderSensitivity.value : sm.mouseSensitivity;
-        sm.invertYAxis      = toggleInvertY     ? toggleInvertY.isOn      : sm.invertYAxis;
+        sm.masterVolume       = sliderMaster         ? sliderMaster.value         : sm.masterVolume;
+        sm.musicVolume        = sliderMusic          ? sliderMusic.value          : sm.musicVolume;
+        sm.sfxVolume          = sliderSFX            ? sliderSFX.value            : sm.sfxVolume;
+        sm.qualityLevel       = dropdownQuality      ? dropdownQuality.value      : sm.qualityLevel;
+        sm.resolutionIdx      = dropdownResolution   ? dropdownResolution.value   : sm.resolutionIdx;
+        sm.fullscreen         = toggleFullscreen     ? toggleFullscreen.isOn      : sm.fullscreen;
+        sm.mouseSensitivity   = sliderSensitivity    ? sliderSensitivity.value    : sm.mouseSensitivity;
+        sm.invertYAxis        = toggleInvertY        ? toggleInvertY.isOn         : sm.invertYAxis;
+        // Cursor
+        sm.cursorTrailEnabled = toggleCursorTrail    ? toggleCursorTrail.isOn     : sm.cursorTrailEnabled;
+        sm.cursorSize         = sliderCursorSize     ? sliderCursorSize.value     : sm.cursorSize;
+        sm.smoothMouse        = toggleSmoothMouse    ? toggleSmoothMouse.isOn     : sm.smoothMouse;
+        sm.cursorHighlight    = toggleCursorHighlight? toggleCursorHighlight.isOn : sm.cursorHighlight;
+        sm.cursorStyle        = dropdownCursorStyle  ? dropdownCursorStyle.value  : sm.cursorStyle;
 
         sm.SaveSettings();
         sm.ApplyAll();

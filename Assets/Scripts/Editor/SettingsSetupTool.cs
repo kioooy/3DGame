@@ -204,8 +204,8 @@ public class SettingsSetupTool : EditorWindow
         MakeImage(tabDivider.transform, "DivLine", BORDER_COLOR).GetComponent<RectTransform>().Fill();
 
         var tabBtnAudio    = MakeTabButton(tabBarGO.transform, "Tab_Audio",    "Am Thanh");
-        var tabBtnGraphics = MakeTabButton(tabBarGO.transform, "Tab_Graphics", "Do Hoa");
-        var tabBtnControls = MakeTabButton(tabBarGO.transform, "Tab_Controls", "Dieu Khien");
+        var tabBtnGraphics = MakeTabButton(tabBarGO.transform, "Tab_Graphics",  "Do Phan Giai");
+        var tabBtnControls = MakeTabButton(tabBarGO.transform, "Tab_Controls",  "Con Tro Chuot");
 
         // Layout tab bar horizontal
         var tabLayout = tabBarGO.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -240,8 +240,11 @@ public class SettingsSetupTool : EditorWindow
 
         Slider sSensitivity;
         TextMeshProUGUI lSensitivity;
-        Toggle tInvertY;
-        BuildControlsPanel(pControls.transform, out sSensitivity, out lSensitivity, out tInvertY);
+        Toggle tInvertY, tCursorTrail, tSmoothMouse, tCursorHL;
+        Slider sCursorSize; TextMeshProUGUI lCursorSize;
+        TMP_Dropdown dCursorStyle;
+        BuildControlsPanel(pControls.transform, out sSensitivity, out lSensitivity, out tInvertY,
+            out tCursorTrail, out sCursorSize, out lCursorSize, out tSmoothMouse, out tCursorHL, out dCursorStyle);
 
         // ─────────── BOTTOM BAR (60px) ───────────
         var bottomBar = MakeRect(window.transform, "BottomBar",
@@ -286,9 +289,15 @@ public class SettingsSetupTool : EditorWindow
         so.FindProperty("dropdownQuality").objectReferenceValue    = dQuality;
         so.FindProperty("dropdownResolution").objectReferenceValue = dRes;
         so.FindProperty("toggleFullscreen").objectReferenceValue   = tFullscreen;
-        so.FindProperty("sliderSensitivity").objectReferenceValue  = sSensitivity;
-        so.FindProperty("labelSensitivity").objectReferenceValue   = lSensitivity;
-        so.FindProperty("toggleInvertY").objectReferenceValue      = tInvertY;
+        so.FindProperty("sliderSensitivity").objectReferenceValue   = sSensitivity;
+        so.FindProperty("labelSensitivity").objectReferenceValue    = lSensitivity;
+        so.FindProperty("toggleInvertY").objectReferenceValue       = tInvertY;
+        so.FindProperty("toggleCursorTrail").objectReferenceValue   = tCursorTrail;
+        so.FindProperty("sliderCursorSize").objectReferenceValue    = sCursorSize;
+        so.FindProperty("labelCursorSize").objectReferenceValue     = lCursorSize;
+        so.FindProperty("toggleSmoothMouse").objectReferenceValue   = tSmoothMouse;
+        so.FindProperty("toggleCursorHighlight").objectReferenceValue = tCursorHL;
+        so.FindProperty("dropdownCursorStyle").objectReferenceValue = dCursorStyle;
         so.FindProperty("btnApply").objectReferenceValue           = btnApply;
         so.FindProperty("btnReset").objectReferenceValue           = btnReset;
         so.FindProperty("btnClose").objectReferenceValue           = btnClose;
@@ -335,12 +344,23 @@ public class SettingsSetupTool : EditorWindow
     }
 
     void BuildControlsPanel(Transform p,
-        out Slider sen, out TextMeshProUGUI lsen, out Toggle ti)
+        out Slider sen, out TextMeshProUGUI lsen, out Toggle tInvY,
+        out Toggle tTrail, out Slider sCursorSize, out TextMeshProUGUI lCursorSize,
+        out Toggle tSmooth, out Toggle tHighlight, out TMP_Dropdown dStyle)
     {
-        MakeSectionHeader(p, "Chuot & Camera", 0);
+        MakeSectionHeader(p, "Do Nhay Chuot", 0);
         float y = -50;
-        sen = MakeSliderRow(p, "[X]", "Do nhay chuot", ref y, 0.5f, 10f, 2f, out lsen);
-        ti  = MakeToggleRow(p, "[Y]", "Dao truc Y",    ref y, false);
+        sen  = MakeSliderRow(p, "[X]", "Do nhay chuot", ref y, 0.5f, 10f, 2f, out lsen);
+        tInvY = MakeToggleRow(p, "[Y]", "Dao truc Y",   ref y, false);
+
+        MakeSectionHeader(p, "Hieu Ung Con Tro", y - 8);
+        y -= 48;
+        tTrail     = MakeToggleRow(p, "[T]", "Hieu ung duoi chuot", ref y, false);
+        sCursorSize = MakeSliderRow(p, "[S]", "Kich co con tro",   ref y, 0.5f, 2f, 1f, out lCursorSize);
+        tSmooth    = MakeToggleRow(p, "[M]", "Lam muot chuyen dong", ref y, false);
+        tHighlight = MakeToggleRow(p, "[H]", "Vong sang con tro",   ref y, false);
+        dStyle     = MakeDropdownRow(p, "[C]", "Kieu con tro",       ref y);
+        dStyle.AddOptions(new System.Collections.Generic.List<string> { "Mac dinh", "Phan mem", "An con tro" });
     }
 
     // ══════════════════════════════════════════════════════════
