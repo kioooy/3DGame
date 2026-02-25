@@ -96,6 +96,13 @@ public class PlayerController : MonoBehaviour
                     InventoryUI.Instance.ToggleInventory();
             }
 
+            // Toggle quest panel với J
+            if (kb.jKey.wasPressedThisFrame)
+            {
+                if (QuestUIManager.Instance != null)
+                    QuestUIManager.Instance.ToggleQuestPanel();
+            }
+
             // Pickup item với E
             if (kb.eKey.wasPressedThisFrame && _currentLookingItem != null && !_inventoryOpen)
             {
