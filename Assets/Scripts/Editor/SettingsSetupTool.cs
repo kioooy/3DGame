@@ -4,7 +4,7 @@ using UnityEditor;
 using TMPro;
 
 /// <summary>
-/// Editor Tool: Tự động tạo toàn bộ UI Settings Menu trong scene.
+/// Editor Tool: Tự động tạo toàn bộ UI Settings Menu cao cấp trong scene.
 /// Menu: Tools > Settings System > Setup Settings UI
 /// </summary>
 public class SettingsSetupTool : EditorWindow
@@ -12,8 +12,8 @@ public class SettingsSetupTool : EditorWindow
     [MenuItem("Tools/Settings System/Setup Settings UI")]
     static void ShowWindow()
     {
-        var w = GetWindow<SettingsSetupTool>("Settings Setup");
-        w.minSize = new Vector2(480, 420);
+        var w = GetWindow<SettingsSetupTool>("⚙ Settings Setup");
+        w.minSize = new Vector2(500, 460);
         w.Show();
     }
 
@@ -23,51 +23,79 @@ public class SettingsSetupTool : EditorWindow
     {
         _scroll = EditorGUILayout.BeginScrollView(_scroll);
 
-        GUILayout.Label("⚙  Settings System Setup", EditorStyles.boldLabel);
+        GUILayout.Label("⚙  Settings System – Dark Premium UI", EditorStyles.boldLabel);
         GUILayout.Space(4);
         EditorGUILayout.HelpBox(
-            "Tool này tạo hoàn toàn tự động:\n\n" +
-            "☑  SettingsManager (DontDestroyOnLoad)\n" +
-            "☑  SettingsCanvas (Screen Space Overlay)\n" +
-            "☑  Menu Cài Đặt với 3 tab:\n" +
-            "     • 🔊 Âm Thanh  (3 slider âm lượng)\n" +
-            "     • 🖥  Đồ Hoạ    (chất lượng, độ phân giải, toàn màn hình)\n" +
-            "     • 🎮 Điều Khiển (độ nhạy chuột, đảo trục Y)\n\n" +
-            "Sau khi setup: nhấn ESC trong game để mở/đóng menu.",
+            "✅ BUG ĐÃ FIX:\n" +
+            "   • Resources.Load sprite lỗi → đã xóa\n" +
+            "   • ForceClose không ẩn backdrop → đã fix\n" +
+            "   • _originalTint chưa init → đã fix\n\n" +
+            "🎨 UI MỚI:\n" +
+            "   • Header gradient + icon\n" +
+            "   • Tab indicator dạng underline\n" +
+            "   • Slider dày hơn, màu viridian\n" +
+            "   • Toggle kiểu pill (iOS style)\n" +
+            "   • Bottom bar cách ly với đường kẻ",
             MessageType.Info);
 
         GUILayout.Space(12);
 
-        // Status
-        EditorGUILayout.LabelField("Trạng thái hiện tại:", EditorStyles.boldLabel);
         var mgr = FindFirstObjectByType<SettingsManager>();
         var ui  = FindFirstObjectByType<SettingsUI>();
-
+        EditorGUILayout.LabelField("Trạng thái:", EditorStyles.boldLabel);
         GUI.color = mgr != null ? Color.green : Color.yellow;
-        EditorGUILayout.LabelField($"• SettingsManager: {(mgr != null ? "✓ Có trong scene" : "⚠ Chưa có")}");
+        EditorGUILayout.LabelField($"• SettingsManager: {(mgr != null ? "✓ OK" : "⚠ Chưa có")}");
         GUI.color = ui != null ? Color.green : Color.yellow;
-        EditorGUILayout.LabelField($"• SettingsUI: {(ui != null ? "✓ Có trong scene" : "⚠ Chưa có")}");
+        EditorGUILayout.LabelField($"• SettingsUI: {(ui != null ? "✓ OK" : "⚠ Chưa có")}");
         GUI.color = Color.white;
 
         GUILayout.Space(16);
 
-        if (GUILayout.Button("🚀  Tạo Settings System Hoàn Chỉnh", GUILayout.Height(48)))
+        GUI.backgroundColor = new Color(0.2f, 0.65f, 0.35f);
+        if (GUILayout.Button("🚀  Tạo / Tạo Lại Settings System", GUILayout.Height(50)))
         {
             if (EditorUtility.DisplayDialog("Xác nhận",
-                "Tạo Settings System?\nNếu đã có sẽ xoá và tạo lại.", "Tạo ngay!", "Huỷ"))
+                "Tạo Settings System? (Nếu đã có, xóa và tạo lại)", "Tạo ngay!", "Huỷ"))
                 Build();
         }
+        GUI.backgroundColor = Color.white;
 
         GUILayout.Space(6);
-
+        GUI.backgroundColor = new Color(0.6f, 0.2f, 0.2f);
         if (GUILayout.Button("🗑  Xoá Settings System", GUILayout.Height(32)))
         {
             if (EditorUtility.DisplayDialog("Xác nhận", "Xoá tất cả Settings objects?", "Xoá", "Huỷ"))
                 Cleanup();
         }
+        GUI.backgroundColor = Color.white;
 
         EditorGUILayout.EndScrollView();
     }
+
+    // ══════════════════════════════════════════════════════════
+    //  MÀUSẮC THEME
+    // ══════════════════════════════════════════════════════════
+    static Color C(string hex)
+    {
+        ColorUtility.TryParseHtmlString(hex, out var c);
+        return c;
+    }
+
+    // Palette "Dark Forest" 
+    static readonly Color BG_DEEP      = C("#0D1117");   // rất tối
+    static readonly Color BG_PANEL     = C("#161B22");   // panel nền
+    static readonly Color BG_INNER     = C("#0D1117");   // nội dung bên trong
+    static readonly Color BORDER_COLOR = C("#30363D");   // viền ngăn cách
+    static readonly Color ACCENT_GREEN = C("#3FB950");   // xanh lá nổi bật
+    static readonly Color ACCENT_BLUE  = C("#58A6FF");   // xanh dương nhấn
+    static readonly Color TAB_ACTIVE   = C("#21262D");   // tab đang chọn
+    static readonly Color TAB_NORMAL   = C("#0D1117");   // tab bình thường
+    static readonly Color TEXT_PRIMARY = C("#E6EDF3");   // chữ chính
+    static readonly Color TEXT_MUTED   = C("#8B949E");   // chữ phụ
+    static readonly Color SLIDER_BG    = C("#21262D");   // track slider
+    static readonly Color BTN_GREEN    = C("#238636");   // nút lưu
+    static readonly Color BTN_RESET    = C("#6E7681");   // nút reset
+    static readonly Color BTN_CLOSE    = C("#8B1A1A");   // nút đóng X
 
     // ══════════════════════════════════════════════════════════
     //  BUILD
@@ -81,499 +109,657 @@ public class SettingsSetupTool : EditorWindow
         mgrGO.AddComponent<SettingsManager>();
         Undo.RegisterCreatedObjectUndo(mgrGO, "Create SettingsManager");
 
-        // 2. Canvas
+        // 2. UIAudioFeedback
+        var audioGO = new GameObject("UIAudioFeedback");
+        audioGO.AddComponent<UIAudioFeedback>();
+        Undo.RegisterCreatedObjectUndo(audioGO, "Create UIAudioFeedback");
+
+        // 3. Canvas
         var canvasGO = new GameObject("SettingsCanvas");
         var canvas   = canvasGO.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 100;
-        var scaler = canvasGO.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        canvas.renderMode   = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 200;
+        var scaler  = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode        = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         canvasGO.AddComponent<GraphicRaycaster>();
         Undo.RegisterCreatedObjectUndo(canvasGO, "Create SettingsCanvas");
 
-        // 3. Backdrop (mờ nền)
-        var backdrop = CreatePanel(canvasGO.transform, "Backdrop",
-            new Color(0, 0, 0, 0.55f), Vector2.zero, Vector2.one, new Vector2(0,0), new Vector2(0,0));
+        // 4. Backdrop
+        var backdrop    = MakeImage(canvasGO.transform, "Backdrop",
+            new Color(0, 0, 0, 0)); // bắt đầu trong suốt, SettingsUI animate
+        var backdropImg = backdrop.GetComponent<Image>();
+        backdrop.GetComponent<RectTransform>().anchorMin = Vector2.zero;
+        backdrop.GetComponent<RectTransform>().anchorMax = Vector2.one;
+        backdrop.GetComponent<RectTransform>().offsetMin = Vector2.zero;
+        backdrop.GetComponent<RectTransform>().offsetMax = Vector2.zero;
 
-        // 4. Settings Panel (cửa sổ chính)
-        var panel = CreatePanel(canvasGO.transform, "SettingsPanel",
-            new Color(0.09f, 0.09f, 0.12f, 0.97f),
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-            Vector2.zero, new Vector2(900, 580));
+        // 5. Main Window Panel  (950 x 640)
+        var window = MakeRect(canvasGO.transform, "SettingsPanel",
+            new Vector2(0.5f,0.5f), new Vector2(0.5f,0.5f),
+            Vector2.zero, new Vector2(950, 640));
+        MakeImage(window.transform, "WindowBG", BG_PANEL)
+            .GetComponent<RectTransform>().Fill();
 
-        AddOutline(panel, new Color(0.35f, 0.7f, 0.45f, 1f));
+        // CanvasGroup để animate
+        var cg = window.gameObject.AddComponent<CanvasGroup>();
+        cg.alpha = 0; cg.interactable = false; cg.blocksRaycasts = false;
 
-        // 5. Tiêu đề
-        var titleGO = new GameObject("Title");
-        titleGO.transform.SetParent(panel.transform, false);
-        var titleRect = titleGO.AddComponent<RectTransform>();
-        titleRect.anchorMin  = new Vector2(0, 1);
-        titleRect.anchorMax  = new Vector2(1, 1);
-        titleRect.pivot      = new Vector2(0.5f, 1);
-        titleRect.offsetMin  = new Vector2(20, 0);
-        titleRect.offsetMax  = new Vector2(-20, 0);
-        titleRect.sizeDelta  = new Vector2(0, 64);
-        var titleTmp = titleGO.AddComponent<TextMeshProUGUI>();
-        titleTmp.text      = "⚙  CÀI ĐẶT";
-        titleTmp.fontSize  = 32;
-        titleTmp.fontStyle = FontStyles.Bold;
-        titleTmp.color     = new Color(0.35f, 0.85f, 0.5f);
-        titleTmp.alignment = TextAlignmentOptions.Center;
+        // Viền ngoài (đường kẻ xanh lá mỏng)
+        AddSingleOutline(window.gameObject, ACCENT_GREEN, 1.5f);
 
-        // 6. Tab Buttons bar
-        var tabBar = new GameObject("TabBar");
-        tabBar.transform.SetParent(panel.transform, false);
-        var tabRect = tabBar.AddComponent<RectTransform>();
-        tabRect.anchorMin = new Vector2(0, 1);
-        tabRect.anchorMax = new Vector2(1, 1);
-        tabRect.pivot     = new Vector2(0.5f, 1);
-        tabRect.anchoredPosition = new Vector2(0, -64);
-        tabRect.sizeDelta = new Vector2(0, 48);
-        var tabLayout = tabBar.AddComponent<HorizontalLayoutGroup>();
-        tabLayout.spacing = 6;
-        tabLayout.padding = new RectOffset(16, 16, 4, 4);
+        // ─────────── HEADER (70px) ───────────
+        var header = MakeRect(window.transform, "Header",
+            new Vector2(0,1), new Vector2(1,1),
+            Vector2.zero, new Vector2(0, 72));
+        var headerBG = MakeImage(header.transform, "HeaderBG",
+            C("#0D1117")).GetComponent<Image>();
+        headerBG.GetComponent<RectTransform>().Fill();
+
+        // Dải màu gradient ngang trên cùng header
+        var headerAccent = MakeRect(header.transform, "HeaderAccent",
+            new Vector2(0,1), new Vector2(1,1),
+            Vector2.zero, new Vector2(0, 3));
+        MakeImage(headerAccent.transform, "AccentLine", ACCENT_GREEN)
+            .GetComponent<RectTransform>().Fill();
+
+        // Icon (dạng text)
+        var iconGO = MakeText(header.transform, "Icon", "SET",
+            20, ACCENT_GREEN, FontStyles.Bold, TextAlignmentOptions.Left);
+        SetRect(iconGO, new Vector2(0,0), new Vector2(0,1),
+            new Vector2(18, 0), new Vector2(56, 0));
+
+        // Tiêu đề
+        var titleGO = MakeText(header.transform, "Title", "CÀI ĐẶT",
+            28, TEXT_PRIMARY, FontStyles.Bold, TextAlignmentOptions.MidlineLeft);
+        SetRect(titleGO, new Vector2(0,0), new Vector2(0.6f,1),
+            new Vector2(76, 0), new Vector2(0, 0));
+
+        // Hint ESC
+        var hintGO = MakeText(header.transform, "Hint", "ESC để đóng",
+            13, TEXT_MUTED, FontStyles.Normal, TextAlignmentOptions.MidlineRight);
+        SetRect(hintGO, new Vector2(0.6f,0), new Vector2(1,1),
+            new Vector2(0, 0), new Vector2(-16, 0));
+        
+        // Nut X (close)
+        var btnClose = MakePillButton(header.transform, "BtnClose", "X",
+            BTN_CLOSE, TEXT_PRIMARY, 18, false);
+        var bcRect = btnClose.GetComponent<RectTransform>();
+        bcRect.anchorMin = new Vector2(1, 0.5f);
+        bcRect.anchorMax = new Vector2(1, 0.5f);
+        bcRect.pivot     = new Vector2(1, 0.5f);
+        bcRect.anchoredPosition = new Vector2(-12, 0);
+        bcRect.sizeDelta = new Vector2(38, 38);
+
+        // ─────────── TAB BAR (40px) ───────────
+        var tabBarGO = MakeRect(window.transform, "TabBar",
+            new Vector2(0, 1), new Vector2(1, 1),
+            new Vector2(0, -72), new Vector2(0, 44));
+        MakeImage(tabBarGO.transform, "TabBarBG", BG_DEEP).GetComponent<RectTransform>().Fill();
+
+        // Dưới cùng tabbar: đường kẻ phân cách
+        var tabDivider = MakeRect(tabBarGO.transform, "Divider",
+            new Vector2(0, 0), new Vector2(1, 0),
+            Vector2.zero, new Vector2(0, 1));
+        MakeImage(tabDivider.transform, "DivLine", BORDER_COLOR).GetComponent<RectTransform>().Fill();
+
+        var tabBtnAudio    = MakeTabButton(tabBarGO.transform, "Tab_Audio",    "Am Thanh");
+        var tabBtnGraphics = MakeTabButton(tabBarGO.transform, "Tab_Graphics", "Do Hoa");
+        var tabBtnControls = MakeTabButton(tabBarGO.transform, "Tab_Controls", "Dieu Khien");
+
+        // Layout tab bar horizontal
+        var tabLayout = tabBarGO.gameObject.AddComponent<HorizontalLayoutGroup>();
+        tabLayout.padding               = new RectOffset(8, 8, 0, 0);
+        tabLayout.spacing               = 2;
         tabLayout.childForceExpandWidth = true;
+        tabLayout.childForceExpandHeight = true;
 
-        var tabAudioBtn    = CreateTabButton(tabBar.transform, "🔊 Âm Thanh");
-        var tabGraphicsBtn = CreateTabButton(tabBar.transform, "🖥  Đồ Hoạ");
-        var tabControlBtn  = CreateTabButton(tabBar.transform, "🎮 Điều Khiển");
+        // ─────────── CONTENT AREA ───────────
+        var contentArea = MakeRect(window.transform, "ContentArea",
+            new Vector2(0,0), new Vector2(1,1),
+            new Vector2(0, 60),   // bottom bar 60px
+            new Vector2(0, -116)  // header 72 + tabbar 44
+        );
+        // Inner BG slightly different shade
+        MakeImage(contentArea.transform, "ContentBG", BG_INNER).GetComponent<RectTransform>().Fill();
 
-        // 7. Content area
-        var contentArea = new GameObject("ContentArea");
-        contentArea.transform.SetParent(panel.transform, false);
-        var contentRect = contentArea.AddComponent<RectTransform>();
-        contentRect.anchorMin = new Vector2(0, 0);
-        contentRect.anchorMax = new Vector2(1, 1);
-        contentRect.offsetMin = new Vector2(16, 70);
-        contentRect.offsetMax = new Vector2(-16, -114);
+        const float PAD = 24;
+        // Tab panel containers  
+        var pAudio    = MakeTabPanel(contentArea.transform, "PanelAudio",    PAD);
+        var pGraphics = MakeTabPanel(contentArea.transform, "PanelGraphics", PAD);
+        var pControls = MakeTabPanel(contentArea.transform, "PanelControls", PAD);
 
-        // 8. Tab Panels
-        var panelAudio    = CreateTabPanel(contentArea.transform, "PanelAudio");
-        var panelGraphics = CreateTabPanel(contentArea.transform, "PanelGraphics");
-        var panelControls = CreateTabPanel(contentArea.transform, "PanelControls");
+        // ── Build content ──
+        Slider sMaster, sMusic, sSFX;
+        TextMeshProUGUI lMaster, lMusic, lSFX;
+        BuildAudioPanel(pAudio.transform, out sMaster, out lMaster, out sMusic, out lMusic, out sSFX, out lSFX);
 
-        // ── Audio content ──
-        Slider masterSlider, musicSlider, sfxSlider;
-        TextMeshProUGUI masterLabel, musicLabel, sfxLabel;
-        BuildAudioPanel(panelAudio.transform,
-            out masterSlider, out masterLabel,
-            out musicSlider,  out musicLabel,
-            out sfxSlider,    out sfxLabel);
+        TMP_Dropdown dQuality, dRes;
+        Toggle tFullscreen;
+        BuildGraphicsPanel(pGraphics.transform, out dQuality, out dRes, out tFullscreen);
 
-        // ── Graphics content ──
-        TMP_Dropdown qualityDD, resDD;
-        Toggle fullscreenToggle;
-        BuildGraphicsPanel(panelGraphics.transform, out qualityDD, out resDD, out fullscreenToggle);
+        Slider sSensitivity;
+        TextMeshProUGUI lSensitivity;
+        Toggle tInvertY;
+        BuildControlsPanel(pControls.transform, out sSensitivity, out lSensitivity, out tInvertY);
 
-        // ── Controls content ──
-        Slider sensiSlider;
-        TextMeshProUGUI sensiLabel;
-        Toggle invertToggle;
-        BuildControlsPanel(panelControls.transform, out sensiSlider, out sensiLabel, out invertToggle);
+        // ─────────── BOTTOM BAR (60px) ───────────
+        var bottomBar = MakeRect(window.transform, "BottomBar",
+            new Vector2(0,0), new Vector2(1,0),
+            Vector2.zero, new Vector2(0, 60));
+        MakeImage(bottomBar.transform, "BottomBG", BG_DEEP).GetComponent<RectTransform>().Fill();
 
-        // 9. Bottom buttons
-        var btnApply = CreateButton(panel.transform, "BtnApply", "💾 Lưu & Áp Dụng",
-            new Vector2(1, 0), new Vector2(1, 0),
-            new Vector2(-130, 18), new Vector2(200, 44), new Color(0.2f, 0.65f, 0.35f));
-        var btnReset = CreateButton(panel.transform, "BtnReset", "↺ Mặc Định",
-            new Vector2(0.5f, 0), new Vector2(0.5f, 0),
-            new Vector2(0, 18), new Vector2(160, 44), new Color(0.45f, 0.35f, 0.1f));
-        var btnClose = CreateButton(panel.transform, "BtnClose", "✕",
-            new Vector2(1, 1), new Vector2(1, 1),
-            new Vector2(-14, -14), new Vector2(40, 40), new Color(0.7f, 0.15f, 0.15f));
+        // Đường kẻ phân cách trên bottombar
+        var botDivider = MakeRect(bottomBar.transform, "Divider",
+            new Vector2(0, 1), new Vector2(1, 1),
+            Vector2.zero, new Vector2(0, 1));
+        MakeImage(botDivider.transform, "DivLine", BORDER_COLOR).GetComponent<RectTransform>().Fill();
 
-        // 10. Add SettingsUI component and wire up
-        var settingsUI = canvasGO.AddComponent<SettingsUI>();
+        // Nut Reset (trai)
+        var btnReset = MakePillButton(bottomBar.transform, "BtnReset", "Mac Dinh",
+            BTN_RESET, TEXT_PRIMARY, 16, true);
+        PositionInBar(btnReset, Align.Left, 16, 12, 160, 36);
+
+        // Nut Apply (phai)
+        var btnApply = MakePillButton(bottomBar.transform, "BtnApply", "Luu va Ap Dung",
+            BTN_GREEN, TEXT_PRIMARY, 16, true);
+        PositionInBar(btnApply, Align.Right, 16, 12, 200, 36);
+
+        // ─────────── SettingsUI Component ───────────
+        var settingsUI  = canvasGO.AddComponent<SettingsUI>();
         var so = new SerializedObject(settingsUI);
 
-        so.FindProperty("settingsPanel").objectReferenceValue    = panel;
-        so.FindProperty("tabAudioBtn").objectReferenceValue      = tabAudioBtn;
-        so.FindProperty("tabGraphicsBtn").objectReferenceValue   = tabGraphicsBtn;
-        so.FindProperty("tabControlsBtn").objectReferenceValue   = tabControlBtn;
-        so.FindProperty("panelAudio").objectReferenceValue       = panelAudio;
-        so.FindProperty("panelGraphics").objectReferenceValue    = panelGraphics;
-        so.FindProperty("panelControls").objectReferenceValue    = panelControls;
-
-        so.FindProperty("sliderMaster").objectReferenceValue     = masterSlider;
-        so.FindProperty("labelMaster").objectReferenceValue      = masterLabel;
-        so.FindProperty("sliderMusic").objectReferenceValue      = musicSlider;
-        so.FindProperty("labelMusic").objectReferenceValue       = musicLabel;
-        so.FindProperty("sliderSFX").objectReferenceValue        = sfxSlider;
-        so.FindProperty("labelSFX").objectReferenceValue         = sfxLabel;
-
-        so.FindProperty("dropdownQuality").objectReferenceValue    = qualityDD;
-        so.FindProperty("dropdownResolution").objectReferenceValue = resDD;
-        so.FindProperty("toggleFullscreen").objectReferenceValue   = fullscreenToggle;
-
-        so.FindProperty("sliderSensitivity").objectReferenceValue  = sensiSlider;
-        so.FindProperty("labelSensitivity").objectReferenceValue   = sensiLabel;
-        so.FindProperty("toggleInvertY").objectReferenceValue      = invertToggle;
-
-        so.FindProperty("btnApply").objectReferenceValue  = btnApply;
-        so.FindProperty("btnReset").objectReferenceValue  = btnReset;
-        so.FindProperty("btnClose").objectReferenceValue  = btnClose;
+        so.FindProperty("settingsPanel").objectReferenceValue      = window.gameObject;
+        so.FindProperty("backdropImage").objectReferenceValue      = backdropImg;
+        so.FindProperty("tabAudioBtn").objectReferenceValue        = tabBtnAudio;
+        so.FindProperty("tabGraphicsBtn").objectReferenceValue     = tabBtnGraphics;
+        so.FindProperty("tabControlsBtn").objectReferenceValue     = tabBtnControls;
+        so.FindProperty("panelAudio").objectReferenceValue         = pAudio;
+        so.FindProperty("panelGraphics").objectReferenceValue      = pGraphics;
+        so.FindProperty("panelControls").objectReferenceValue      = pControls;
+        so.FindProperty("sliderMaster").objectReferenceValue       = sMaster;
+        so.FindProperty("labelMaster").objectReferenceValue        = lMaster;
+        so.FindProperty("sliderMusic").objectReferenceValue        = sMusic;
+        so.FindProperty("labelMusic").objectReferenceValue         = lMusic;
+        so.FindProperty("sliderSFX").objectReferenceValue          = sSFX;
+        so.FindProperty("labelSFX").objectReferenceValue           = lSFX;
+        so.FindProperty("dropdownQuality").objectReferenceValue    = dQuality;
+        so.FindProperty("dropdownResolution").objectReferenceValue = dRes;
+        so.FindProperty("toggleFullscreen").objectReferenceValue   = tFullscreen;
+        so.FindProperty("sliderSensitivity").objectReferenceValue  = sSensitivity;
+        so.FindProperty("labelSensitivity").objectReferenceValue   = lSensitivity;
+        so.FindProperty("toggleInvertY").objectReferenceValue      = tInvertY;
+        so.FindProperty("btnApply").objectReferenceValue           = btnApply;
+        so.FindProperty("btnReset").objectReferenceValue           = btnReset;
+        so.FindProperty("btnClose").objectReferenceValue           = btnClose;
         so.ApplyModifiedProperties();
 
         EditorUtility.SetDirty(settingsUI);
-
-        Debug.Log("[SettingsSetupTool] ✅ Setup hoàn tất! Nhấn ESC trong Game Mode để mở.");
-        EditorUtility.DisplayDialog("✅ Thành Công!",
-            "Settings System đã được tạo!\n\n" +
-            "Điều khiển:\n" +
-            "• ESC → Mở / Đóng menu\n" +
-            "• Tab Âm Thanh: điều chỉnh âm lượng\n" +
-            "• Tab Đồ Hoạ: chất lượng, độ phân giải\n" +
-            "• Tab Điều Khiển: độ nhạy chuột\n" +
-            "• Nút 'Lưu & Áp Dụng' để lưu vĩnh viễn",
-            "Tuyệt vời!");
+        Debug.Log("[SettingsSetupTool v3] ✅ Dark Premium UI tạo xong!");
+        EditorUtility.DisplayDialog("✅ Thành Công! (v3 – Dark Premium)",
+            "Settings UI đã được tạo!\n\n" +
+            "• ESC → Mở/Đóng (animation EaseOutBack)\n" +
+            "• Hover → scale + glow viridian\n" +
+            "• Click → ripple + click sound\n" +
+            "• Slider → tick âm theo pitch\n" +
+            "• Lưu → confirm chord C-E-G\n\n" +
+            "Giao diện: Dark Forest (#0D1117 / #3FB950)",
+            "Xịn quá!");
 
         Selection.activeGameObject = canvasGO;
     }
 
     // ══════════════════════════════════════════════════════════
-    //  PANEL BUILDERS
+    //  CONTENT PANELS
     // ══════════════════════════════════════════════════════════
-    void BuildAudioPanel(Transform parent,
-        out Slider masterSlider, out TextMeshProUGUI masterLabel,
-        out Slider musicSlider,  out TextMeshProUGUI musicLabel,
-        out Slider sfxSlider,    out TextMeshProUGUI sfxLabel)
+    void BuildAudioPanel(Transform p,
+        out Slider sm, out TextMeshProUGUI lm,
+        out Slider smu, out TextMeshProUGUI lmu,
+        out Slider ss, out TextMeshProUGUI ls)
     {
-        float y = -20;
-        masterSlider = BuildSliderRow(parent, "🔊 Âm lượng tổng",   ref y, 0, 1, 1f,   out masterLabel);
-        musicSlider  = BuildSliderRow(parent, "🎵 Âm nhạc nền",      ref y, 0, 1, 0.8f, out musicLabel);
-        sfxSlider    = BuildSliderRow(parent, "💥 Hiệu ứng âm thanh", ref y, 0, 1, 1f,   out sfxLabel);
+        MakeSectionHeader(p, "Am Luong", 0);
+        float y = -50;
+        sm  = MakeSliderRow(p, "[V]", "Am luong tong",    ref y, 0, 1, 1f,   out lm);
+        smu = MakeSliderRow(p, "[M]", "Am nhac nen",       ref y, 0, 1, 0.8f, out lmu);
+        ss  = MakeSliderRow(p, "[S]", "Hieu ung am thanh", ref y, 0, 1, 1f,   out ls);
     }
 
-    void BuildGraphicsPanel(Transform parent,
-        out TMP_Dropdown qualityDD, out TMP_Dropdown resDD, out Toggle fullToggle)
+    void BuildGraphicsPanel(Transform p,
+        out TMP_Dropdown dq, out TMP_Dropdown dr, out Toggle tf)
     {
-        float y = -20;
-        qualityDD   = BuildDropdownRow(parent, "⭐ Chất lượng đồ hoạ", ref y);
-        resDD       = BuildDropdownRow(parent, "📐 Độ phân giải",       ref y);
-        fullToggle  = BuildToggleRow(parent,   "🖥  Toàn màn hình",     ref y, true);
+        MakeSectionHeader(p, "Hien Thi", 0);
+        float y = -50;
+        dq = MakeDropdownRow(p, "[Q]", "Chat luong do hoa", ref y);
+        dr = MakeDropdownRow(p, "[R]", "Do phan giai",       ref y);
+        tf = MakeToggleRow(p,   "[F]", "Toan man hinh",     ref y, true);
     }
 
-    void BuildControlsPanel(Transform parent,
-        out Slider sensiSlider, out TextMeshProUGUI sensiLabel, out Toggle invertToggle)
+    void BuildControlsPanel(Transform p,
+        out Slider sen, out TextMeshProUGUI lsen, out Toggle ti)
     {
-        float y = -20;
-        sensiSlider  = BuildSliderRow(parent, "🖱  Độ nhạy chuột", ref y, 0.5f, 10f, 2f, out sensiLabel);
-        invertToggle = BuildToggleRow(parent, "🔃 Đảo trục Y",     ref y, false);
+        MakeSectionHeader(p, "Chuot & Camera", 0);
+        float y = -50;
+        sen = MakeSliderRow(p, "[X]", "Do nhay chuot", ref y, 0.5f, 10f, 2f, out lsen);
+        ti  = MakeToggleRow(p, "[Y]", "Dao truc Y",    ref y, false);
     }
 
     // ══════════════════════════════════════════════════════════
-    //  ROW BUILDERS
+    //  ROWS
     // ══════════════════════════════════════════════════════════
-    Slider BuildSliderRow(Transform parent, string labelText, ref float yPos,
-        float min, float max, float defaultVal, out TextMeshProUGUI valueLabel)
+    const float ROW_H  = 56f;
+    const float ROW_GAP = 8f;
+
+    Slider MakeSliderRow(Transform parent, string icon, string label, ref float y,
+        float min, float max, float def, out TextMeshProUGUI valueLbl)
     {
-        var row = new GameObject($"Row_{labelText}");
-        row.transform.SetParent(parent, false);
-        var rowRect = row.AddComponent<RectTransform>();
-        rowRect.anchorMin = new Vector2(0, 1);
-        rowRect.anchorMax = new Vector2(1, 1);
-        rowRect.pivot     = new Vector2(0.5f, 1);
-        rowRect.anchoredPosition = new Vector2(0, yPos);
-        rowRect.sizeDelta = new Vector2(0, 52);
-        yPos -= 58;
+        var row = MakeRect(parent, $"Row_{label}", new Vector2(0,1), new Vector2(1,1),
+            new Vector2(0, y), new Vector2(0, ROW_H));
+        y -= ROW_H + ROW_GAP;
+
+        // BG hàng
+        MakeRoundedBG(row.transform, new Color(0.13f, 0.16f, 0.20f, 0.6f));
+
+        // Icon (ASCII safe)
+        var ico = MakeText(row.transform, "Icon", icon, 16,
+            ACCENT_GREEN, FontStyles.Bold, TextAlignmentOptions.Center);
+        SetRect(ico, new Vector2(0,0), new Vector2(0,1),
+            new Vector2(12, 0), new Vector2(36, 0));
 
         // Label
-        var lbl = new GameObject("Label");
-        lbl.transform.SetParent(row.transform, false);
-        var lblRect = lbl.AddComponent<RectTransform>();
-        lblRect.anchorMin = new Vector2(0, 0);
-        lblRect.anchorMax = new Vector2(0.35f, 1);
-        lblRect.offsetMin = new Vector2(8, 4);
-        lblRect.offsetMax = new Vector2(0, -4);
-        var lblTmp = lbl.AddComponent<TextMeshProUGUI>();
-        lblTmp.text      = labelText;
-        lblTmp.fontSize  = 18;
-        lblTmp.color     = Color.white;
-        lblTmp.alignment = TextAlignmentOptions.MidlineLeft;
+        var lbl = MakeText(row.transform, "Label", label, 17,
+            TEXT_PRIMARY, FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
+        SetRect(lbl, new Vector2(0,0), new Vector2(0.36f,1),
+            new Vector2(52, 0), new Vector2(0, 0));
 
-        // Value label
-        var valGO = new GameObject("Value");
-        valGO.transform.SetParent(row.transform, false);
-        var valRect = valGO.AddComponent<RectTransform>();
-        valRect.anchorMin = new Vector2(0.85f, 0);
-        valRect.anchorMax = new Vector2(1, 1);
-        valRect.offsetMin = new Vector2(4, 4);
-        valRect.offsetMax = new Vector2(-8, -4);
-        valueLabel = valGO.AddComponent<TextMeshProUGUI>();
-        valueLabel.text      = Mathf.RoundToInt(defaultVal * 100) + "%";
-        valueLabel.fontSize  = 16;
-        valueLabel.color     = new Color(0.7f, 1f, 0.8f);
-        valueLabel.alignment = TextAlignmentOptions.MidlineRight;
+        // Value
+        var valGO = MakeText(row.transform, "Value", FormatVal(def, min, max), 15,
+            ACCENT_GREEN, FontStyles.Bold, TextAlignmentOptions.MidlineRight);
+        SetRect(valGO, new Vector2(0.82f,0), new Vector2(1f,1),
+            new Vector2(0, 0), new Vector2(-12, 0));
+        valueLbl = valGO.GetComponent<TextMeshProUGUI>();
 
-        // Slider  
-        var sliderGO = new GameObject("Slider");
-        sliderGO.transform.SetParent(row.transform, false);
-        var sliderRect = sliderGO.AddComponent<RectTransform>();
-        sliderRect.anchorMin = new Vector2(0.35f, 0);
-        sliderRect.anchorMax = new Vector2(0.85f, 1);
-        sliderRect.offsetMin = new Vector2(8, 10);
-        sliderRect.offsetMax = new Vector2(-8, -10);
-
-        var slider = sliderGO.AddComponent<Slider>();
-
-        // Background
-        var bg = CreateImageChild(sliderGO.transform, "Background", new Color(0.2f, 0.2f, 0.2f));
-        var bgRect = bg.GetComponent<RectTransform>();
-        bgRect.anchorMin = Vector2.zero;
-        bgRect.anchorMax = Vector2.one;
-        bgRect.offsetMin = bgRect.offsetMax = Vector2.zero;
-
-        // Fill Area
-        var fillArea = new GameObject("Fill Area");
-        fillArea.transform.SetParent(sliderGO.transform, false);
-        var faRect = fillArea.AddComponent<RectTransform>();
-        faRect.anchorMin = Vector2.zero;
-        faRect.anchorMax = Vector2.one;
-        faRect.offsetMin = faRect.offsetMax = Vector2.zero;
-
-        var fill = CreateImageChild(fillArea.transform, "Fill", new Color(0.25f, 0.75f, 0.4f));
-        var fillRect = fill.GetComponent<RectTransform>();
-        fillRect.anchorMin = Vector2.zero;
-        fillRect.anchorMax = new Vector2(defaultVal, 1);
-        fillRect.offsetMin = fillRect.offsetMax = Vector2.zero;
-
-        // Handle
-        var handleArea = new GameObject("Handle Slide Area");
-        handleArea.transform.SetParent(sliderGO.transform, false);
-        var haRect = handleArea.AddComponent<RectTransform>();
-        haRect.anchorMin = Vector2.zero;
-        haRect.anchorMax = Vector2.one;
-        haRect.offsetMin = haRect.offsetMax = Vector2.zero;
-
-        var handle = CreateImageChild(handleArea.transform, "Handle", new Color(0.9f, 0.9f, 0.95f));
-        var handleRect = handle.GetComponent<RectTransform>();
-        handleRect.sizeDelta = new Vector2(20, 0);
-        handleRect.anchorMin = new Vector2(defaultVal, 0);
-        handleRect.anchorMax = new Vector2(defaultVal, 1);
-
-        slider.fillRect   = fillRect;
-        slider.handleRect = handleRect;
-        slider.targetGraphic = handle.GetComponent<Image>();
-        slider.direction  = Slider.Direction.LeftToRight;
-        slider.minValue   = min;
-        slider.maxValue   = max;
-        slider.value      = defaultVal;
+        // Slider
+        var slider = BuildSlider(row.transform, new Vector2(0.36f, 0), new Vector2(0.82f, 1),
+            new Vector2(0, 10), new Vector2(0, -10), min, max, def);
 
         return slider;
     }
 
-    TMP_Dropdown BuildDropdownRow(Transform parent, string labelText, ref float yPos)
+    TMP_Dropdown MakeDropdownRow(Transform parent, string icon, string label, ref float y)
     {
-        var row = new GameObject($"Row_{labelText}");
-        row.transform.SetParent(parent, false);
-        var rowRect = row.AddComponent<RectTransform>();
-        rowRect.anchorMin = new Vector2(0, 1);
-        rowRect.anchorMax = new Vector2(1, 1);
-        rowRect.pivot     = new Vector2(0.5f, 1);
-        rowRect.anchoredPosition = new Vector2(0, yPos);
-        rowRect.sizeDelta = new Vector2(0, 52);
-        yPos -= 58;
+        var row = MakeRect(parent, $"Row_{label}", new Vector2(0,1), new Vector2(1,1),
+            new Vector2(0, y), new Vector2(0, ROW_H));
+        y -= ROW_H + ROW_GAP;
+        MakeRoundedBG(row.transform, new Color(0.13f, 0.16f, 0.20f, 0.6f));
 
-        var lbl = new GameObject("Label");
-        lbl.transform.SetParent(row.transform, false);
-        var lblRect = lbl.AddComponent<RectTransform>();
-        lblRect.anchorMin = new Vector2(0, 0);
-        lblRect.anchorMax = new Vector2(0.4f, 1);
-        lblRect.offsetMin = new Vector2(8, 4);
-        lblRect.offsetMax = new Vector2(0, -4);
-        var lblTmp = lbl.AddComponent<TextMeshProUGUI>();
-        lblTmp.text = labelText; lblTmp.fontSize = 18; lblTmp.color = Color.white;
-        lblTmp.alignment = TextAlignmentOptions.MidlineLeft;
+        var ico = MakeText(row.transform, "Icon", icon, 16, ACCENT_BLUE,
+            FontStyles.Bold, TextAlignmentOptions.Center);
+        SetRect(ico, new Vector2(0,0), new Vector2(0,1), new Vector2(12,0), new Vector2(36,0));
 
+        var lbl = MakeText(row.transform, "Label", label, 17, TEXT_PRIMARY,
+            FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
+        SetRect(lbl, new Vector2(0,0), new Vector2(0.36f,1), new Vector2(52,0), new Vector2(0,0));
+
+        // Dropdown container
         var ddGO = new GameObject("Dropdown");
         ddGO.transform.SetParent(row.transform, false);
         var ddRect = ddGO.AddComponent<RectTransform>();
-        ddRect.anchorMin = new Vector2(0.4f, 0);
-        ddRect.anchorMax = new Vector2(1f, 1);
-        ddRect.offsetMin = new Vector2(8, 6);
-        ddRect.offsetMax = new Vector2(-8, -6);
+        ddRect.anchorMin = new Vector2(0.36f, 0.1f);
+        ddRect.anchorMax = new Vector2(0.99f, 0.9f);
+        ddRect.offsetMin = ddRect.offsetMax = Vector2.zero;
 
         var ddBg = ddGO.AddComponent<Image>();
-        ddBg.color = new Color(0.18f, 0.18f, 0.22f);
+        ddBg.color = C("#21262D");
 
         var dd = ddGO.AddComponent<TMP_Dropdown>();
 
         var captionGO = new GameObject("Label");
         captionGO.transform.SetParent(ddGO.transform, false);
-        var cRect = captionGO.AddComponent<RectTransform>();
-        cRect.anchorMin = Vector2.zero; cRect.anchorMax = Vector2.one;
-        cRect.offsetMin = new Vector2(8, 2); cRect.offsetMax = new Vector2(-24, -2);
-        var cTmp = captionGO.AddComponent<TextMeshProUGUI>();
-        cTmp.fontSize = 16; cTmp.color = Color.white;
-        cTmp.alignment = TextAlignmentOptions.MidlineLeft;
+        var cR = captionGO.AddComponent<RectTransform>();
+        cR.anchorMin = Vector2.zero; cR.anchorMax = Vector2.one;
+        cR.offsetMin = new Vector2(10,2); cR.offsetMax = new Vector2(-28,-2);
+        var cT = captionGO.AddComponent<TextMeshProUGUI>();
+        cT.fontSize = 15; cT.color = TEXT_PRIMARY;
+        cT.alignment = TextAlignmentOptions.Left;
 
-        dd.captionText = cTmp;
-        dd.AddOptions(new System.Collections.Generic.List<string> { "Option 1" });
+        dd.captionText = cT;
+        dd.AddOptions(new System.Collections.Generic.List<string> { "— Chọn —" });
+
+        // Arrow icon
+        var arrowGO = new GameObject("Arrow");
+        arrowGO.transform.SetParent(ddGO.transform, false);
+        var aR = arrowGO.AddComponent<RectTransform>();
+        aR.anchorMin = new Vector2(1,0.5f); aR.anchorMax = new Vector2(1,0.5f);
+        aR.pivot = new Vector2(1,0.5f);
+        aR.anchoredPosition = new Vector2(-8, 0);
+        aR.sizeDelta = new Vector2(20, 20);
+        var aT = arrowGO.AddComponent<TextMeshProUGUI>();
+        aT.text = "▼"; aT.fontSize = 11; aT.color = TEXT_MUTED;
+        aT.alignment = TextAlignmentOptions.Center;
 
         return dd;
     }
 
-    Toggle BuildToggleRow(Transform parent, string labelText, ref float yPos, bool defaultVal)
+    Toggle MakeToggleRow(Transform parent, string icon, string label, ref float y, bool def)
     {
-        var row = new GameObject($"Row_{labelText}");
-        row.transform.SetParent(parent, false);
-        var rowRect = row.AddComponent<RectTransform>();
-        rowRect.anchorMin = new Vector2(0, 1);
-        rowRect.anchorMax = new Vector2(1, 1);
-        rowRect.pivot     = new Vector2(0.5f, 1);
-        rowRect.anchoredPosition = new Vector2(0, yPos);
-        rowRect.sizeDelta = new Vector2(0, 52);
-        yPos -= 58;
+        var row = MakeRect(parent, $"Row_{label}", new Vector2(0,1), new Vector2(1,1),
+            new Vector2(0, y), new Vector2(0, ROW_H));
+        y -= ROW_H + ROW_GAP;
+        MakeRoundedBG(row.transform, new Color(0.13f, 0.16f, 0.20f, 0.6f));
 
-        var lbl = new GameObject("Label");
-        lbl.transform.SetParent(row.transform, false);
-        var lblRect = lbl.AddComponent<RectTransform>();
-        lblRect.anchorMin = new Vector2(0, 0);
-        lblRect.anchorMax = new Vector2(0.8f, 1);
-        lblRect.offsetMin = new Vector2(8, 4);
-        lblRect.offsetMax = new Vector2(0, -4);
-        var lblTmp = lbl.AddComponent<TextMeshProUGUI>();
-        lblTmp.text = labelText; lblTmp.fontSize = 18; lblTmp.color = Color.white;
-        lblTmp.alignment = TextAlignmentOptions.MidlineLeft;
+        var ico = MakeText(row.transform, "Icon", icon, 16, TEXT_MUTED,
+            FontStyles.Bold, TextAlignmentOptions.Center);
+        SetRect(ico, new Vector2(0,0), new Vector2(0,1), new Vector2(12,0), new Vector2(36,0));
 
-        var tglGO = new GameObject("Toggle");
-        tglGO.transform.SetParent(row.transform, false);
-        var tRect = tglGO.AddComponent<RectTransform>();
-        tRect.anchorMin = new Vector2(0.85f, 0.1f);
-        tRect.anchorMax = new Vector2(0.85f, 0.9f);
-        tRect.sizeDelta = new Vector2(52, 0);
+        var lbl = MakeText(row.transform, "Label", label, 17, TEXT_PRIMARY,
+            FontStyles.Normal, TextAlignmentOptions.MidlineLeft);
+        SetRect(lbl, new Vector2(0,0), new Vector2(0.7f,1), new Vector2(52,0), new Vector2(0,0));
 
-        var bgImg = tglGO.AddComponent<Image>();
-        bgImg.color = new Color(0.25f, 0.25f, 0.3f);
+        // Pill toggle
+        var pillGO = new GameObject("Toggle_Pill");
+        pillGO.transform.SetParent(row.transform, false);
+        var pilR = pillGO.AddComponent<RectTransform>();
+        pilR.anchorMin = new Vector2(1, 0.5f); pilR.anchorMax = new Vector2(1, 0.5f);
+        pilR.pivot     = new Vector2(1, 0.5f);
+        pilR.anchoredPosition = new Vector2(-14, 0);
+        pilR.sizeDelta = new Vector2(52, 28);
 
-        var checkGO = CreateImageChild(tglGO.transform, "Checkmark", new Color(0.3f, 0.8f, 0.45f));
-        var ckRect = checkGO.GetComponent<RectTransform>();
-        ckRect.anchorMin = new Vector2(0.1f, 0.1f);
-        ckRect.anchorMax = new Vector2(0.9f, 0.9f);
-        ckRect.offsetMin = ckRect.offsetMax = Vector2.zero;
+        var pillBG = pillGO.AddComponent<Image>();
+        pillBG.color = def ? ACCENT_GREEN : C("#3D444D");
 
-        var tgl = tglGO.AddComponent<Toggle>();
-        tgl.targetGraphic = bgImg;
-        tgl.graphic = checkGO.GetComponent<Image>();
-        tgl.isOn = defaultVal;
+        // Knob (vòng tròn trắng)
+        var knobGO = new GameObject("Knob");
+        knobGO.transform.SetParent(pillGO.transform, false);
+        var knobR = knobGO.AddComponent<RectTransform>();
+        knobR.sizeDelta = new Vector2(22, 22);
+        knobR.anchorMin = new Vector2(def ? 1f : 0f, 0.5f);
+        knobR.anchorMax = new Vector2(def ? 1f : 0f, 0.5f);
+        knobR.pivot     = new Vector2(def ? 1f : 0f, 0.5f);
+        knobR.anchoredPosition = new Vector2(def ? -3f : 3f, 0);
+        var knobImg = knobGO.AddComponent<Image>();
+        knobImg.color = Color.white;
+
+        var tgl = pillGO.AddComponent<Toggle>();
+        tgl.targetGraphic = pillBG;
+        tgl.graphic       = knobImg;
+        tgl.isOn          = def;
+
+        // Khi toggle đổi trạng thái → đổi màu pill
+        tgl.onValueChanged.AddListener(on => pillBG.color = on ? ACCENT_GREEN : C("#3D444D"));
 
         return tgl;
     }
 
     // ══════════════════════════════════════════════════════════
+    //  SLIDER BUILDER
+    // ══════════════════════════════════════════════════════════
+    Slider BuildSlider(Transform parent, Vector2 amin, Vector2 amax,
+        Vector2 offMin, Vector2 offMax, float min, float max, float def)
+    {
+        var go = new GameObject("Slider");
+        go.transform.SetParent(parent, false);
+        var r = go.AddComponent<RectTransform>();
+        r.anchorMin = amin; r.anchorMax = amax;
+        r.offsetMin = offMin; r.offsetMax = offMax;
+
+        var slider = go.AddComponent<Slider>();
+
+        // Track BG
+        var trackBG = new GameObject("Background");
+        trackBG.transform.SetParent(go.transform, false);
+        var tbR = trackBG.AddComponent<RectTransform>();
+        tbR.anchorMin = new Vector2(0, 0.3f); tbR.anchorMax = new Vector2(1, 0.7f);
+        tbR.offsetMin = tbR.offsetMax = Vector2.zero;
+        var tbImg = trackBG.AddComponent<Image>();
+        tbImg.color = SLIDER_BG;
+
+        // Fill Area
+        var fillArea = new GameObject("Fill Area");
+        fillArea.transform.SetParent(go.transform, false);
+        var faR = fillArea.AddComponent<RectTransform>();
+        faR.anchorMin = new Vector2(0, 0.3f); faR.anchorMax = new Vector2(1, 0.7f);
+        faR.offsetMin = faR.offsetMax = Vector2.zero;
+
+        var fillGO = new GameObject("Fill");
+        fillGO.transform.SetParent(fillArea.transform, false);
+        var fR = fillGO.AddComponent<RectTransform>();
+        fR.anchorMin = Vector2.zero;
+        fR.anchorMax = new Vector2(Mathf.InverseLerp(min, max, def), 1);
+        fR.offsetMin = fR.offsetMax = Vector2.zero;
+        var fImg = fillGO.AddComponent<Image>();
+        fImg.color = ACCENT_GREEN;
+
+        // Handle
+        var handleArea = new GameObject("Handle Slide Area");
+        handleArea.transform.SetParent(go.transform, false);
+        var haR = handleArea.AddComponent<RectTransform>();
+        haR.anchorMin = Vector2.zero; haR.anchorMax = Vector2.one;
+        haR.offsetMin = haR.offsetMax = Vector2.zero;
+
+        var handleGO = new GameObject("Handle");
+        handleGO.transform.SetParent(handleArea.transform, false);
+        var hR = handleGO.AddComponent<RectTransform>();
+        hR.sizeDelta = new Vector2(18, 28); // taller handle
+        hR.anchorMin = new Vector2(Mathf.InverseLerp(min, max, def), 0);
+        hR.anchorMax = new Vector2(Mathf.InverseLerp(min, max, def), 1);
+        var hImg = handleGO.AddComponent<Image>();
+        hImg.color = TEXT_PRIMARY;
+
+        // Outline trên handle
+        var hOL = handleGO.AddComponent<Outline>();
+        hOL.effectColor    = ACCENT_GREEN;
+        hOL.effectDistance = new Vector2(1, -1);
+
+        slider.fillRect      = fR;
+        slider.handleRect    = hR;
+        slider.targetGraphic = hImg;
+        slider.direction     = Slider.Direction.LeftToRight;
+        slider.minValue      = min;
+        slider.maxValue      = max;
+        slider.value         = def;
+
+        return slider;
+    }
+
+    // ══════════════════════════════════════════════════════════
     //  HELPERS
     // ══════════════════════════════════════════════════════════
-    GameObject CreatePanel(Transform parent, string name, Color color,
-        Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 size)
+    void MakeSectionHeader(Transform parent, string title, float yOffset)
+    {
+        var hdrGO = new GameObject($"SectionHeader_{title}");
+        hdrGO.transform.SetParent(parent, false);
+        var r = hdrGO.AddComponent<RectTransform>();
+        r.anchorMin = new Vector2(0, 1); r.anchorMax = new Vector2(1, 1);
+        r.pivot     = new Vector2(0.5f, 1);
+        r.anchoredPosition = new Vector2(0, yOffset);
+        r.sizeDelta = new Vector2(0, 34);
+
+        // Divider line kèm text
+        var divGO = new GameObject("Line");
+        divGO.transform.SetParent(hdrGO.transform, false);
+        var dR = divGO.AddComponent<RectTransform>();
+        dR.anchorMin = new Vector2(0,0.5f); dR.anchorMax = new Vector2(0.25f, 0.5f);
+        dR.sizeDelta = new Vector2(0, 1);
+        dR.offsetMin = dR.offsetMax = Vector2.zero;
+        MakeImage(divGO.transform, "Line", BORDER_COLOR).GetComponent<RectTransform>().Fill();
+
+        var lblGO = MakeText(hdrGO.transform, "SectionTitle", title.ToUpper(),
+            12, TEXT_MUTED, FontStyles.Bold, TextAlignmentOptions.Center);
+        var lR = lblGO.GetComponent<RectTransform>();
+        lR.anchorMin = new Vector2(0.25f, 0); lR.anchorMax = new Vector2(0.75f, 1);
+        lR.offsetMin = lR.offsetMax = Vector2.zero;
+
+        var divGO2 = new GameObject("Line2");
+        divGO2.transform.SetParent(hdrGO.transform, false);
+        var d2R = divGO2.AddComponent<RectTransform>();
+        d2R.anchorMin = new Vector2(0.75f,0.5f); d2R.anchorMax = new Vector2(1f, 0.5f);
+        d2R.sizeDelta = new Vector2(0, 1);
+        d2R.offsetMin = d2R.offsetMax = Vector2.zero;
+        MakeImage(divGO2.transform, "Line2", BORDER_COLOR).GetComponent<RectTransform>().Fill();
+    }
+
+    Button MakePillButton(Transform parent, string name, string label,
+        Color bgColor, Color textColor, int fontSize, bool bold)
     {
         var go = new GameObject(name);
         go.transform.SetParent(parent, false);
-        var img = go.AddComponent<Image>();
-        img.color = color;
-        var rect = go.GetComponent<RectTransform>();
-        rect.anchorMin = anchorMin;
-        rect.anchorMax = anchorMax;
-        rect.anchoredPosition = anchoredPos;
-        rect.sizeDelta = size;
-        return go;
-    }
-
-    GameObject CreateTabPanel(Transform parent, string name)
-    {
-        var go = new GameObject(name);
-        go.transform.SetParent(parent, false);
-        var rect = go.AddComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
-        go.SetActive(false);
-        return go;
-    }
-
-    Button CreateTabButton(Transform parent, string label)
-    {
-        var go = new GameObject($"Tab_{label}");
-        go.transform.SetParent(parent, false);
-        var img = go.AddComponent<Image>();
-        img.color = new Color(0.2f, 0.2f, 0.2f, 0.9f);
+        var bg  = go.AddComponent<Image>();
+        bg.color = bgColor;
         var btn = go.AddComponent<Button>();
 
         var txtGO = new GameObject("Text");
         txtGO.transform.SetParent(go.transform, false);
-        var rect = txtGO.AddComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
+        var tR = txtGO.AddComponent<RectTransform>();
+        tR.anchorMin = Vector2.zero; tR.anchorMax = Vector2.one;
+        tR.offsetMin = tR.offsetMax = Vector2.zero;
         var tmp = txtGO.AddComponent<TextMeshProUGUI>();
         tmp.text      = label;
-        tmp.fontSize  = 17;
+        tmp.fontSize  = fontSize;
+        tmp.color     = textColor;
+        tmp.alignment = TextAlignmentOptions.Center;
+        if (bold) tmp.fontStyle = FontStyles.Bold;
+
+        return btn;
+    }
+
+    Button MakeTabButton(Transform parent, string name, string label)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var img = go.AddComponent<Image>();
+        img.color = TAB_NORMAL;
+        var btn = go.AddComponent<Button>();
+
+        // Indicator bar dưới tab (active)
+        var indicator = new GameObject("Indicator");
+        indicator.transform.SetParent(go.transform, false);
+        var iR = indicator.AddComponent<RectTransform>();
+        iR.anchorMin = new Vector2(0.1f, 0); iR.anchorMax = new Vector2(0.9f, 0);
+        iR.pivot     = new Vector2(0.5f, 0);
+        iR.sizeDelta = new Vector2(0, 3);
+        MakeImage(indicator.transform, "IndicatorBar", ACCENT_GREEN).GetComponent<RectTransform>().Fill();
+        indicator.SetActive(false); // hidden by default
+
+        var txtGO = new GameObject("Text");
+        txtGO.transform.SetParent(go.transform, false);
+        var tR = txtGO.AddComponent<RectTransform>();
+        tR.anchorMin = Vector2.zero; tR.anchorMax = Vector2.one;
+        tR.offsetMin = tR.offsetMax = Vector2.zero;
+        var tmp = txtGO.AddComponent<TextMeshProUGUI>();
+        tmp.text      = label;
+        tmp.fontSize  = 16;
         tmp.fontStyle = FontStyles.Bold;
-        tmp.color     = Color.white;
+        tmp.color     = TEXT_MUTED;
         tmp.alignment = TextAlignmentOptions.Center;
 
         return btn;
     }
 
-    Button CreateButton(Transform parent, string name, string label,
-        Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 size, Color color)
+    enum Align { Left, Right }
+    void PositionInBar(Button btn, Align align, float margin, float yOff, float w, float h)
+    {
+        var r = btn.GetComponent<RectTransform>();
+        float xAnchor = (align == Align.Right) ? 1f : 0f;
+        r.anchorMin = new Vector2(xAnchor, 0.5f);
+        r.anchorMax = new Vector2(xAnchor, 0.5f);
+        r.pivot     = new Vector2(xAnchor, 0.5f);
+        r.anchoredPosition = new Vector2(align == Align.Right ? -margin : margin, yOff);
+        r.sizeDelta = new Vector2(w, h);
+    }
+
+    GameObject MakeTabPanel(Transform parent, string name, float padding)
     {
         var go = new GameObject(name);
         go.transform.SetParent(parent, false);
-        var img  = go.AddComponent<Image>();
-        img.color = color;
-        var btn  = go.AddComponent<Button>();
-        var rect = go.GetComponent<RectTransform>();
-        rect.anchorMin = anchorMin;
-        rect.anchorMax = anchorMax;
-        rect.pivot     = anchorMin;
-        rect.anchoredPosition = anchoredPos;
-        rect.sizeDelta = size;
-
-        var txtGO = new GameObject("Text");
-        txtGO.transform.SetParent(go.transform, false);
-        var tRect = txtGO.AddComponent<RectTransform>();
-        tRect.anchorMin = Vector2.zero;
-        tRect.anchorMax = Vector2.one;
-        tRect.offsetMin = tRect.offsetMax = Vector2.zero;
-        var tmp = txtGO.AddComponent<TextMeshProUGUI>();
-        tmp.text = label; tmp.fontSize = 18; tmp.fontStyle = FontStyles.Bold;
-        tmp.color = Color.white; tmp.alignment = TextAlignmentOptions.Center;
-
-        return btn;
+        var r = go.AddComponent<RectTransform>();
+        r.anchorMin = Vector2.zero; r.anchorMax = Vector2.one;
+        r.offsetMin = new Vector2(padding, padding);
+        r.offsetMax = new Vector2(-padding, -padding);
+        go.SetActive(false);
+        return go;
     }
 
-    void AddOutline(GameObject go, Color color)
+    void MakeRoundedBG(Transform parent, Color color)
     {
-        var outline = go.AddComponent<Outline>();
-        outline.effectColor = color;
-        outline.effectDistance = new Vector2(2, -2);
+        MakeImage(parent, "RowBG", color).GetComponent<RectTransform>().Fill();
     }
 
-    GameObject CreateImageChild(Transform parent, string name, Color color)
+    RectTransform MakeRect(Transform parent, string name,
+        Vector2 aMin, Vector2 aMax, Vector2 aPos, Vector2 size)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        var r = go.AddComponent<RectTransform>();
+        r.anchorMin = aMin; r.anchorMax = aMax;
+        r.pivot     = new Vector2(0.5f, 1);
+        r.anchoredPosition = aPos;
+        r.sizeDelta = size;
+        return r;
+    }
+
+    GameObject MakeImage(Transform parent, string name, Color color)
     {
         var go = new GameObject(name);
         go.transform.SetParent(parent, false);
         var img = go.AddComponent<Image>();
         img.color = color;
-        var rect = go.GetComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
         return go;
+    }
+
+    GameObject MakeText(Transform parent, string name, string text,
+        float size, Color color, FontStyles style, TextAlignmentOptions align)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        go.AddComponent<RectTransform>();
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text      = text;
+        tmp.fontSize  = size;
+        tmp.color     = color;
+        tmp.fontStyle = style;
+        tmp.alignment = align;
+        return go;
+    }
+
+    void SetRect(GameObject go, Vector2 aMin, Vector2 aMax, Vector2 offMin, Vector2 offMax)
+    {
+        var r = go.GetComponent<RectTransform>();
+        r.anchorMin = aMin; r.anchorMax = aMax;
+        r.offsetMin = offMin; r.offsetMax = offMax;
+    }
+
+    void AddSingleOutline(GameObject go, Color color, float size)
+    {
+        var ol = go.AddComponent<Outline>();
+        ol.effectColor    = color;
+        ol.effectDistance = new Vector2(size, -size);
+    }
+
+    string FormatVal(float v, float min, float max)
+    {
+        bool isPct = (min == 0 && max == 1);
+        return isPct ? Mathf.RoundToInt(v * 100) + "%" : v.ToString("F1");
     }
 
     void Cleanup()
     {
-        foreach (var ui in FindObjectsByType<SettingsUI>(FindObjectsSortMode.None))
-            DestroyImmediate(ui.gameObject);
-        foreach (var mgr in FindObjectsByType<SettingsManager>(FindObjectsSortMode.None))
-            DestroyImmediate(mgr.gameObject);
-
-        var canvasGO = GameObject.Find("SettingsCanvas");
-        if (canvasGO) DestroyImmediate(canvasGO);
-        var mgrGO = GameObject.Find("SettingsManager");
-        if (mgrGO) DestroyImmediate(mgrGO);
+        foreach (var x in FindObjectsByType<SettingsUI>     (FindObjectsSortMode.None)) DestroyImmediate(x.gameObject);
+        foreach (var x in FindObjectsByType<SettingsManager>(FindObjectsSortMode.None)) DestroyImmediate(x.gameObject);
+        foreach (var x in FindObjectsByType<UIAudioFeedback>(FindObjectsSortMode.None)) DestroyImmediate(x.gameObject);
+        foreach (var n in new[] { "SettingsCanvas", "SettingsManager", "UIAudioFeedback" })
+        { var g = GameObject.Find(n); if (g) DestroyImmediate(g); }
         Debug.Log("[SettingsSetupTool] Đã dọn dẹp.");
+    }
+}
+
+// ── Extension: RectTransform Fill ──
+static class RectTransformExt
+{
+    public static RectTransform Fill(this RectTransform r)
+    {
+        r.anchorMin = Vector2.zero;
+        r.anchorMax = Vector2.one;
+        r.offsetMin = r.offsetMax = Vector2.zero;
+        return r;
     }
 }
