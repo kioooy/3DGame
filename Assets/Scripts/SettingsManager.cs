@@ -23,20 +23,32 @@ public class SettingsManager : MonoBehaviour
     [HideInInspector] public bool  fullscreen     = true;
     [HideInInspector] public int   resolutionIdx  = 0;   // index trong Screen.resolutions
 
-    [HideInInspector] public float mouseSensitivity = 2f;
-    [HideInInspector] public bool  invertYAxis       = false;
+    [HideInInspector] public float mouseSensitivity    = 2f;
+    [HideInInspector] public bool  invertYAxis          = false;
+
+    // ── Hieu ung con tro chuot ──
+    [HideInInspector] public bool  cursorTrailEnabled   = false; // hieu ung duoi chuot
+    [HideInInspector] public float cursorSize           = 1f;    // he so phong to: 0.5 - 2.0
+    [HideInInspector] public bool  smoothMouse          = false; // lam muot chuyen dong chuot
+    [HideInInspector] public int   cursorStyle          = 0;     // 0=Mac dinh 1=Chinhx 2=Vong tron
+    [HideInInspector] public bool  cursorHighlight      = false; // vong sang xung quanh chuot
 
     // ──────────────────────────────────────
     //   Keys PlayerPrefs
     // ──────────────────────────────────────
-    const string K_MASTER   = "s_masterVol";
-    const string K_MUSIC    = "s_musicVol";
-    const string K_SFX      = "s_sfxVol";
-    const string K_QUALITY  = "s_quality";
-    const string K_FULLSCR  = "s_fullscreen";
-    const string K_RESOL    = "s_resolution";
-    const string K_SENSI    = "s_sensitivity";
-    const string K_INVERTY  = "s_invertY";
+    const string K_MASTER       = "s_masterVol";
+    const string K_MUSIC        = "s_musicVol";
+    const string K_SFX          = "s_sfxVol";
+    const string K_QUALITY      = "s_quality";
+    const string K_FULLSCR      = "s_fullscreen";
+    const string K_RESOL        = "s_resolution";
+    const string K_SENSI        = "s_sensitivity";
+    const string K_INVERTY      = "s_invertY";
+    const string K_CURSOR_TRAIL = "s_cursorTrail";
+    const string K_CURSOR_SIZE  = "s_cursorSize";
+    const string K_SMOOTH_MOUSE = "s_smoothMouse";
+    const string K_CURSOR_STYLE = "s_cursorStyle";
+    const string K_CURSOR_HL    = "s_cursorHL";
 
     void Awake()
     {
@@ -59,6 +71,11 @@ public class SettingsManager : MonoBehaviour
         fullscreen        = PlayerPrefs.GetInt  (K_FULLSCR, 1) == 1;
         mouseSensitivity  = PlayerPrefs.GetFloat(K_SENSI,  2f);
         invertYAxis       = PlayerPrefs.GetInt  (K_INVERTY, 0) == 1;
+        cursorTrailEnabled = PlayerPrefs.GetInt (K_CURSOR_TRAIL, 0) == 1;
+        cursorSize         = PlayerPrefs.GetFloat(K_CURSOR_SIZE, 1f);
+        smoothMouse        = PlayerPrefs.GetInt (K_SMOOTH_MOUSE, 0) == 1;
+        cursorStyle        = PlayerPrefs.GetInt (K_CURSOR_STYLE, 0);
+        cursorHighlight    = PlayerPrefs.GetInt (K_CURSOR_HL, 0) == 1;
 
         int maxRes = Screen.resolutions.Length - 1;
         resolutionIdx = Mathf.Clamp(PlayerPrefs.GetInt(K_RESOL, maxRes), 0, maxRes);
@@ -73,24 +90,34 @@ public class SettingsManager : MonoBehaviour
         PlayerPrefs.SetInt  (K_FULLSCR, fullscreen ? 1 : 0);
         PlayerPrefs.SetInt  (K_RESOL,   resolutionIdx);
         PlayerPrefs.SetFloat(K_SENSI,   mouseSensitivity);
-        PlayerPrefs.SetInt  (K_INVERTY,  invertYAxis ? 1 : 0);
+        PlayerPrefs.SetInt  (K_INVERTY,  invertYAxis       ? 1 : 0);
+        PlayerPrefs.SetInt  (K_CURSOR_TRAIL, cursorTrailEnabled ? 1 : 0);
+        PlayerPrefs.SetFloat(K_CURSOR_SIZE,  cursorSize);
+        PlayerPrefs.SetInt  (K_SMOOTH_MOUSE, smoothMouse   ? 1 : 0);
+        PlayerPrefs.SetInt  (K_CURSOR_STYLE, cursorStyle);
+        PlayerPrefs.SetInt  (K_CURSOR_HL,    cursorHighlight ? 1 : 0);
         PlayerPrefs.Save();
-        Debug.Log("[Settings] Đã lưu cài đặt.");
+        Debug.Log("[Settings] Da luu cai dat.");
     }
 
     public void ResetToDefault()
     {
-        masterVolume     = 1f;
-        musicVolume      = 0.8f;
-        sfxVolume        = 1f;
-        qualityLevel     = 2;
-        fullscreen       = true;
-        resolutionIdx    = Screen.resolutions.Length - 1;
-        mouseSensitivity = 2f;
-        invertYAxis      = false;
+        masterVolume       = 1f;
+        musicVolume        = 0.8f;
+        sfxVolume          = 1f;
+        qualityLevel       = 2;
+        fullscreen         = true;
+        resolutionIdx      = Screen.resolutions.Length - 1;
+        mouseSensitivity   = 2f;
+        invertYAxis        = false;
+        cursorTrailEnabled = false;
+        cursorSize         = 1f;
+        smoothMouse        = false;
+        cursorStyle        = 0;
+        cursorHighlight    = false;
         SaveSettings();
         ApplyAll();
-        Debug.Log("[Settings] Đã đặt lại mặc định.");
+        Debug.Log("[Settings] Da dat lai mac dinh.");
     }
 
     // ──────────────────────────────────────
@@ -101,6 +128,7 @@ public class SettingsManager : MonoBehaviour
         ApplyAudio();
         ApplyGraphics();
         ApplyMouse();
+        ApplyCursor();
     }
 
     public void ApplyAudio()
@@ -131,7 +159,7 @@ public class SettingsManager : MonoBehaviour
 
     public void ApplyMouse()
     {
-        // Đồng bộ với ThirdPersonCamera nếu có (set field private qua reflection)
+        // Dong bo voi ThirdPersonCamera neu co
         var cam = FindFirstObjectByType<ThirdPersonCamera>();
         if (cam != null)
         {
@@ -139,6 +167,18 @@ public class SettingsManager : MonoBehaviour
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (field != null) field.SetValue(cam, mouseSensitivity);
         }
+    }
+
+    public void ApplyCursor()
+    {
+        // Tim CursorEffectController trong scene neu co
+        var ctl = FindFirstObjectByType<CursorEffectController>();
+        if (ctl == null) return;
+        ctl.SetTrailEnabled(cursorTrailEnabled);
+        ctl.SetSize(cursorSize);
+        ctl.SetHighlight(cursorHighlight);
+        ctl.SetStyle(cursorStyle);
+        ctl.SetSmooth(smoothMouse);
     }
 
     // ──────────────────────────────────────
