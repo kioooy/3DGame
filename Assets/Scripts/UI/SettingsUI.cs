@@ -482,7 +482,7 @@ public class SettingsUI : MonoBehaviour
         if (dropdownQuality == null) return;
         dropdownQuality.ClearOptions();
         dropdownQuality.AddOptions(new System.Collections.Generic.List<string>
-            { "🔻 Thấp", "🔸 Trung bình", "🔹 Cao", "⭐ Ultra" });
+            { "[1] Thap", "[2] Trung binh", "[3] Cao", "[4] Ultra" });
         dropdownQuality.value = SettingsManager.Instance ? SettingsManager.Instance.qualityLevel : 2;
         dropdownQuality.RefreshShownValue();
     }
