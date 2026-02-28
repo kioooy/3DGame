@@ -2706,6 +2706,42 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5a21074ccac8b1e40a90e2b16e16afa4, type: 3}
+--- !u!1 &134597897 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+  m_PrefabInstance: {fileID: 490219497}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &134597898 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+  m_PrefabInstance: {fileID: 490219497}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &134597902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134597897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03f4d8ef747566846b273bc37664a7a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeChoatNPC
+  chatBubble: {fileID: 0}
+  interactionPromptUI: {fileID: 0}
+  timePerSentence: 3
+  npcName: "D\u1EBF Cho\u1EAFt"
+  dialogue:
+  - "Ch\xE0o anh M\xE8n... Em d\u1EA1o n\xE0y \u1ED1m y\u1EBFu qu\xE1."
+  - "Anh \u0111i \u0111\u1EE9ng c\u1EA9n th\u1EADn nh\xE9, ngo\xE0i kia nhi\u1EC1u
+    nguy hi\u1EC3m l\u1EAFm."
+  - "N\u1EBFu r\u1EA3nh r\u1ED7i, anh nh\u1EDB gh\xE9 qua th\u0103m em nh\xE9..."
+  interactionDistance: 3
+  interactKey: 102
+  animator: {fileID: 0}
+  talkTrigger: Talk
+  idleTrigger: Idle
 --- !u!1 &147827051
 GameObject:
   m_ObjectHideFlags: 0
@@ -10852,6 +10888,70 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!1001 &490219497
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2103593672}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.4248047
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.37807655
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -120.21503
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7f09401749f2f3f4c8f8d4a64e6f5a47, type: 2}
+    - target: {fileID: 919132149155446097, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      propertyPath: m_Name
+      value: "D\u1EBF+Cho\u1EAFt"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 134597902}
+  m_SourcePrefab: {fileID: 100100000, guid: 91004dcce9018db41a50e4a56b58f245, type: 3}
 --- !u!1001 &491207676
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17240,6 +17340,111 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5712234003973058481, guid: 0bc9a7ed8eb518149b2711e2cad7411d, type: 3}
   m_PrefabInstance: {fileID: 894738808}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &805323286
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 805323290}
+  - component: {fileID: 805323289}
+  - component: {fileID: 805323288}
+  - component: {fileID: 805323287}
+  m_Layer: 0
+  m_Name: DeChoat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!135 &805323287
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805323286}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 3
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!95 &805323288
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805323286}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &805323289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805323286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03f4d8ef747566846b273bc37664a7a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeChoatNPC
+  chatBubble: {fileID: 1675706349}
+  interactionPromptUI: {fileID: 891353725}
+  timePerSentence: 3
+  npcName: "D\u1EBF Cho\u1EAFt"
+  dialogue:
+  - "Ch\xE0o anh M\xE8n... Em d\u1EA1o n\xE0y \u1ED1m y\u1EBFu qu\xE1."
+  - "Anh \u0111i \u0111\u1EE9ng c\u1EA9n th\u1EADn nh\xE9, ngo\xE0i kia nhi\u1EC1u
+    nguy hi\u1EC3m l\u1EAFm."
+  - "N\u1EBFu r\u1EA3nh r\u1ED7i, anh nh\u1EDB gh\xE9 qua th\u0103m em nh\xE9..."
+  interactionDistance: 3
+  interactKey: 102
+  animator: {fileID: 805323288}
+  talkTrigger: Talk
+  idleTrigger: Idle
+--- !u!4 &805323290
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805323286}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2, y: 0, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1675706350}
+  - {fileID: 891353726}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &805731904
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18794,6 +18999,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5712234003973058481, guid: 0bc9a7ed8eb518149b2711e2cad7411d, type: 3}
   m_PrefabInstance: {fileID: 1508495064}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &891353725
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 891353726}
+  m_Layer: 0
+  m_Name: InteractionPrompt
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &891353726
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 891353725}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 805323290}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &894738808
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33984,6 +34220,52 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cd03a41894dab5e49abe8481b9a4a630, type: 3}
+--- !u!1 &1675706348
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1675706350}
+  - component: {fileID: 1675706349}
+  m_Layer: 0
+  m_Name: ChatBubble
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1675706349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675706348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16e22bb4216657c4bb73993e46a74928, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChatBubble
+  textMeshPro: {fileID: 0}
+  background: {fileID: 0}
+--- !u!4 &1675706350
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675706348}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 805323290}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1678248398
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41074,6 +41356,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2103593672}
     m_Modifications:
+    - target: {fileID: 4042940087036422592, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.44
+      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalScale.x
       value: 2.0607
@@ -41133,10 +41419,6 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_TagString
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 4042940087036422592, guid: 1841c298173cdad4db8df8602c8f1c8d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.44
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -43000,6 +43282,7 @@ Transform:
   m_Children:
   - {fileID: 502398165}
   - {fileID: 1694759906}
+  - {fileID: 134597898}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2103741789
@@ -43734,3 +44017,4 @@ SceneRoots:
   - {fileID: 1472519033}
   - {fileID: 1136428371}
   - {fileID: 2037426944}
+  - {fileID: 805323290}
