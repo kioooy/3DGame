@@ -4,77 +4,75 @@ using TMPro;
 using System.Collections;
 
 /// <summary>
-/// UI Menu Cài Đặt trong game – phiên bản nâng cấp với animation &amp; audio.
-/// Gắn vào SettingsCanvas. Mở/đóng bằng phím Escape hoặc gọi Toggle().
+/// SettingsUI – Minimalist.
+/// Gang vao SettingsCanvas. Mo/Dong bang ESC hoac goi Toggle().
+/// Hieu ung: Panel truot len tu duoi man hinh (slide-up).
 /// </summary>
 public class SettingsUI : MonoBehaviour
 {
     public static SettingsUI Instance { get; private set; }
 
-    [Header("Root Panel")]
+    [Header("Panel")]
     public GameObject settingsPanel;
+    public Image      backdropImage;
 
-    [Header("Tab Buttons")]
-    public Button tabAudioBtn;
-    public Button tabGraphicsBtn;
-    public Button tabControlsBtn;
-
-    [Header("Tab Panels")]
-    public GameObject panelAudio;
-    public GameObject panelGraphics;
-    public GameObject panelControls;
-
-    // ── Audio ──
-    [Header("Audio Controls")]
-    public Slider sliderMaster;
-    public Slider sliderMusic;
-    public Slider sliderSFX;
+    [Header("Audio")]
+    public Slider          sliderMaster;
     public TextMeshProUGUI labelMaster;
+    public Slider          sliderMusic;
     public TextMeshProUGUI labelMusic;
+    public Slider          sliderSFX;
     public TextMeshProUGUI labelSFX;
 
-    // ── Graphics ──
-    [Header("Graphics Controls")]
+    [Header("Graphics")]
     public TMP_Dropdown dropdownQuality;
     public TMP_Dropdown dropdownResolution;
-    public Toggle toggleFullscreen;
+    public Toggle       toggleFullscreen;
 
-    // ── Mouse / Cursor ──
-    [Header("Mouse & Cursor Controls")]
+    [Header("Mouse")]
     public Slider          sliderSensitivity;
     public TextMeshProUGUI labelSensitivity;
-    public Toggle          toggleInvertY;
-    // Hieu ung con tro chuot moi
-    public Toggle          toggleCursorTrail;
-    public Slider          sliderCursorSize;
-    public TextMeshProUGUI labelCursorSize;
-    public Toggle          toggleSmoothMouse;
-    public Toggle          toggleCursorHighlight;
-    public TMP_Dropdown    dropdownCursorStyle;
 
-    // ── Buttons ──
-    [Header("Action Buttons")]
+    // Cursor fields (optional – khong bat buoc wire)
+    [Header("Cursor (optional)")]
+    public Toggle       toggleInvertY;
+    public Toggle       toggleCursorTrail;
+    public Slider       sliderCursorSize;
+    public TextMeshProUGUI labelCursorSize;
+    public Toggle       toggleSmoothMouse;
+    public Toggle       toggleCursorHighlight;
+    public TMP_Dropdown dropdownCursorStyle;
+
+    [Header("Buttons")]
     public Button btnApply;
     public Button btnReset;
     public Button btnClose;
 
-    [Header("Animation Settings")]
-    [Tooltip("Thời gian mở/đóng panel (giây)")]
-    public float openDuration   = 0.22f;
-    public float closeDuration  = 0.16f;
-    [Tooltip("Scale khởi điểm khi mở")]
-    public float openStartScale = 0.82f;
-    [Tooltip("Panel có Backdrop mờ không")]
-    public bool  useBackdrop    = true;
-    public Image backdropImage;
+    // Tab fields – giu de khong loi tuong thich voi tool cu (co the bo trong)
+    [HideInInspector] public Button  tabAudioBtn;
+    [HideInInspector] public Button  tabGraphicsBtn;
+    [HideInInspector] public Button  tabControlsBtn;
+    [HideInInspector] public GameObject panelAudio;
+    [HideInInspector] public GameObject panelGraphics;
+    [HideInInspector] public GameObject panelControls;
 
-    bool _isOpen = false;
-    public bool IsOpen => _isOpen;
+    [Header("Animation")]
+    [Tooltip("Thoi gian mo (giay)")]
+    public float openDuration  = 0.28f;
+    [Tooltip("Thoi gian dong (giay)")]
+    public float closeDuration = 0.20f;
+    [Tooltip("Panel truot vao tu do cao nay (pixel)")]
+    public float slideOffset   = 80f;
 
-    RectTransform _panelRect;
-    CanvasGroup   _panelCG;
-    int _currentTab = 0;
+    // ── Private ──────────────────────────────
+    bool      _isOpen;
+    CanvasGroup _panelCG;
+    RectTransform _panelRT;
+    Vector2   _closedPos;
+    Vector2   _openPos;
+    Coroutine _anim;
 
+    // ════════════════════════════════════════
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -83,418 +81,236 @@ public class SettingsUI : MonoBehaviour
 
     void Start()
     {
-        // CanvasGroup để fade in/out
-        if (settingsPanel != null)
+        // Lay components
+        if (settingsPanel)
         {
-            _panelRect = settingsPanel.GetComponent<RectTransform>();
-            _panelCG   = settingsPanel.GetComponent<CanvasGroup>();
-            if (_panelCG == null) _panelCG = settingsPanel.AddComponent<CanvasGroup>();
+            _panelCG  = settingsPanel.GetComponent<CanvasGroup>();
+            _panelRT  = settingsPanel.GetComponent<RectTransform>();
         }
 
-        // Dropdowns
-        SetupResolutionDropdown();
-        SetupQualityDropdown();
-        RefreshUI();
+        if (_panelRT != null)
+        {
+            _openPos   = _panelRT.anchoredPosition;
+            _closedPos = _openPos - new Vector2(0, slideOffset);
+        }
 
-        // Tab buttons - gọi SwitchTab (tên đúng trong phần lò này)
-        if (tabAudioBtn)    tabAudioBtn.onClick.AddListener(() => SwitchTab(0));
-        if (tabGraphicsBtn) tabGraphicsBtn.onClick.AddListener(() => SwitchTab(1));
-        if (tabControlsBtn) tabControlsBtn.onClick.AddListener(() => SwitchTab(2));
+        // Wire listeners
+        if (sliderMaster)  sliderMaster.onValueChanged.AddListener(v  => UpdateLabel(labelMaster, v));
+        if (sliderMusic)   sliderMusic.onValueChanged.AddListener(v   => UpdateLabel(labelMusic, v));
+        if (sliderSFX)     sliderSFX.onValueChanged.AddListener(v     => UpdateLabel(labelSFX, v));
+        if (sliderSensitivity) sliderSensitivity.onValueChanged.AddListener(v
+            => UpdateLabel(labelSensitivity, v, "x"));
+        if (sliderCursorSize) sliderCursorSize.onValueChanged.AddListener(v
+            => UpdateLabel(labelCursorSize, v, "x"));
 
-        // Slider audio feedback (slider tick khi kéo)
-        WireSliderAudio(sliderMaster);
-        WireSliderAudio(sliderMusic);
-        WireSliderAudio(sliderSFX);
-        WireSliderAudio(sliderSensitivity);
-        WireSliderAudio(sliderCursorSize);
+        if (btnApply) btnApply.onClick.AddListener(OnApply);
+        if (btnReset) btnReset.onClick.AddListener(OnReset);
+        if (btnClose) btnClose.onClick.AddListener(() => Close());
 
-        // Slider label update
-        if (sliderMaster)      sliderMaster.onValueChanged.AddListener(v => UpdateLabel(labelMaster, v));
-        if (sliderMusic)       sliderMusic.onValueChanged.AddListener(v  => UpdateLabel(labelMusic, v));
-        if (sliderSFX)         sliderSFX.onValueChanged.AddListener(v    => UpdateLabel(labelSFX, v));
-        if (sliderSensitivity) sliderSensitivity.onValueChanged.AddListener(v => UpdateLabel(labelSensitivity, v, "x"));
-        if (sliderCursorSize)  sliderCursorSize.onValueChanged.AddListener(v  => UpdateLabel(labelCursorSize, v, "x"));
-
-        // Action buttons
-        if (btnApply) btnApply.onClick.AddListener(OnClickApply);
-        if (btnReset) btnReset.onClick.AddListener(OnClickReset);
-        if (btnClose) btnClose.onClick.AddListener(Close);
-
-        // Thêm UIButtonEffect tự động
-        AutoAttachEffects();
-
-        // Bắt đầu trong trạng thái đóng
+        // Dong ngay
         ForceClose();
-        SwitchTab(0, silent: true);
+        PopulateResolutionDropdown();
     }
 
     void Update()
     {
-        if (UnityEngine.InputSystem.Keyboard.current != null &&
-            UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
+        if (Input.GetKeyDown(KeyCode.Escape))
             Toggle();
-        }
     }
 
-    // ──────────────────────────────────────
+    // ════════════════════════════════════════
     //   Open / Close / Toggle
-    // ──────────────────────────────────────
+    // ════════════════════════════════════════
+    public void Toggle() { if (_isOpen) Close(); else Open(); }
+
     public void Open()
     {
         if (_isOpen) return;
         _isOpen = true;
-        StopAllCoroutines();
-        settingsPanel.SetActive(true);
-        if (backdropImage) StartCoroutine(FadeBackdrop(0f, 0.55f, openDuration));
-        StartCoroutine(AnimatePanel(isOpening: true));
+        settingsPanel?.SetActive(true);
         RefreshUI();
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible   = true;
-        UIAudioFeedback.Play(UIAudioFeedback.SoundType.Open);
+
+        if (_anim != null) StopCoroutine(_anim);
+        _anim = StartCoroutine(AnimateOpen());
+
+        if (SettingsManager.Instance != null)
+        {
+            Cursor.visible   = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
     }
 
     public void Close()
     {
         if (!_isOpen) return;
         _isOpen = false;
-        StopAllCoroutines();
-        if (backdropImage) StartCoroutine(FadeBackdrop(backdropImage.color.a, 0f, closeDuration));
-        StartCoroutine(AnimatePanel(isOpening: false));
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible   = false;
-        UIAudioFeedback.Play(UIAudioFeedback.SoundType.Close);
-    }
 
-    public void Toggle() { if (_isOpen) Close(); else Open(); }
+        if (_anim != null) StopCoroutine(_anim);
+        _anim = StartCoroutine(AnimateClose());
+    }
 
     void ForceClose()
     {
         _isOpen = false;
-        if (settingsPanel) settingsPanel.SetActive(false);
-        if (_panelCG)
+        if (_panelCG != null)
         {
-            _panelCG.alpha          = 0f;
+            _panelCG.alpha          = 0;
             _panelCG.interactable   = false;
             _panelCG.blocksRaycasts = false;
         }
-        if (_panelRect) _panelRect.localScale = Vector3.one;
-        // Ẩn cả backdrop ngay lập tức
-        if (backdropImage) backdropImage.color = new Color(0, 0, 0, 0);
+        if (backdropImage) backdropImage.color = new Color(0,0,0,0);
+        if (_panelRT != null) _panelRT.anchoredPosition = _closedPos;
+        settingsPanel?.SetActive(false);
     }
 
-    // ──────────────────────────────────────
-    //   Panel Animation (scale + fade)
-    // ──────────────────────────────────────
-    IEnumerator AnimatePanel(bool isOpening)
+    // ════════════════════════════════════════
+    //   Animations  (slide-up)
+    // ════════════════════════════════════════
+    IEnumerator AnimateOpen()
     {
-        if (_panelCG == null || _panelRect == null) yield break;
+        settingsPanel.SetActive(true);
+        if (_panelCG != null) { _panelCG.interactable = true; _panelCG.blocksRaycasts = true; }
 
-        float duration  = isOpening ? openDuration : closeDuration;
-        float startAlpha = isOpening ? 0f  : 1f;
-        float endAlpha   = isOpening ? 1f  : 0f;
-        float startScale = isOpening ? openStartScale : 1f;
-        float endScale   = isOpening ? 1f  : openStartScale * 0.9f;
-
-        _panelCG.interactable   = false;
-        _panelCG.blocksRaycasts = false;
-
-        float t = 0f;
+        float t = 0;
+        var startPos = _closedPos;
         while (t < 1f)
         {
-            t += Time.unscaledDeltaTime / duration;
-            float ease = isOpening ? EaseOutBack(t) : EaseInCubic(t);
-
-            _panelCG.alpha = Mathf.Lerp(startAlpha, endAlpha, Mathf.Clamp01(t));
-            float s = Mathf.Lerp(startScale, endScale, ease);
-            _panelRect.localScale = new Vector3(s, s, 1f);
+            t += Time.unscaledDeltaTime / openDuration;
+            float e = EaseOutCubic(Mathf.Clamp01(t));
+            if (_panelCG  != null) _panelCG.alpha = e;
+            if (_panelRT  != null) _panelRT.anchoredPosition = Vector2.Lerp(startPos, _openPos, e);
+            if (backdropImage) backdropImage.color = new Color(0,0,0, Mathf.Lerp(0, 0.55f, e));
             yield return null;
         }
-
-        _panelCG.alpha = endAlpha;
-        _panelRect.localScale = Vector3.one * endScale;
-
-        if (!isOpening)
-            settingsPanel.SetActive(false);
-        else
-        {
-            _panelCG.interactable   = true;
-            _panelCG.blocksRaycasts = true;
-            _panelRect.localScale   = Vector3.one;
-        }
+        if (_panelCG  != null) _panelCG.alpha = 1;
+        if (_panelRT  != null) _panelRT.anchoredPosition = _openPos;
+        if (backdropImage) backdropImage.color = new Color(0,0,0,0.55f);
     }
 
-    IEnumerator FadeBackdrop(float from, float to, float duration)
+    IEnumerator AnimateClose()
     {
-        if (backdropImage == null) yield break;
-        float t = 0f;
+        if (_panelCG != null) { _panelCG.interactable = false; _panelCG.blocksRaycasts = false; }
+
+        float t = 0;
         while (t < 1f)
         {
-            t += Time.unscaledDeltaTime / duration;
-            float a = Mathf.Lerp(from, to, t);
-            backdropImage.color = new Color(0, 0, 0, a);
+            t += Time.unscaledDeltaTime / closeDuration;
+            float e = EaseInCubic(Mathf.Clamp01(t));
+            if (_panelCG  != null) _panelCG.alpha = 1 - e;
+            if (_panelRT  != null) _panelRT.anchoredPosition = Vector2.Lerp(_openPos, _closedPos, e);
+            if (backdropImage) backdropImage.color = new Color(0,0,0, Mathf.Lerp(0.55f, 0, e));
             yield return null;
         }
-        backdropImage.color = new Color(0, 0, 0, to);
+        settingsPanel?.SetActive(false);
+        if (backdropImage) backdropImage.color = new Color(0,0,0,0);
     }
 
-    // ──────────────────────────────────────
-    //   Tab Switching với slide animation
-    // ──────────────────────────────────────
-    void SwitchTab(int index, bool silent = false)
-    {
-        if (index == _currentTab && !silent) return;
-        _currentTab = index;
+    static float EaseOutCubic(float t) => 1 - Mathf.Pow(1 - t, 3);
+    static float EaseInCubic(float t)  => t * t * t;
 
-        if (!silent) UIAudioFeedback.Play(UIAudioFeedback.SoundType.Tab);
-
-        // Slide out current, slide in new
-        ShowTabPanel(panelAudio,    index == 0);
-        ShowTabPanel(panelGraphics, index == 1);
-        ShowTabPanel(panelControls, index == 2);
-
-        // Button highlight
-        HighlightTabBtn(tabAudioBtn,    index == 0);
-        HighlightTabBtn(tabGraphicsBtn, index == 1);
-        HighlightTabBtn(tabControlsBtn, index == 2);
-    }
-
-    void ShowTabPanel(GameObject panel, bool show)
-    {
-        if (panel == null) return;
-        panel.SetActive(show);
-        if (show)
-        {
-            // Slide in từ phải
-            var rt = panel.GetComponent<RectTransform>();
-            if (rt != null)
-                StartCoroutine(SlideIn(rt));
-        }
-    }
-
-    IEnumerator SlideIn(RectTransform rt)
-    {
-        float t = 0f;
-        Vector3 startPos = new Vector3(40f, 0, 0);
-        while (t < 1f)
-        {
-            t += Time.unscaledDeltaTime / 0.15f;
-            float ease = 1f - Mathf.Pow(1f - Mathf.Clamp01(t), 3f);
-            rt.anchoredPosition = Vector3.Lerp(startPos, Vector3.zero, ease);
-            yield return null;
-        }
-        rt.anchoredPosition = Vector3.zero;
-    }
-
-    void HighlightTabBtn(Button btn, bool active)
-    {
-        if (btn == null) return;
-        var colors = btn.colors;
-        colors.normalColor = active
-            ? new Color(0.22f, 0.68f, 0.38f)
-            : new Color(0.18f, 0.18f, 0.22f, 0.9f);
-        btn.colors = colors;
-
-        // Scale nút tab đang active nhẹ hơn
-        var rect = btn.GetComponent<RectTransform>();
-        if (rect != null)
-            StopCoroutine("ScaleTab");
-        StartCoroutine(ScaleTab(btn.transform, active ? 1.04f : 1f));
-    }
-
-    IEnumerator ScaleTab(Transform t, float target)
-    {
-        float elapsed = 0f;
-        Vector3 start = t.localScale;
-        Vector3 end   = Vector3.one * target;
-        while (elapsed < 0.12f)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            t.localScale = Vector3.Lerp(start, end, elapsed / 0.12f);
-            yield return null;
-        }
-        t.localScale = end;
-    }
-
-    // ──────────────────────────────────────
-    //   Refresh UI from SettingsManager
-    // ──────────────────────────────────────
+    // ════════════════════════════════════════
+    //   RefreshUI
+    // ════════════════════════════════════════
     void RefreshUI()
     {
         var sm = SettingsManager.Instance;
         if (sm == null) return;
 
-        if (sliderMaster)  { sliderMaster.value  = sm.masterVolume;   UpdateLabel(labelMaster, sm.masterVolume); }
-        if (sliderMusic)   { sliderMusic.value   = sm.musicVolume;    UpdateLabel(labelMusic,  sm.musicVolume); }
-        if (sliderSFX)     { sliderSFX.value     = sm.sfxVolume;      UpdateLabel(labelSFX,    sm.sfxVolume); }
+        if (sliderMaster)  { sliderMaster.value  = sm.masterVolume;  UpdateLabel(labelMaster,  sm.masterVolume); }
+        if (sliderMusic)   { sliderMusic.value   = sm.musicVolume;   UpdateLabel(labelMusic,   sm.musicVolume); }
+        if (sliderSFX)     { sliderSFX.value     = sm.sfxVolume;     UpdateLabel(labelSFX,     sm.sfxVolume); }
 
         if (dropdownQuality)    dropdownQuality.value    = sm.qualityLevel;
         if (dropdownResolution) dropdownResolution.value = sm.resolutionIdx;
         if (toggleFullscreen)   toggleFullscreen.isOn    = sm.fullscreen;
 
-        if (sliderSensitivity)    { sliderSensitivity.value = sm.mouseSensitivity; UpdateLabel(labelSensitivity, sm.mouseSensitivity, "x"); }
-        if (toggleInvertY)          toggleInvertY.isOn       = sm.invertYAxis;
-        // Cursor fields
-        if (toggleCursorTrail)    toggleCursorTrail.isOn    = sm.cursorTrailEnabled;
-        if (sliderCursorSize)     { sliderCursorSize.value  = sm.cursorSize; UpdateLabel(labelCursorSize, sm.cursorSize, "x"); }
-        if (toggleSmoothMouse)    toggleSmoothMouse.isOn    = sm.smoothMouse;
+        if (sliderSensitivity) { sliderSensitivity.value = sm.mouseSensitivity;
+                                  UpdateLabel(labelSensitivity, sm.mouseSensitivity, "x"); }
+        if (toggleInvertY)     toggleInvertY.isOn     = sm.invertYAxis;
+        if (toggleCursorTrail) toggleCursorTrail.isOn = sm.cursorTrailEnabled;
+        if (sliderCursorSize)  { sliderCursorSize.value = sm.cursorSize;
+                                  UpdateLabel(labelCursorSize, sm.cursorSize, "x"); }
+        if (toggleSmoothMouse)     toggleSmoothMouse.isOn     = sm.smoothMouse;
         if (toggleCursorHighlight) toggleCursorHighlight.isOn = sm.cursorHighlight;
-        if (dropdownCursorStyle)  dropdownCursorStyle.value  = sm.cursorStyle;
+        if (dropdownCursorStyle)   dropdownCursorStyle.value   = sm.cursorStyle;
     }
 
-    // ──────────────────────────────────────
+    // ════════════════════════════════════════
     //   Apply / Reset
-    // ──────────────────────────────────────
-    void OnClickApply()
+    // ════════════════════════════════════════
+    void OnApply()
     {
         var sm = SettingsManager.Instance;
         if (sm == null) return;
 
-        sm.masterVolume       = sliderMaster         ? sliderMaster.value         : sm.masterVolume;
-        sm.musicVolume        = sliderMusic          ? sliderMusic.value          : sm.musicVolume;
-        sm.sfxVolume          = sliderSFX            ? sliderSFX.value            : sm.sfxVolume;
-        sm.qualityLevel       = dropdownQuality      ? dropdownQuality.value      : sm.qualityLevel;
-        sm.resolutionIdx      = dropdownResolution   ? dropdownResolution.value   : sm.resolutionIdx;
-        sm.fullscreen         = toggleFullscreen     ? toggleFullscreen.isOn      : sm.fullscreen;
-        sm.mouseSensitivity   = sliderSensitivity    ? sliderSensitivity.value    : sm.mouseSensitivity;
-        sm.invertYAxis        = toggleInvertY        ? toggleInvertY.isOn         : sm.invertYAxis;
-        // Cursor
-        sm.cursorTrailEnabled = toggleCursorTrail    ? toggleCursorTrail.isOn     : sm.cursorTrailEnabled;
-        sm.cursorSize         = sliderCursorSize     ? sliderCursorSize.value     : sm.cursorSize;
-        sm.smoothMouse        = toggleSmoothMouse    ? toggleSmoothMouse.isOn     : sm.smoothMouse;
-        sm.cursorHighlight    = toggleCursorHighlight? toggleCursorHighlight.isOn : sm.cursorHighlight;
-        sm.cursorStyle        = dropdownCursorStyle  ? dropdownCursorStyle.value  : sm.cursorStyle;
+        if (sliderMaster)       sm.masterVolume      = sliderMaster.value;
+        if (sliderMusic)        sm.musicVolume       = sliderMusic.value;
+        if (sliderSFX)          sm.sfxVolume         = sliderSFX.value;
+        if (dropdownQuality)    sm.qualityLevel      = dropdownQuality.value;
+        if (dropdownResolution) sm.resolutionIdx     = dropdownResolution.value;
+        if (toggleFullscreen)   sm.fullscreen        = toggleFullscreen.isOn;
+        if (sliderSensitivity)  sm.mouseSensitivity  = sliderSensitivity.value;
+        if (toggleInvertY)      sm.invertYAxis       = toggleInvertY.isOn;
+        if (toggleCursorTrail)  sm.cursorTrailEnabled = toggleCursorTrail.isOn;
+        if (sliderCursorSize)   sm.cursorSize        = sliderCursorSize.value;
+        if (toggleSmoothMouse)  sm.smoothMouse       = toggleSmoothMouse.isOn;
+        if (toggleCursorHighlight) sm.cursorHighlight = toggleCursorHighlight.isOn;
+        if (dropdownCursorStyle)   sm.cursorStyle    = dropdownCursorStyle.value;
 
         sm.SaveSettings();
         sm.ApplyAll();
 
         UIAudioFeedback.Play(UIAudioFeedback.SoundType.Confirm);
-
-        // Bounce effect trên nút Apply
-        if (btnApply) btnApply.GetComponent<UIButtonEffect>()?.PlayBounce();
-
-        StartCoroutine(ShowFeedback(btnApply, "✓ Đã lưu!"));
+        StartCoroutine(FlashButton(btnApply, "DA LUU!"));
     }
 
-    void OnClickReset()
+    void OnReset()
     {
-        if (SettingsManager.Instance) SettingsManager.Instance.ResetToDefault();
+        SettingsManager.Instance?.ResetToDefault();
         RefreshUI();
         UIAudioFeedback.Play(UIAudioFeedback.SoundType.Tab);
-        if (btnReset) btnReset.GetComponent<UIButtonEffect>()?.PlayBounce();
-        StartCoroutine(ShowFeedback(btnReset, "✓ Đặt lại!"));
+        StartCoroutine(FlashButton(btnReset, "DA DAT LAI!"));
     }
 
-    IEnumerator ShowFeedback(Button btn, string msg)
+    IEnumerator FlashButton(Button btn, string msg)
     {
-        if (btn == null) yield break;
+        if (!btn) yield break;
         var tmp = btn.GetComponentInChildren<TextMeshProUGUI>();
-        if (tmp == null) yield break;
-        string original = tmp.text;
+        if (!tmp) yield break;
+        string orig = tmp.text;
         tmp.text = msg;
-        yield return new WaitForSecondsRealtime(1.5f);
-        tmp.text = original;
+        yield return new WaitForSecondsRealtime(1.4f);
+        tmp.text = orig;
     }
 
-    // ──────────────────────────────────────
-    //   Auto-attach UIButtonEffect + Audio
-    // ──────────────────────────────────────
-    void AutoAttachEffects()
-    {
-        // Đảm bảo UIAudioFeedback tồn tại
-        if (UIAudioFeedback.Instance == null)
-        {
-            var afGO = new GameObject("UIAudioFeedback");
-            afGO.AddComponent<UIAudioFeedback>();
-        }
-
-        // Attach UIButtonEffect lên tất cả Button trong Settings panel
-        if (settingsPanel == null) return;
-        foreach (var btn in settingsPanel.GetComponentsInChildren<Button>(true))
-        {
-            if (btn.GetComponent<UIButtonEffect>() == null)
-            {
-                var eff = btn.gameObject.AddComponent<UIButtonEffect>();
-                // Nút Close nhỏ hơn → effect nhẹ hơn
-                if (btn == btnClose)
-                {
-                    eff.hoverScale = 1.12f;
-                    eff.glowColor  = new Color(1f, 0.3f, 0.3f, 0.8f);
-                }
-                // Nút Tab: glow xanh lá
-                if (btn == tabAudioBtn || btn == tabGraphicsBtn || btn == tabControlsBtn)
-                {
-                    eff.hoverScale = 1.05f;
-                    eff.enableRipple = false;
-                }
-                // Nút Apply: glow xanh mạnh hơn
-                if (btn == btnApply)
-                {
-                    eff.glowColor  = new Color(0.2f, 1f, 0.5f, 0.9f);
-                    eff.hoverScale = 1.06f;
-                }
-            }
-        }
-
-        // Attach Outline lên tất cả Button (nếu chưa có) để glow hoạt động
-        foreach (var btn in settingsPanel.GetComponentsInChildren<Button>(true))
-        {
-            if (btn.GetComponent<Outline>() == null)
-            {
-                var ol = btn.gameObject.AddComponent<Outline>();
-                ol.enabled = false; // tắt mặc định, UIButtonEffect sẽ bật khi hover
-            }
-        }
-    }
-
-    void WireSliderAudio(Slider slider)
-    {
-        if (slider == null) return;
-        slider.onValueChanged.AddListener(v => UIAudioFeedback.PlaySlider(
-            Mathf.InverseLerp(slider.minValue, slider.maxValue, v)));
-    }
-
-    // ──────────────────────────────────────
+    // ════════════════════════════════════════
     //   Helpers
-    // ──────────────────────────────────────
-    void UpdateLabel(TextMeshProUGUI label, float value, string suffix = "%")
+    // ════════════════════════════════════════
+    static void UpdateLabel(TextMeshProUGUI lbl, float v, string suffix = "")
     {
-        if (label == null) return;
-        label.text = suffix == "%" ? Mathf.RoundToInt(value * 100) + "%" : value.ToString("F1") + suffix;
+        if (!lbl) return;
+        lbl.text = suffix == "" || suffix == "%"
+            ? Mathf.RoundToInt(v * 100) + "%"
+            : v.ToString("F1") + suffix;
     }
 
-    void SetupResolutionDropdown()
+    void PopulateResolutionDropdown()
     {
-        if (dropdownResolution == null) return;
+        if (!dropdownResolution) return;
         dropdownResolution.ClearOptions();
-        var resolutions = Screen.resolutions;
-        var options = new System.Collections.Generic.List<string>();
-        foreach (var r in resolutions)
-            options.Add($"{r.width} × {r.height} @ {r.refreshRateRatio.numerator}Hz");
-        dropdownResolution.AddOptions(options);
-        int idx = SettingsManager.Instance ? SettingsManager.Instance.resolutionIdx : resolutions.Length - 1;
-        dropdownResolution.value = Mathf.Clamp(idx, 0, options.Count - 1);
-        dropdownResolution.RefreshShownValue();
+        var opts = new System.Collections.Generic.List<string>();
+        foreach (var r in Screen.resolutions)
+            opts.Add($"{r.width} x {r.height}");
+        dropdownResolution.AddOptions(opts);
+        int max = Screen.resolutions.Length - 1;
+        dropdownResolution.value = SettingsManager.Instance != null
+            ? SettingsManager.Instance.resolutionIdx
+            : max;
     }
 
-    void SetupQualityDropdown()
-    {
-        if (dropdownQuality == null) return;
-        dropdownQuality.ClearOptions();
-        dropdownQuality.AddOptions(new System.Collections.Generic.List<string>
-            { "[1] Thap", "[2] Trung binh", "[3] Cao", "[4] Ultra" });
-        dropdownQuality.value = SettingsManager.Instance ? SettingsManager.Instance.qualityLevel : 2;
-        dropdownQuality.RefreshShownValue();
-    }
-
-    // ──────────────────────────────────────
-    //   Easing functions
-    // ──────────────────────────────────────
-    float EaseOutBack(float t)
-    {
-        const float c1 = 1.70158f, c3 = c1 + 1f;
-        return 1f + c3 * Mathf.Pow(t - 1f, 3f) + c1 * Mathf.Pow(t - 1f, 2f);
-    }
-
-    float EaseInCubic(float t) => t * t * t;
+    // ────────────────────────────────────────
+    //  Tab switching (giu de khong bi loi compile
+    //  khi code khac goi SwitchTab)
+    // ────────────────────────────────────────
+    public void SwitchTab(int _) { }
 }
