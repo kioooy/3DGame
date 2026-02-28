@@ -272,7 +272,7 @@ public class SettingsSetupTool : EditorWindow
 
         // Slider GO
         var sGO  = MakeChild("Slider", row.transform);
-        var sRT  = sGO.AddComponent<RectTransform>();
+        var sRT  = sGO.GetComponent<RectTransform>();
         sRT.anchorMin = new Vector2(0.38f, 0.25f);
         sRT.anchorMax = new Vector2(0.78f, 0.75f);
         sRT.offsetMin = sRT.offsetMax = Vector2.zero;
