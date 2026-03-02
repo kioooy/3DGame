@@ -83,7 +83,7 @@ public class MinimapSetupTool : EditorWindow
         miniRT.anchoredPosition = new Vector2(-20, -20);
         miniRT.sizeDelta = new Vector2(200, 200);
 
-        // Nền ngoài (Viền tròn)
+        // Nền ngoài (Mặt nạ cắt hình tròn)
         var borderObj = new GameObject("BorderMask", typeof(RectTransform));
         borderObj.transform.SetParent(miniUI.transform, false);
         var bRT = borderObj.GetComponent<RectTransform>();
@@ -91,28 +91,45 @@ public class MinimapSetupTool : EditorWindow
         bRT.sizeDelta = Vector2.zero;
         
         var imgMask = borderObj.AddComponent<Image>();
-        imgMask.color = new Color(0.2f, 0.2f, 0.2f, 1f); // Nền đen mờ viền
+        imgMask.color = new Color(0, 0, 0, 0.4f); // Nền đen mờ 
         var mask = borderObj.AddComponent<Mask>();
-        mask.showMaskGraphic = true; // Hiện nền vòng tròn
+        mask.showMaskGraphic = true; 
 
         // Màng kết xuất Render Texture
         var mapObj = new GameObject("MapImage", typeof(RectTransform));
         mapObj.transform.SetParent(borderObj.transform, false);
         var mRT = mapObj.GetComponent<RectTransform>();
         mRT.anchorMin = Vector2.zero; mRT.anchorMax = Vector2.one;
-        mRT.sizeDelta = new Vector2(-4, -4); // Nhỏ hơn viền xíu
+        mRT.sizeDelta = new Vector2(-4, -4); // Cắt vào một tí tạo khoảng trống
         var mapRaw = mapObj.AddComponent<RawImage>();
         mapRaw.texture = rt;
 
         // Player Icon ở giữa
         var pIconObj = new GameObject("PlayerIcon", typeof(RectTransform));
-        pIconObj.transform.SetParent(miniUI.transform, false);
+        pIconObj.transform.SetParent(borderObj.transform, false);
         var pIRT = pIconObj.GetComponent<RectTransform>();
         pIRT.anchorMin = new Vector2(0.5f, 0.5f);
         pIRT.anchorMax = new Vector2(0.5f, 0.5f);
-        pIRT.sizeDelta = new Vector2(12, 12);
+        pIRT.sizeDelta = new Vector2(16, 16);
         var pImg = pIconObj.AddComponent<Image>();
         pImg.color = Color.green; // Chấm xanh lá
+
+        // Vòng viền trang trí bo bên ngoài cùng (Outline)
+        var ringObj = new GameObject("OuterRing", typeof(RectTransform));
+        ringObj.transform.SetParent(miniUI.transform, false);
+        var ringRT = ringObj.GetComponent<RectTransform>();
+        ringRT.anchorMin = Vector2.zero; ringRT.anchorMax = Vector2.one;
+        ringRT.sizeDelta = new Vector2(6, 6); // To hơn tí xíu để bọc ngoài
+        
+        var ringImg = ringObj.AddComponent<Image>();
+        ringImg.color = new Color(0.22f, 0.74f, 0.97f, 1f); // Màu viền neon xanh dương (Hex #38BDF8)
+        
+        // Thêm Component Outline để tạo viền rỗng (viền có độ dày 3px)
+        // Lưu ý: Outline UI Component dùng chính độ Alpha của Image để kẻ viền
+        ringImg.color = new Color(1,1,1,0); // Tàng hình ruột
+        var outline = ringObj.AddComponent<UnityEngine.UI.Outline>();
+        outline.effectColor = new Color(0.22f, 0.74f, 0.97f, 1f); // Màu viền ngoài
+        outline.effectDistance = new Vector2(3, -3);
 
         Undo.RegisterCreatedObjectUndo(miniUI, "Create Minimap UI");
 

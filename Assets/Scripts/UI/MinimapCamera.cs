@@ -15,6 +15,12 @@ public class MinimapCamera : MonoBehaviour
     [Tooltip("Có xoay camera theo hướng nhìn của mục tiêu không?")]
     public bool rotateWithTarget = false;
 
+    [Tooltip("Phím tắt để bật/tắt Minimap")]
+    public KeyCode toggleKey = KeyCode.M;
+
+    [Tooltip("GameObject UI của Minimap")]
+    public GameObject minimapUI;
+
     // Optional: Nếu target chưa gán, tự động tìm Player bằng Tag
     void Start()
     {
@@ -25,6 +31,37 @@ public class MinimapCamera : MonoBehaviour
             {
                 target = player.transform;
             }
+        }
+        
+        // Cố gắng tự tìm UI Minimap nếu chưa gán
+        if (minimapUI == null)
+        {
+            var ui = GameObject.Find("MinimapUI");
+            if (ui != null) minimapUI = ui;
+        }
+    }
+
+    void Update()
+    {
+        // Toggle Minimap bằng phím tắt
+#if ENABLE_INPUT_SYSTEM
+        if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.mKey.wasPressedThisFrame)
+        {
+            ToggleMinimap();
+        }
+#else
+        if (Input.GetKeyDown(toggleKey))
+        {
+            ToggleMinimap();
+        }
+#endif
+    }
+
+    void ToggleMinimap()
+    {
+        if (minimapUI != null)
+        {
+            minimapUI.SetActive(!minimapUI.activeSelf);
         }
     }
 
