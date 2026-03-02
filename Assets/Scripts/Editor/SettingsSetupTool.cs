@@ -82,6 +82,9 @@ public class SettingsSetupTool : EditorWindow
     // Toggle
     static readonly Color TOG_ON    = Hex("#38BDF8");
     static readonly Color TOG_OFF   = new Color(0.25f, 0.25f, 0.32f, 1f);
+    // Dropdown
+    static readonly Color DD_BG     = new Color(0.12f, 0.12f, 0.16f, 1f);
+    static readonly Color ACCENT_GRN= Hex("#38BDF8"); // Dung lai mau xanh duong cho nhat quan
 
     // ════════════════════════════════════════════
     //  BUILD
@@ -165,7 +168,6 @@ public class SettingsSetupTool : EditorWindow
         // Tat ca controls dat trong ScrollRect de san sang mo rong
         float rowY = -108f; // bat dau tu duoi title
         const float ROW_H   = 68f;
-        const float ROW_GAP = 10f;
         const float PAD     = 36f;
 
         // ── 1. VolumeSlider ─────────────────────
@@ -340,6 +342,69 @@ public class SettingsSetupTool : EditorWindow
         var arrT   = arrGO.AddComponent<TextMeshProUGUI>();
         arrT.text = "v"; arrT.fontSize = 12; arrT.color = TEXT_DIM;
         arrT.alignment = TextAlignmentOptions.Center;
+
+        // --- Bắt buộc phải có Template cho TMP_Dropdown nếu không sẽ báo lỗi ---
+        var tplGO = MakeChild("Template", ddGO.transform);
+        var tplRT = tplGO.GetComponent<RectTransform>();
+        tplRT.anchorMin = new Vector2(0,0); tplRT.anchorMax = new Vector2(1,0);
+        tplRT.pivot = new Vector2(0.5f,1);
+        tplRT.anchoredPosition = new Vector2(0,-2); tplRT.sizeDelta = new Vector2(0, Mathf.Min(options.Length * 30, 150));
+        var tplImg = tplGO.AddComponent<Image>(); tplImg.color = DD_BG;
+        var scroll = tplGO.AddComponent<ScrollRect>();
+        scroll.horizontal = false; scroll.vertical = true;
+        
+        var vpGO = MakeChild("Viewport", tplGO.transform);
+        var vpRT = vpGO.GetComponent<RectTransform>();
+        vpRT.anchorMin = Vector2.zero; vpRT.anchorMax = Vector2.one;
+        vpRT.sizeDelta = Vector2.zero;
+        vpGO.AddComponent<Mask>().showMaskGraphic = false;
+        vpGO.AddComponent<Image>().color = Color.white;
+        
+        var ctGO = MakeChild("Content", vpGO.transform);
+        var ctRT = ctGO.GetComponent<RectTransform>();
+        ctRT.anchorMin = new Vector2(0,1); ctRT.anchorMax = new Vector2(1,1);
+        ctRT.pivot = new Vector2(0.5f,1);
+        ctRT.sizeDelta = new Vector2(0, 30);
+        scroll.content = ctRT; scroll.viewport = vpRT;
+        
+        var itemGO = MakeChild("Item", ctGO.transform);
+        var itemRT = itemGO.GetComponent<RectTransform>();
+        itemRT.anchorMin = new Vector2(0,0.5f); itemRT.anchorMax = new Vector2(1,0.5f);
+        itemRT.sizeDelta = new Vector2(0, 30);
+        var itemTog = itemGO.AddComponent<Toggle>();
+        
+        var ibgGO = MakeChild("Item Background", itemGO.transform);
+        var ibgRT = ibgGO.GetComponent<RectTransform>();
+        ibgRT.anchorMin = Vector2.zero; ibgRT.anchorMax = Vector2.one;
+        ibgRT.sizeDelta = Vector2.zero;
+        var ibgImg = ibgGO.AddComponent<Image>(); ibgImg.color = DD_BG;
+        
+        var icMkGO = MakeChild("Item Checkmark", itemGO.transform);
+        var icMkRT = icMkGO.GetComponent<RectTransform>();
+        icMkRT.anchorMin = new Vector2(0,0.5f); icMkRT.anchorMax = new Vector2(0,0.5f);
+        icMkRT.sizeDelta = new Vector2(20,20); icMkRT.anchoredPosition = new Vector2(15,0);
+        var icMkImg = icMkGO.AddComponent<Image>(); icMkImg.color = ACCENT_GRN;
+        
+        var ilblGO = MakeChild("Item Label", itemGO.transform);
+        var ilblRT = ilblGO.GetComponent<RectTransform>();
+        ilblRT.anchorMin = Vector2.zero; ilblRT.anchorMax = Vector2.one;
+        ilblRT.offsetMin = new Vector2(30,0); ilblRT.offsetMax = Vector2.zero;
+        var ilblT = ilblGO.AddComponent<TextMeshProUGUI>();
+        ilblT.fontSize = 14; ilblT.color = TEXT_WHITE; ilblT.alignment = TextAlignmentOptions.Left;
+        
+        // --- Bắt buộc phải gán Item components ---
+        itemTog.targetGraphic = ibgImg;
+        itemTog.graphic = icMkImg;
+        itemTog.isOn = true;
+        
+        // --- Gán thông tin template vào Dropdown TRƯỚC AddOptions ---
+        dd.template   = tplRT;
+        dd.itemText   = ilblT;
+        dd.itemImage  = ibgImg; // Có thể gán hoặc không
+        // GameObject Item bắt buộc phải có script Toggle (Unity TMP_Dropdown check GetComponent<Toggle> ở đây)
+        
+        tplGO.SetActive(false); // Template phải ẩn đi
+        // ------------------------------------------------------------------------
 
         dd.AddOptions(new System.Collections.Generic.List<string>(options));
     }

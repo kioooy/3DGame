@@ -110,12 +110,19 @@ public class SettingsUI : MonoBehaviour
         // Dong ngay
         ForceClose();
         PopulateResolutionDropdown();
+        PopulateQualityDropdown();
+        PopulateCursorStyleDropdown();
     }
 
     void Update()
     {
+#if ENABLE_INPUT_SYSTEM
+        if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
+            Toggle();
+#else
         if (Input.GetKeyDown(KeyCode.Escape))
             Toggle();
+#endif
     }
 
     // ════════════════════════════════════════
@@ -300,12 +307,33 @@ public class SettingsUI : MonoBehaviour
         dropdownResolution.ClearOptions();
         var opts = new System.Collections.Generic.List<string>();
         foreach (var r in Screen.resolutions)
-            opts.Add($"{r.width} x {r.height}");
+        {
+            // Ap dung refreshRate de thay su khac biet cua nhieu kieu do phan giai
+            opts.Add($"{r.width} x {r.height} @ {r.refreshRate}Hz");
+        }
         dropdownResolution.AddOptions(opts);
         int max = Screen.resolutions.Length - 1;
         dropdownResolution.value = SettingsManager.Instance != null
             ? SettingsManager.Instance.resolutionIdx
             : max;
+    }
+
+    void PopulateQualityDropdown()
+    {
+        if (!dropdownQuality) return;
+        dropdownQuality.ClearOptions();
+        dropdownQuality.AddOptions(new System.Collections.Generic.List<string> { "Thấp", "Vừa", "Cao" });
+        dropdownQuality.value = SettingsManager.Instance != null 
+            ? Mathf.Clamp(SettingsManager.Instance.qualityLevel, 0, 2) 
+            : 2;
+    }
+
+    void PopulateCursorStyleDropdown()
+    {
+        if (!dropdownCursorStyle) return;
+        dropdownCursorStyle.ClearOptions();
+        dropdownCursorStyle.AddOptions(new System.Collections.Generic.List<string> { "Mặc định", "Chính xác", "Vòng tròn" });
+        dropdownCursorStyle.value = SettingsManager.Instance != null ? SettingsManager.Instance.cursorStyle : 0;
     }
 
     // ────────────────────────────────────────
