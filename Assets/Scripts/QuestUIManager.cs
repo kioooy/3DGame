@@ -171,16 +171,17 @@ public class QuestUIManager : MonoBehaviour
 
             // === Chương 1: Làng Dế - Sự kiêu ngạo ===
             CreateQuestEntry(questPanel.transform, "talk_detrui",     "○ Nói chuyện với Dế Trũi", -90f);
-            CreateQuestEntry(questPanel.transform, "explore_village",  "○ Khám phá Làng Dế",       -125f);
+            CreateQuestEntry(questPanel.transform, "talk_dechoat",    "○ Nói chuyện với Dế Choắt",-125f);
+            CreateQuestEntry(questPanel.transform, "explore_village",  "○ Khám phá Làng Dế",       -160f);
 
             // === Chương 2: Bờ Ruộng - Trách nhiệm ===
-            CreateQuestEntry(questPanel.transform, "collect_items",   "○ Thu thập 3 vật phẩm",    -160f);
+            CreateQuestEntry(questPanel.transform, "collect_items",   "○ Thu thập 3 vật phẩm",    -195f);
 
             // === Chương 3: Hang Kiến - Đoàn kết ===
-            CreateQuestEntry(questPanel.transform, "find_antcolony",  "○ Tìm đường vào Hang Kiến",-195f);
+            CreateQuestEntry(questPanel.transform, "find_antcolony",  "○ Tìm đường vào Hang Kiến",-230f);
 
             // === Chương 4: Đối đầu Xén Tóc ===
-            CreateQuestEntry(questPanel.transform, "defeat_xentoc",   "○ Đánh bại Xén Tóc",       -230f);
+            CreateQuestEntry(questPanel.transform, "defeat_xentoc",   "○ Đánh bại Xén Tóc",       -265f);
 
             // === Hướng dẫn phím tắt ===
             GameObject hintObj = new GameObject("HintText");
