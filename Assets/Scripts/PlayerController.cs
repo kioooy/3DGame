@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour
     // Interaction
     private PickableItem _currentLookingItem;
     private bool _inventoryOpen = false;
+    public bool isDialoguing = false; // Skyrim-like conversation pause flag
 
 
     void Awake()
@@ -109,8 +110,8 @@ public class PlayerController : MonoBehaviour
                 TryPickupItem();
             }
 
-            // Disable movement khi inventory mở
-            if (!_inventoryOpen)
+            // Disable movement khi inventory mở hoặc đang hội thoại
+            if (!_inventoryOpen && !isDialoguing)
             {
                 // Hotbar selection (1-9)
                 HandleHotbarInput(kb);
@@ -225,7 +226,7 @@ public class PlayerController : MonoBehaviour
         // Find closest PickableItem
         foreach (var hit in hits)
         {
-            PickableItem item = hit.collider.GetComponent<PickableItem>();
+            PickableItem item = hit.collider.GetComponentInParent<PickableItem>();
             if (item != null && hit.distance < closestDistance)
             {
                 closestItem = item;

@@ -308,8 +308,8 @@ public class SettingsUI : MonoBehaviour
         var opts = new System.Collections.Generic.List<string>();
         foreach (var r in Screen.resolutions)
         {
-            // Ap dung refreshRate de thay su khac biet cua nhieu kieu do phan giai
-            opts.Add($"{r.width} x {r.height} @ {r.refreshRate}Hz");
+            // Thay thế refreshRate (obsolete) bằng refreshRateRatio.value
+            opts.Add($"{r.width} x {r.height} @ {Mathf.RoundToInt((float)r.refreshRateRatio.value)}Hz");
         }
         dropdownResolution.AddOptions(opts);
         int max = Screen.resolutions.Length - 1;
