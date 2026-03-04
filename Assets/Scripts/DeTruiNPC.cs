@@ -181,10 +181,7 @@ public class DeTruiNPC : MonoBehaviour
                 if (isJumping)
                 {
                     isJumping = false;
-                    if (animator != null) {
-                        animator.SetBool("IsJumping", false);
-                        animator.SetBool("Jump", false);
-                    }
+                    // Bỏ qua animator SetBool vì Animator của Dế Trũi hiện không có Parameter Jump
                 }
             } 
             else 
@@ -222,11 +219,7 @@ public class DeTruiNPC : MonoBehaviour
                         // Thấy tường gần -> Nhảy!
                         verticalVelocity = jumpForce;
                         isJumping = true;
-                        if (animator != null)
-                        {
-                            animator.SetBool("Jump", true);
-                            animator.SetBool("IsJumping", true);
-                        }
+                        // Bỏ qua animator SetBool vì Animator của Dế Trũi hiện không có Parameter Jump
                     }
                 }
             }

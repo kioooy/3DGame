@@ -27,8 +27,13 @@ public class MinimapMarker : MonoBehaviour
         markerObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
         markerObject.name = "MinimapIcon_" + gameObject.name;
         
-        // Remove collider so it doesn't interfere with physics
-        Destroy(markerObject.GetComponent<Collider>());
+        // Tắt ngay lập tức collider để tránh Physics engine báo lỗi trong 1 frame đầu tiên
+        Collider col = markerObject.GetComponent<Collider>();
+        if (col != null)
+        {
+            col.enabled = false;
+            Destroy(col);
+        }
         
         // Attach to this object
         markerObject.transform.SetParent(transform, false);

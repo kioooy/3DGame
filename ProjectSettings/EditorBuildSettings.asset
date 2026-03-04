@@ -5,9 +5,15 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Environment/JC_StylizedNature_Lite/Scenes/MainMenu.unity
+    guid: 1f930f21e288ae24b860e66fda742dfd
+  - enabled: 1
+    path: Assets/Environment/JC_StylizedNature_Lite/Scenes/StylizedNatureLite_Demo.unity
+    guid: e15b529565a5a75439137aa3e2f23911
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

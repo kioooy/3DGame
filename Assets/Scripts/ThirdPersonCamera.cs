@@ -30,8 +30,11 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (!MainMenuManager.IsMenuActive)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
 
         if (target != null)
         {
@@ -44,6 +47,9 @@ public class ThirdPersonCamera : MonoBehaviour
     void LateUpdate()
     {
         if (target == null) return;
+
+        // Dừng xoay Camera và Zoom nếu Menu đang bật để chuột có thể bấm nút
+        if (MainMenuManager.IsMenuActive) return;
 
         // Đọc input chuột
         var mouse = Mouse.current;

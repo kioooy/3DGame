@@ -72,6 +72,15 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        // Chặn hoàn toàn mọi thao tác nếu Main Menu đang bật
+        if (MainMenuManager.IsMenuActive)
+        {
+            _moveInput = Vector3.zero;
+            _isRunning = false;
+            UpdateAnimator();
+            return;
+        }
+
         // Ground check - ignore items layer
         if (groundLayer.value != 0)
         {
