@@ -1,40 +1,35 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class DeChoatNPC : MonoBehaviour
+public class XenTocNPC : MonoBehaviour
 {
-    [Header("Chat Bubble")]
+    [Header("Chat Bubble / Boss UI")]
     public ChatBubble chatBubble;
     public GameObject interactionPromptUI; 
     
     // Tốc độ bình thường mỗi câu chữ
-    public float timePerSentence = 2.5f;
+    public float timePerSentence = 3.5f;
 
     [Header("Identidade")]
-    public string npcName = "Dế Choắt";
+    public string npcName = "Xén Tóc (Boss)";
     [TextArea(3, 10)]
     public string[] dialogue = new string[] {
-        "Chào anh Mèn... Em dạo này ốm yếu quá.",
-        "Anh đi đứng cẩn thận nhé, ngoài kia nhiều nguy hiểm lắm.",
-        "Nếu rảnh rỗi, anh nhớ ghé qua thăm em nhé..." 
+        "Muahaha! Ngươi tưởng có thể vượt qua ta sao?",
+        "Tên Dế Mèn bé nhỏ kia, đây sẽ là nơi chôn xác ngươi!",
+        "Chuẩn bị chịu chết đi!" 
     };
 
     [Header("Settings Khung Cảnh (Skyrim-like)")]
-    public float interactionDistance = 3.0f;
+    public float interactionDistance = 4.0f; // Khoảng cách nói chuyện xa hơn vì là Boss
     [Tooltip("Điều chỉnh vị trí camera khi Focus nói chuyện (So với mặt NPC)")]
-    public Vector3 cameraFocusOffset = new Vector3(0, 0.4f, 1.2f); 
+    public Vector3 cameraFocusOffset = new Vector3(0, 1.0f, 2.0f); // Boss bự nên góc rộng hơn
     public float cameraTransitionSpeed = 5f;
 
     [Header("Animation")]
     public Animator animator;
     public string talkTrigger = "Talk";
     public string idleTrigger = "Idle";
-    public string runBool = "IsRunning";
-
-    [Header("Follow Settings")]
-    public float followSpeed = 4f;
-    [Tooltip("Khoảng cách bám theo khi chạy")]
-    public float stopDistance = 2.5f;
+    public string aggroTrigger = "Aggro";
 
     // Các biến Logic ẩn danh
     private Transform player;
@@ -43,8 +38,7 @@ public class DeChoatNPC : MonoBehaviour
     
     private bool isPlayerNearby = false;
     private bool isTalking = false;
-    private bool isWaitingForChoice = false;
-    private bool isFollowing = false;
+    private bool isWaitingForCombat = false; // Thay vì đợi lựa chọn, Boss đợi đánh
     
     // Quản lý đoạn hội thoại Skyrim
     private int currentDialogueIndex = 0;
@@ -74,6 +68,7 @@ public class DeChoatNPC : MonoBehaviour
 
         if (animator == null) animator = GetComponent<Animator>();
             
+        // Tìm chữ trong nút bấm UI prompt
         if (interactionPromptUI != null)
         {
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
@@ -87,8 +82,8 @@ public class DeChoatNPC : MonoBehaviour
         var kb = Keyboard.current;
         var mouse = Mouse.current;
 
-        // --- CÓ LỰA CHỌN (MENU: ĐI CÙNG HAY KHÔNG) ---
-        if (isWaitingForChoice)
+        // --- CÓ LỰA CHỌN (BẮT ĐẦU ĐÁNH NHAU) ---
+        if (isWaitingForCombat)
         {
             HandleCameraFocusSkyrim(); // Vẫn giữ cam khóa chặt mặt
             
@@ -96,26 +91,21 @@ public class DeChoatNPC : MonoBehaviour
             {
                 if (kb.digit1Key.wasPressedThisFrame)
                 {
-                    isFollowing = true;
-                    isWaitingForChoice = false;
-                    EndInteraction();
-                    chatBubble.Setup("Em sẽ lê bước theo anh!");
+                    isWaitingForCombat = false;
+                    EndInteractionForCombat();
+                    
+                    if (animator != null) animator.SetTrigger(aggroTrigger);
+                    chatBubble.Setup("TỚI ĐÂYYY!");
                     Invoke("HideBubble", 2f);
+                    
+                    // TODO: GỌI HÀM BẮT ĐẦU COMBAT Ở ĐÂY
                 }
-                else if (kb.digit2Key.wasPressedThisFrame)
+                else if (kb.digit2Key.wasPressedThisFrame || kb.tabKey.wasPressedThisFrame)
                 {
-                    isFollowing = false;
-                    isWaitingForChoice = false;
-                    EndInteraction();
-                    chatBubble.Setup("Vâng, anh đi cẩn thận nhé!");
+                    isWaitingForCombat = false;
+                    EndInteraction(); // Cho chạy trốn
+                    chatBubble.Setup("Hahaha! Kẻ hèn nhát!");
                     Invoke("HideBubble", 2f);
-                }
-                // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
-                else if (kb.tabKey.wasPressedThisFrame)
-                {
-                    isFollowing = false;
-                    isWaitingForChoice = false;
-                    EndInteraction();
                 }
             }
             return;
@@ -146,56 +136,19 @@ public class DeChoatNPC : MonoBehaviour
 
         // --- LOGIC PHÍA DƯỚI LÀ DEFAULT KHI KHÔNG NÓI CHUYỆN ---
 
-        if (isFollowing)
-        {
-            if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
-            
-            float dist = Vector3.Distance(transform.position, player.position);
-            bool isMovingNow = false;
-            // Dế Choắt chạy chậm hơn Dế Trũi một chút vì ốm yếu
-            float choatFollowSpeed = followSpeed * 0.7f; 
-            
-            if (dist > stopDistance)
-            {
-                Vector3 targetPos = player.position;
-                targetPos.y = transform.position.y;
-                Vector3 dir = (targetPos - transform.position).normalized;
-                
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10f * Time.deltaTime);
-                transform.position = Vector3.MoveTowards(transform.position, targetPos, choatFollowSpeed * Time.deltaTime);
-                isMovingNow = true;
-            }
-            else
-            {
-                FacePlayerTarget();
-                isMovingNow = false;
-            }
-
-            if (animator != null) animator.SetBool(runBool, isMovingNow);
-            
-            if (dist <= interactionDistance && kb != null && kb.fKey.wasPressedThisFrame)
-            {
-                isFollowing = false;
-                if (animator != null) animator.SetBool(runBool, false);
-                chatBubble.Setup("Em khát nước... Dừng chút nhé anh!");
-                Invoke("HideBubble", 2f);
-            }
-            return;
-        }
-
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         bool currentlyNearby = distanceToPlayer <= interactionDistance;
 
         if (currentlyNearby != isPlayerNearby)
         {
             isPlayerNearby = currentlyNearby;
-            if (!isTalking && !isWaitingForChoice && interactionPromptUI != null)
+            if (!isTalking && !isWaitingForCombat && interactionPromptUI != null)
             {
                 interactionPromptUI.SetActive(isPlayerNearby);
             }
         }
 
-        if (isPlayerNearby && !isTalking && !isWaitingForChoice)
+        if (isPlayerNearby && !isTalking && !isWaitingForCombat)
         {
             if (kb != null && kb.fKey.wasPressedThisFrame)
             {
@@ -282,7 +235,7 @@ public class DeChoatNPC : MonoBehaviour
     void ShowChoice()
     {
         isTalking = false;
-        isWaitingForChoice = true;
+        isWaitingForCombat = true;
         if (chatBubble != null) chatBubble.Hide();
 
         if (interactionPromptUI != null)
@@ -290,23 +243,19 @@ public class DeChoatNPC : MonoBehaviour
             interactionPromptUI.SetActive(true);
             if (promptTextComp != null)
             {
-                promptTextComp.text = "[1] Rủ đi cùng\n[2] Bỏ qua";
+                promptTextComp.text = "[1] Nghênh Chiến!\n[2] Bỏ Trốn";
                 promptTextComp.fontSize = 25; 
             }
         }
     }
 
+    // Kết thúc nói chuyện bình thường (Chưa đánh bại)
     public void EndInteraction()
     {
         isTalking = false;
-        isWaitingForChoice = false;
+        isWaitingForCombat = false;
         
         if (chatBubble != null) chatBubble.Hide();
-
-        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("talk_dechoat"))
-        {
-            QuestUIManager.Instance.CompleteQuest("talk_dechoat"); // Hoàn thành quest của Dế Choắt
-        }
 
         // Phục hồi lại Chữ & Cỡ Chữ gốc Prompt
         if (promptTextComp != null && !string.IsNullOrEmpty(originalPromptText))
@@ -315,13 +264,9 @@ public class DeChoatNPC : MonoBehaviour
             promptTextComp.fontSize = 50;
         }
 
-        if (isPlayerNearby && !isFollowing)
+        if (isPlayerNearby)
         {
             if (interactionPromptUI != null) interactionPromptUI.SetActive(true);
-        }
-        else
-        {
-            if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
         }
 
         if (animator != null) animator.SetTrigger(idleTrigger);
@@ -337,5 +282,14 @@ public class DeChoatNPC : MonoBehaviour
             mainCamera.transform.localPosition = originalCameraPos;
             mainCamera.transform.localRotation = originalCameraRot;
         }
+    }
+    
+    // Kết thúc nói chuyện và chuyển hẳn sang chiến đấu
+    public void EndInteractionForCombat()
+    {
+        EndInteraction();
+        
+        // Khi người chơi thắng trận thì mới gọi hàm này ở nơi khác (ví dụ Health == 0):
+        // if (QuestUIManager.Instance != null) QuestUIManager.Instance.CompleteQuest("defeat_xentoc");
     }
 }
