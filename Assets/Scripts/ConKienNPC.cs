@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class DeChoatNPC : MonoBehaviour
+public class ConKienNPC : MonoBehaviour
 {
     [Header("Chat Bubble")]
     public ChatBubble chatBubble;
@@ -11,12 +11,12 @@ public class DeChoatNPC : MonoBehaviour
     public float timePerSentence = 2.5f;
 
     [Header("Identidade")]
-    public string npcName = "Dế Choắt";
+    public string npcName = "Kiến Chỉ Huy";
     [TextArea(3, 10)]
     public string[] dialogue = new string[] {
-        "Chào anh Mèn... Em dạo này ốm yếu quá.",
-        "Anh đi đứng cẩn thận nhé, ngoài kia nhiều nguy hiểm lắm.",
-        "Nếu rảnh rỗi, anh nhớ ghé qua thăm em nhé..." 
+        "Hỡi nhà phiêu lưu! Cậu tìm đến Hang Kiến chúng tôi có việc gì?",
+        "Xin hãy cẩn thận, dạo này lũ Xén Tóc lộng hành ghê lắm.",
+        "Nếu cậu vào hang, hãy theo tôi!" 
     };
 
     [Header("Settings Khung Cảnh (Skyrim-like)")]
@@ -32,7 +32,7 @@ public class DeChoatNPC : MonoBehaviour
     public string runBool = "IsRunning";
 
     [Header("Follow Settings")]
-    public float followSpeed = 4f;
+    public float followSpeed = 6f; // Kiến chạy nhanh hơn tẹo
     [Tooltip("Khoảng cách bám theo khi chạy")]
     public float stopDistance = 2.5f;
 
@@ -74,6 +74,7 @@ public class DeChoatNPC : MonoBehaviour
 
         if (animator == null) animator = GetComponent<Animator>();
             
+        // Tìm chữ trong nút bấm UI prompt
         if (interactionPromptUI != null)
         {
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
@@ -99,7 +100,7 @@ public class DeChoatNPC : MonoBehaviour
                     isFollowing = true;
                     isWaitingForChoice = false;
                     EndInteraction();
-                    chatBubble.Setup("Em sẽ lê bước theo anh!");
+                    chatBubble.Setup("Tiến lên nào!");
                     Invoke("HideBubble", 2f);
                 }
                 else if (kb.digit2Key.wasPressedThisFrame)
@@ -107,7 +108,7 @@ public class DeChoatNPC : MonoBehaviour
                     isFollowing = false;
                     isWaitingForChoice = false;
                     EndInteraction();
-                    chatBubble.Setup("Vâng, anh đi cẩn thận nhé!");
+                    chatBubble.Setup("Hãy gọi nếu cậu cần bảo vệ!");
                     Invoke("HideBubble", 2f);
                 }
                 // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
@@ -152,8 +153,6 @@ public class DeChoatNPC : MonoBehaviour
             
             float dist = Vector3.Distance(transform.position, player.position);
             bool isMovingNow = false;
-            // Dế Choắt chạy chậm hơn Dế Trũi một chút vì ốm yếu
-            float choatFollowSpeed = followSpeed * 0.7f; 
             
             if (dist > stopDistance)
             {
@@ -162,7 +161,7 @@ public class DeChoatNPC : MonoBehaviour
                 Vector3 dir = (targetPos - transform.position).normalized;
                 
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10f * Time.deltaTime);
-                transform.position = Vector3.MoveTowards(transform.position, targetPos, choatFollowSpeed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, targetPos, followSpeed * Time.deltaTime);
                 isMovingNow = true;
             }
             else
@@ -177,7 +176,7 @@ public class DeChoatNPC : MonoBehaviour
             {
                 isFollowing = false;
                 if (animator != null) animator.SetBool(runBool, false);
-                chatBubble.Setup("Em khát nước... Dừng chút nhé anh!");
+                chatBubble.Setup("Tập hợp hàng ngũ!");
                 Invoke("HideBubble", 2f);
             }
             return;
@@ -212,7 +211,7 @@ public class DeChoatNPC : MonoBehaviour
 
         // Target Cận mặt nhân vật NPC một chút
         Vector3 targetPos = transform.position + transform.rotation * cameraFocusOffset;
-        // Xoay Camera ngắm vào khuôn mặt
+        // Xoay Camera ngắm vào khuôn mặt của NPC (Cao hơn thân một tẹo)
         Quaternion targetRot = Quaternion.LookRotation((transform.position + Vector3.up * 0.5f) - targetPos);
 
         mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPos, Time.deltaTime * cameraTransitionSpeed);
@@ -303,9 +302,10 @@ public class DeChoatNPC : MonoBehaviour
         
         if (chatBubble != null) chatBubble.Hide();
 
-        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("talk_dechoat"))
+        // Hoàn thành quest Dế tìm đường vào Hang Kiến
+        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("find_antcolony"))
         {
-            QuestUIManager.Instance.CompleteQuest("talk_dechoat"); // Hoàn thành quest của Dế Choắt
+            QuestUIManager.Instance.CompleteQuest("find_antcolony");
         }
 
         // Phục hồi lại Chữ & Cỡ Chữ gốc Prompt
