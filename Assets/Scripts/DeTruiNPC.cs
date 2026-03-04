@@ -36,7 +36,17 @@ public class DeTruiNPC : MonoBehaviour
     [Tooltip("Khoảng cách bám theo khi chạy")]
     public float stopDistance = 2.5f;
 
+    [Header("Jump / Physics Settings")]
+    public float jumpForce = 8f;
+    public float gravity = -20f;
+    public float jumpObstacleCheckDist = 0.8f;
+    public LayerMask groundLayer;
+    public LayerMask obstacleLayer;
+
     // Các biến Logic ẩn danh
+    private float verticalVelocity = 0f;
+    private bool isJumping = false;
+
     private Transform player;
     private PlayerController playerController;
     private Camera mainCamera;
@@ -59,6 +69,9 @@ public class DeTruiNPC : MonoBehaviour
     private string originalPromptText;
 
 
+    private Rigidbody rb;
+    private Vector3 currentVelocity;
+
     void Start()
     {
         if (player == null)
@@ -79,6 +92,12 @@ public class DeTruiNPC : MonoBehaviour
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
             if (promptTextComp != null) originalPromptText = promptTextComp.text;
         }
+
+        rb = GetComponent<Rigidbody>();
+
+        // --- Minimap Marker ---
+        MinimapMarker marker = gameObject.AddComponent<MinimapMarker>();
+        marker.markerColor = Color.yellow; // Friendly NPC / Follower
     }
 
     void Update()
@@ -144,14 +163,37 @@ public class DeTruiNPC : MonoBehaviour
             return;
         }
 
-        // --- LOGIC PHÍA DƯỚI LÀ DEFAULT KHI KHÔNG NÓI CHUYỆN ---
-
+        // --- LOGIC Y HỆT NHƯ CŨ + THÊM GRAVITY & JUMP BẰNG RIGIDBODY ---
         if (isFollowing)
         {
             if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
             
             float dist = Vector3.Distance(transform.position, player.position);
             bool isMovingNow = false;
+
+            // --- JUMP & GRAVITY LOGIC ---
+            // Có collider nên bắn tia ray cao hơn xí để tránh dính đít collider (0.2f)
+            bool isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down, 0.5f, groundLayer);
+            
+            if (isGrounded && verticalVelocity <= 0)
+            {
+                verticalVelocity = -1f; // Stick to ground
+                if (isJumping)
+                {
+                    isJumping = false;
+                    if (animator != null) {
+                        animator.SetBool("IsJumping", false);
+                        animator.SetBool("Jump", false);
+                    }
+                }
+            } 
+            else 
+            {
+                verticalVelocity += gravity * Time.deltaTime; // Apply gravity
+            }
+
+            Vector3 moveDir = Vector3.zero;
+
             if (dist > stopDistance)
             {
                 Vector3 targetPos = player.position;
@@ -159,14 +201,43 @@ public class DeTruiNPC : MonoBehaviour
                 Vector3 dir = (targetPos - transform.position).normalized;
                 
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10f * Time.deltaTime);
-                transform.position = Vector3.MoveTowards(transform.position, targetPos, followSpeed * Time.deltaTime);
+
+                float currentSpeed = followSpeed;
+                if (dist > stopDistance + 2f)
+                {
+                    currentSpeed = followSpeed * 1.8f;
+                }
+
+                moveDir = dir * currentSpeed;
                 isMovingNow = true;
+
+                // --- OBSTACLE DETECTION FOR JUMP ---
+                if (isGrounded && !isJumping)
+                {
+                    // Bắn tia ray ngang gối/đùi (cách đáy 0.3f)
+                    Vector3 rayStart = transform.position + Vector3.up * 0.3f;
+                    bool hitWall = Physics.Raycast(rayStart, dir, jumpObstacleCheckDist, obstacleLayer);
+                    if (hitWall)
+                    {
+                        // Thấy tường gần -> Nhảy!
+                        verticalVelocity = jumpForce;
+                        isJumping = true;
+                        if (animator != null)
+                        {
+                            animator.SetBool("Jump", true);
+                            animator.SetBool("IsJumping", true);
+                        }
+                    }
+                }
             }
             else
             {
                 FacePlayerTarget();
                 isMovingNow = false;
             }
+
+            // Lưu vận tốc vào currentVelocity để dùng trong FixedUpdate
+            currentVelocity = moveDir;
 
             if (animator != null) animator.SetBool(runBool, isMovingNow);
             
@@ -179,6 +250,17 @@ public class DeTruiNPC : MonoBehaviour
             }
             return;
         }
+
+        // Logic khi ĐỨNG YÊN (Không follow)
+        // Vẫn phải check chạm đất nếu bị rớt
+        bool groundCheckIdle = Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down, 0.5f, groundLayer);
+        if (groundCheckIdle && verticalVelocity <= 0) {
+            verticalVelocity = -1f;
+        } else {
+            verticalVelocity += gravity * Time.deltaTime;
+        }
+        currentVelocity = Vector3.zero;
+
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         bool currentlyNearby = distanceToPlayer <= interactionDistance;
@@ -198,6 +280,17 @@ public class DeTruiNPC : MonoBehaviour
             {
                 StartInteraction();
             }
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (rb != null)
+        {
+            // Di chuyển bằng Rigidbody thay vì Transform
+            Vector3 finalMove = currentVelocity * Time.fixedDeltaTime;
+            finalMove.y = verticalVelocity * Time.fixedDeltaTime;
+            rb.MovePosition(rb.position + finalMove);
         }
     }
     

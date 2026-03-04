@@ -39,6 +39,25 @@ public class MinimapCamera : MonoBehaviour
             var ui = GameObject.Find("MinimapUI");
             if (ui != null) minimapUI = ui;
         }
+
+        // --- Culling Mask Setup ---
+        Camera mainCam = Camera.main;
+        Camera miniCam = GetComponent<Camera>();
+
+        int minimapLayer = LayerMask.NameToLayer("MinimapIcon");
+        if (minimapLayer == -1) minimapLayer = 8; // fallback to Layer 8
+
+        if (mainCam != null)
+        {
+            // Ẩn layer MinimapIcon khỏi Main Camera
+            mainCam.cullingMask &= ~(1 << minimapLayer);
+        }
+        
+        if (miniCam != null)
+        {
+            // Hiển thị layer MinimapIcon trên Minimap Camera
+            miniCam.cullingMask |= (1 << minimapLayer);
+        }
     }
 
     void Update()

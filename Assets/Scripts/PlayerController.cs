@@ -64,6 +64,10 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Jump", false);
             animator.SetBool("IsJumping", false);
         }
+
+        // --- Minimap Marker ---
+        MinimapMarker marker = gameObject.AddComponent<MinimapMarker>();
+        marker.markerColor = Color.blue; // Player
     }
 
     void Update()
