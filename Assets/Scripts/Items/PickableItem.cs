@@ -84,14 +84,28 @@ public class PickableItem : MonoBehaviour
         {
             if (_renderers[i] != null && _renderers[i].material != null)
             {
-                // Only set color if material has _Color property
-                if (_renderers[i].material.HasProperty("_Color"))
+                Material mat = _renderers[i].material;
+                if (enable)
                 {
-                    _renderers[i].material.color = enable ? highlightColor : _originalColors[i];
+                    // Lên màu vàng kim cực mạnh với Emission thay vì đổi màu vật lý thông thường
+                    mat.SetColor("_EmissionColor", highlightColor * 2.5f); // 2.5f là cường độ sáng
+                    mat.EnableKeyword("_EMISSION");
+                    
+                    if (mat.HasProperty("_Color")) 
+                    {
+                        mat.color = Color.Lerp(_originalColors[i], highlightColor, 0.5f);
+                    }
                 }
                 else
                 {
-                    Debug.LogWarning($"[PickableItem] {gameObject.name}: Material '{_renderers[i].material.name}' doesn't have _Color property");
+                    // Trả về bình thường
+                    mat.SetColor("_EmissionColor", Color.black);
+                    mat.DisableKeyword("_EMISSION");
+                    
+                    if (mat.HasProperty("_Color"))
+                    {
+                        mat.color = _originalColors[i];
+                    }
                 }
             }
         }
@@ -128,6 +142,13 @@ public class PickableItem : MonoBehaviour
         if (success)
         {
             Debug.Log($"[PickableItem] ✅ Successfully picked up {quantity}x {itemData.itemName}");
+            
+            // Nếu là đá thì check vụ làm nhiệm vụ nhặt đá
+            if (QuestUIManager.Instance != null && itemData != null && itemData.itemName.ToLower().Contains("đá"))
+            {
+                QuestUIManager.Instance.CompleteQuest("pickup_stone");
+            }
+
             // TODO: Play pickup sound/effect
             Destroy(gameObject);
             return true;

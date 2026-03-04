@@ -1,11 +1,14 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class DeTruiNPC : MonoBehaviour
 {
     [Header("Chat Bubble")]
     public ChatBubble chatBubble;
-    public GameObject interactionPromptUI; // New local prompt
-    public float timePerSentence = 3f;
+    public GameObject interactionPromptUI; 
+    
+    // Tốc độ bình thường mỗi câu chữ
+    public float timePerSentence = 2.5f;
 
     [Header("Identidade")]
     public string npcName = "Dế Trũi";
@@ -16,153 +19,320 @@ public class DeTruiNPC : MonoBehaviour
         "Nếu cậu cần người đồng hành, tôi luôn sẵn lòng!" 
     };
 
-    [Header("Settings")]
+    [Header("Settings Khung Cảnh (Skyrim-like)")]
     public float interactionDistance = 3.0f;
-    public KeyCode interactKey = KeyCode.F;
+    [Tooltip("Điều chỉnh vị trí camera khi Focus nói chuyện (So với mặt NPC)")]
+    public Vector3 cameraFocusOffset = new Vector3(0, 0.4f, 1.2f); 
+    public float cameraTransitionSpeed = 5f;
 
     [Header("Animation")]
     public Animator animator;
     public string talkTrigger = "Talk";
     public string idleTrigger = "Idle";
+    public string runBool = "IsRunning";
 
+    [Header("Follow Settings")]
+    public float followSpeed = 4f;
+    [Tooltip("Khoảng cách bám theo khi chạy")]
+    public float stopDistance = 2.5f;
+
+    // Các biến Logic ẩn danh
     private Transform player;
+    private PlayerController playerController;
+    private Camera mainCamera;
+    
     private bool isPlayerNearby = false;
     private bool isTalking = false;
+    private bool isWaitingForChoice = false;
+    private bool isFollowing = false;
+    
+    // Quản lý đoạn hội thoại Skyrim
+    private int currentDialogueIndex = 0;
+    private float dialogueTimerLengthThreshold = 0f;
+    
+    // Lưu tạm thời vị trí Camera (Trở về ban đầu kết thúc Dialog)
+    private Vector3 originalCameraPos;
+    private Quaternion originalCameraRot;
+    private Transform originalCameraParent;
+
+    private TMPro.TextMeshProUGUI promptTextComp;
+    private string originalPromptText;
+
 
     void Start()
     {
-        // Auto-find player if not assigned
         if (player == null)
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
             if (p != null) {
                  player = p.transform;
-                 Debug.Log("DeTruiNPC: Player found by tag.");
-            } else {
-                 Debug.LogError("DeTruiNPC: Player NOT found! Make sure Player tag is set.");
+                 playerController = p.GetComponent<PlayerController>();
             }
         }
+        
+        mainCamera = Camera.main;
 
-        if (animator == null)
-            animator = GetComponent<Animator>();
+        if (animator == null) animator = GetComponent<Animator>();
             
-        if (chatBubble == null) Debug.LogError("DeTruiNPC: ChatBubble is missing! Run the Setup Tool.");
+        if (interactionPromptUI != null)
+        {
+            promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            if (promptTextComp != null) originalPromptText = promptTextComp.text;
+        }
     }
 
     void Update()
     {
         if (player == null) return;
+        var kb = Keyboard.current;
+        var mouse = Mouse.current;
 
-        float distance = Vector3.Distance(transform.position, player.position);
-        // Debug.Log($"Distance: {distance}"); // Uncomment if needed
-        bool currentlyNearby = distance <= interactionDistance;
+        // --- CÓ LỰA CHỌN (MENU: ĐI CÙNG HAY KHÔNG) ---
+        if (isWaitingForChoice)
+        {
+            HandleCameraFocusSkyrim(); // Vẫn giữ cam khóa chặt mặt
+            
+            if (kb != null)
+            {
+                if (kb.digit1Key.wasPressedThisFrame)
+                {
+                    isFollowing = true;
+                    isWaitingForChoice = false;
+                    EndInteraction();
+                    chatBubble.Setup("Được thôi, tôi sẽ đi theo cậu!");
+                    Invoke("HideBubble", 2f);
+                }
+                else if (kb.digit2Key.wasPressedThisFrame)
+                {
+                    isFollowing = false;
+                    isWaitingForChoice = false;
+                    EndInteraction();
+                    chatBubble.Setup("Không sao, hẹn gặp lại nhé!");
+                    Invoke("HideBubble", 2f);
+                }
+                // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
+                else if (kb.tabKey.wasPressedThisFrame)
+                {
+                    isFollowing = false;
+                    isWaitingForChoice = false;
+                    EndInteraction();
+                }
+            }
+            return;
+        }
+
+        // --- TRONG QUÁ TRÌNH HỘI THOẠI (NEXT BẰNG CHUỘT / THOÁT BẰNG TAB) ---
+        if (isTalking)
+        {
+            HandleCameraFocusSkyrim();
+            
+            if (kb != null && kb.tabKey.wasPressedThisFrame)
+            {
+                // Bấm TAB thoát ngay lập tức
+                EndInteraction();
+                return;
+            }
+
+            // Đếm thời gian tự động đổi dòng
+            dialogueTimerLengthThreshold += Time.deltaTime;
+
+            if ((mouse != null && mouse.leftButton.wasPressedThisFrame) || dialogueTimerLengthThreshold >= timePerSentence)
+            {
+                // Qua câu tiếp theo
+                TriggerNextSentence();
+            }
+            return;
+        }
+
+        // --- LOGIC PHÍA DƯỚI LÀ DEFAULT KHI KHÔNG NÓI CHUYỆN ---
+
+        if (isFollowing)
+        {
+            if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
+            
+            float dist = Vector3.Distance(transform.position, player.position);
+            bool isMovingNow = false;
+            if (dist > stopDistance)
+            {
+                Vector3 targetPos = player.position;
+                targetPos.y = transform.position.y;
+                Vector3 dir = (targetPos - transform.position).normalized;
+                
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10f * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, targetPos, followSpeed * Time.deltaTime);
+                isMovingNow = true;
+            }
+            else
+            {
+                FacePlayerTarget();
+                isMovingNow = false;
+            }
+
+            if (animator != null) animator.SetBool(runBool, isMovingNow);
+            
+            if (dist <= interactionDistance && kb != null && kb.fKey.wasPressedThisFrame)
+            {
+                isFollowing = false;
+                if (animator != null) animator.SetBool(runBool, false);
+                chatBubble.Setup("Tôi sẽ đứng chờ ở đây!");
+                Invoke("HideBubble", 2f);
+            }
+            return;
+        }
+
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        bool currentlyNearby = distanceToPlayer <= interactionDistance;
 
         if (currentlyNearby != isPlayerNearby)
         {
             isPlayerNearby = currentlyNearby;
-            // Only show prompt if NOT talking
-            if (!isTalking)
+            if (!isTalking && !isWaitingForChoice && interactionPromptUI != null)
             {
-                if (interactionPromptUI != null) 
-                    interactionPromptUI.SetActive(isPlayerNearby);
-                else if (DialogueManager.Instance != null) // Fallback
-                    DialogueManager.Instance.ShowInteractionPrompt(isPlayerNearby);
-            }
-            
-            // If player walks away while talking, end dialogue
-            if (!isPlayerNearby && isTalking)
-            {
-                EndInteraction();
+                interactionPromptUI.SetActive(isPlayerNearby);
             }
         }
 
-        // Handle Input (New Input System)
-        if (isPlayerNearby && UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.fKey.wasPressedThisFrame)
+        if (isPlayerNearby && !isTalking && !isWaitingForChoice)
         {
-            Debug.Log("DeTruiNPC: 'F' pressed. Starting interaction...");
-            if (!isTalking)
+            if (kb != null && kb.fKey.wasPressedThisFrame)
             {
                 StartInteraction();
             }
-            else
-            {
-                // Optional: Advance dialogue if DialogueManager requires it
-                // But usually DialogueManager handles the advancement itself
-                // We just trigger the initial start here.
-            }
         }
     }
+    
+    private void HandleCameraFocusSkyrim()
+    {
+        if (mainCamera == null) return;
+        
+        FacePlayerTarget();
+
+        // Target Cận mặt nhân vật NPC một chút
+        Vector3 targetPos = transform.position + transform.rotation * cameraFocusOffset;
+        // Xoay Camera ngắm vào khuôn mặt của NPC DeTrui (Cao hơn thân một tẹo)
+        Quaternion targetRot = Quaternion.LookRotation((transform.position + Vector3.up * 0.5f) - targetPos);
+
+        mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPos, Time.deltaTime * cameraTransitionSpeed);
+        mainCamera.transform.rotation = Quaternion.Slerp(mainCamera.transform.rotation, targetRot, Time.deltaTime * cameraTransitionSpeed);
+    }
+    
+    void FacePlayerTarget()
+    {
+        if (player == null) return;
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0; 
+        if (direction != Vector3.zero)
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 10f * Time.deltaTime);
+    }
+
+    void HideBubble() { if (chatBubble != null) chatBubble.Hide(); }
 
     void StartInteraction()
     {
         isTalking = true;
         
-        // Hide prompt
-        if (interactionPromptUI != null)
-            interactionPromptUI.SetActive(false);
-        else if (DialogueManager.Instance != null)
-            DialogueManager.Instance.ShowInteractionPrompt(false);
+        if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
-        // Face the player
-        Vector3 direction = (player.position - transform.position).normalized;
-        direction.y = 0; // Keep rotation flat
-        transform.rotation = Quaternion.LookRotation(direction);
+        FacePlayerTarget();
+        if (animator != null) animator.SetTrigger(talkTrigger);
 
-        if (animator != null)
+        if (playerController != null)
         {
-            animator.SetTrigger(talkTrigger);
+            // Skyrim action: FREEZE PLAYER
+            playerController.isDialoguing = true;
         }
 
-        // Start Chat Bubble Logic
-        StopAllCoroutines();
-        StartCoroutine(ShowDialogueRoutine());
-    }
+        if (mainCamera != null)
+        {
+            originalCameraParent = mainCamera.transform.parent;
+            originalCameraPos = mainCamera.transform.localPosition;
+            originalCameraRot = mainCamera.transform.localRotation;
+        }
 
-    System.Collections.IEnumerator ShowDialogueRoutine()
+        currentDialogueIndex = 0;
+        dialogueTimerLengthThreshold = 0f;
+        DisplayCurrentSentence();
+    }
+    
+    void TriggerNextSentence()
     {
+        currentDialogueIndex++;
+        if (currentDialogueIndex < dialogue.Length)
+        {
+            DisplayCurrentSentence();
+        }
+        else
+        {
+            ShowChoice();
+        }
+    }
+    
+    void DisplayCurrentSentence()
+    {
+        dialogueTimerLengthThreshold = 0f; // Reset khung giờ chờ
         if (chatBubble != null)
         {
-            foreach (string sentence in dialogue)
-            {
-                Debug.Log($"DeTruiNPC SAYS: {sentence}");
-                chatBubble.Setup(sentence);
-                yield return new WaitForSeconds(timePerSentence);
-            }
-            chatBubble.Hide();
-        } else {
-            Debug.LogError("DeTruiNPC: ChatBubble is null in Coroutine!");
+            chatBubble.Setup(dialogue[currentDialogueIndex]);
         }
-        EndInteraction();
+    }
+
+    void ShowChoice()
+    {
+        isTalking = false;
+        isWaitingForChoice = true;
+        if (chatBubble != null) chatBubble.Hide();
+
+        if (interactionPromptUI != null)
+        {
+            interactionPromptUI.SetActive(true);
+            if (promptTextComp != null)
+            {
+                promptTextComp.text = "[1] Rủ đi cùng\n[2] Bỏ qua";
+                promptTextComp.fontSize = 25; 
+            }
+        }
     }
 
     public void EndInteraction()
     {
         isTalking = false;
-        StopAllCoroutines();
+        isWaitingForChoice = false;
         
         if (chatBubble != null) chatBubble.Hide();
 
-        // Hoàn thành nhiệm vụ "Nói chuyện với Dế Trũi"
-        if (QuestUIManager.Instance != null)
+        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("talk_detrui"))
+        {
             QuestUIManager.Instance.CompleteQuest("talk_detrui");
-
-        if (DialogueManager.Instance != null)
-        {
-             DialogueManager.Instance.ShowInteractionPrompt(false); 
-        }
-        
-        // If still nearby, show prompt again
-        if (isPlayerNearby)
-        {
-            if (interactionPromptUI != null)
-                interactionPromptUI.SetActive(true);
-            else if (DialogueManager.Instance != null)
-                DialogueManager.Instance.ShowInteractionPrompt(true);
         }
 
-        if (animator != null)
+        // Phục hồi lại Chữ & Cỡ Chữ gốc Prompt
+        if (promptTextComp != null && !string.IsNullOrEmpty(originalPromptText))
         {
-            animator.SetTrigger(idleTrigger);
+            promptTextComp.text = originalPromptText;
+            promptTextComp.fontSize = 50;
+        }
+
+        if (isPlayerNearby && !isFollowing)
+        {
+            if (interactionPromptUI != null) interactionPromptUI.SetActive(true);
+        }
+        else
+        {
+            if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
+        }
+
+        if (animator != null) animator.SetTrigger(idleTrigger);
+
+        // -- Skyrim Action RECOVER --
+        if (playerController != null)
+        {
+            playerController.isDialoguing = false; // UNFREEZE
+        }
+        if (mainCamera != null)
+        {
+            // Trả Camera lại điểm gốc
+            mainCamera.transform.localPosition = originalCameraPos;
+            mainCamera.transform.localRotation = originalCameraRot;
         }
     }
 }
