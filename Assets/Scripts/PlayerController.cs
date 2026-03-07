@@ -190,10 +190,18 @@ public class PlayerController : MonoBehaviour
     {
         if (animator == null) return;
 
-        animator.SetFloat("MoveX", _moveInput.x);
-        animator.SetFloat("MoveY", _moveInput.z);
+        // QUAN TRỌNG: Giải quyết lỗi rung rắc camera (Root motion vs Code)
+        // Vì hiện tại nhân vật đã dồn toàn thân xoay mặt về đích (Genshin Style), 
+        // chiều chuyển động cục bộ của cơ thể luôn là "Đi thẳng về phía trước".
+        // Ta không cho phép Animator kích hoạt dáng "Đi lùi / Bước ngang" nữa,
+        // nếu không Root Motion của animation đi lùi sẽ giật ngược lại đường đi của script.
         
-        float speedVal = (_moveInput.sqrMagnitude > 0.01f) ? (_isRunning ? 1f : 0.5f) : 0f;
+        float moveMagnitude = _moveInput.sqrMagnitude > 0.01f ? 1f : 0f;
+        
+        animator.SetFloat("MoveX", 0f);
+        animator.SetFloat("MoveY", moveMagnitude);
+        
+        float speedVal = (moveMagnitude > 0.01f) ? (_isRunning ? 1f : 0.5f) : 0f;
         animator.SetFloat("Speed", speedVal);
         
         if (_isGrounded && !_isJumping) {
@@ -204,14 +212,41 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector3 moveDir = (transform.forward * _moveInput.z + transform.right * _moveInput.x);
-        moveDir.y = 0f;
+        // 1. Tính toán hướng di chuyển dựa trên Camera
+        Vector3 moveDir = Vector3.zero;
+        if (cameraTransform != null)
+        {
+            Vector3 camForward = cameraTransform.forward;
+            Vector3 camRight = cameraTransform.right;
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
+
+            moveDir = (camForward * _moveInput.z + camRight * _moveInput.x);
+        }
+        else
+        {
+            moveDir = (transform.forward * _moveInput.z + transform.right * _moveInput.x);
+            moveDir.y = 0f;
+        }
+
         if (moveDir.sqrMagnitude > 0.01f) moveDir.Normalize();
 
+        // 2. Tính toán vận tốc
         float speed = _isRunning ? moveSpeed * runSpeedMultiplier : moveSpeed;
         Vector3 horizontalMove = moveDir * speed * Time.fixedDeltaTime;
         Vector3 verticalMove = Vector3.up * _verticalVelocity * Time.fixedDeltaTime;
 
+        // 3. Xoay nhân vật mượt mà theo hướng di chuyển (Nếu có bấm nút di chuyển)
+        if (moveDir.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
+            // Tốc độ xoay (Lerp) 15f có thể điều chỉnh cho mượt hơn
+            rb.MoveRotation(Quaternion.Slerp(transform.rotation, targetRotation, 15f * Time.fixedDeltaTime));
+        }
+
+        // 4. Di chuyển vị trí vật lý
         rb.MovePosition(rb.position + horizontalMove + verticalMove);
     }
 

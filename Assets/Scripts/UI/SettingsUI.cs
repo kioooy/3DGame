@@ -154,6 +154,13 @@ public class SettingsUI : MonoBehaviour
 
         if (_anim != null) StopCoroutine(_anim);
         _anim = StartCoroutine(AnimateClose());
+
+        // Khóa lại chuột khi đóng menu Setting
+        if (SettingsManager.Instance != null && !InventoryUI.Instance.IsOpen)
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
     }
 
     void ForceClose()

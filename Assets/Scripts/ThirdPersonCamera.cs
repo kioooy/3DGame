@@ -143,20 +143,14 @@ public class ThirdPersonCamera : MonoBehaviour
                 }
             }
 
-            // Di chuyển camera mượt mà
-            transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
+            // Gắn trực tiếp vị trí camera (KHÔNG Lerp) để tránh giật lag do lệch nhịp với FixedUpdate của vật lý nhân vật.
+            transform.position = targetPosition;
 
             // Luôn hướng về phía trước theo đúng trục quay
-            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, followSpeed * Time.deltaTime);
+            transform.rotation = rotation;
         }
 
-        // Đồng bộ xoay nhân vật theo hướng nhìn ngang (để di chuyển đúng hướng)
-        Quaternion targetRotation = Quaternion.Euler(0f, _horizontalAngle, 0f);
-        var rb = target.GetComponent<Rigidbody>();
-        if (rb != null)
-            rb.MoveRotation(targetRotation);
-        else
-            target.rotation = targetRotation;
+        // (Đã xoá phần ép nhân vật xoay theo hướng nhìn để nhân vật có thể tự do di chuyển)
     }
 
     /// <summary>
