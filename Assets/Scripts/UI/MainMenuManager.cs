@@ -22,7 +22,7 @@ public class MainMenuManager : MonoBehaviour
     public Button exitButton;
 
     // Cờ báo Menu đang mở
-    public static bool IsMenuActive = true;
+    public static bool IsMenuActive = false;
 
     void Start()
     {

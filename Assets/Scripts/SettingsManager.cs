@@ -7,7 +7,24 @@ using UnityEngine.Audio;
 /// </summary>
 public class SettingsManager : MonoBehaviour
 {
-    public static SettingsManager Instance { get; private set; }
+    private static SettingsManager _instance;
+    public static SettingsManager Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindFirstObjectByType<SettingsManager>();
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("SettingsManager [Auto-Created]");
+                    _instance = go.AddComponent<SettingsManager>();
+                }
+            }
+            return _instance;
+        }
+        private set { _instance = value; }
+    }
 
     [Header("Audio Mixer (tuỳ chọn)")]
     public AudioMixer audioMixer;
@@ -52,8 +69,8 @@ public class SettingsManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-        Instance = this;
+        if (_instance != null && _instance != this) { Destroy(gameObject); return; }
+        _instance = this;
         DontDestroyOnLoad(gameObject);
         LoadSettings();
         ApplyAll();

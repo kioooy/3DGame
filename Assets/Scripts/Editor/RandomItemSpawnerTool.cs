@@ -11,7 +11,7 @@ public class RandomItemSpawnerTool : EditorWindow
     }
 
     [Header("1. Khởi Tạo Prefab")]
-    public ItemData itemData;
+    // Khong can itemData nua, se tu tao dua vao ten model
     public GameObject model3D;
     
     [Header("2. Sinh Vật Phẩm")]
@@ -28,16 +28,9 @@ public class RandomItemSpawnerTool : EditorWindow
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
         GUILayout.Label("🛠️ TẠO VẬT PHẨM MỚI (Đá, Cành Cây,...)", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("Bước 1: Chọn data vật phẩm và mô hình 3D, sau đó bấm tạo Prefab. Sẽ tự động gài thuộc tính nhặt được!", MessageType.Info);
+        EditorGUILayout.HelpBox("Bước 1: Kéo trực tiếp mô hình 3D vào ô trống dưới đây rồi bấm Tạo. Tool sẽ tự động tìm (hoặc sinh ra) Item Data dựa theo tên của Mô Hình 3D đó!", MessageType.Info);
         
-        itemData = (ItemData)EditorGUILayout.ObjectField("Item Data (Data kho đồ)", itemData, typeof(ItemData), false);
-        if (itemData == null)
-        {
-            if (GUILayout.Button("Tạo ItemData 'Đá' Tạm Thời")) CreateTempItemData("KiemTra_Da", "Đá");
-            if (GUILayout.Button("Tạo ItemData 'Cành Cây' Tạm Thời")) CreateTempItemData("KiemTra_CanhCay", "Cành Cây");
-        }
-
-        model3D = (GameObject)EditorGUILayout.ObjectField("Mô Hình 3D (Kéo gạch/đá/cây vào)", model3D, typeof(GameObject), false);
+        model3D = (GameObject)EditorGUILayout.ObjectField("Mô Hình 3D gốc", model3D, typeof(GameObject), false);
 
         if (GUILayout.Button(">> TẠO PREFAB CÓ THỂ NHẶT <<", GUILayout.Height(40)))
         {
@@ -73,32 +66,114 @@ public class RandomItemSpawnerTool : EditorWindow
         EditorGUILayout.EndScrollView();
     }
 
-    private void CreateTempItemData(string fileName, string itemName)
+    private ItemData GetOrCreateItemData(string itemName, GameObject model)
     {
         string dir = "Assets/Resources/Items";
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
+        // Chuẩn hóa tên: viết hoa chữ cái đầu
+        string capitalizedName = char.ToUpper(itemName[0]) + itemName.Substring(1);
+        
+        // Thử tìm trong Resources trước
+        ItemData existingData = Resources.Load<ItemData>($"Items/{capitalizedName}");
+        if (existingData != null)
+        {
+            EnsureItemHasIcon(existingData, model);
+            return existingData;
+        }
+
+        // Thử tìm toàn project bằng tên
+        string[] guids = AssetDatabase.FindAssets($"{capitalizedName} t:ItemData");
+        if (guids.Length > 0)
+        {
+            string foundPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+            existingData = AssetDatabase.LoadAssetAtPath<ItemData>(foundPath);
+            if (existingData != null)
+            {
+                EnsureItemHasIcon(existingData, model);
+                return existingData;
+            }
+        }
+
+        // Trùng hợp không tìm thấy, tự động tạo mới
         ItemData newData = ScriptableObject.CreateInstance<ItemData>();
-        newData.itemName = itemName;
+        newData.itemName = capitalizedName;
         newData.maxStackSize = 99;
         
-        string path = $"{dir}/{fileName}.asset";
+        string path = $"{dir}/{capitalizedName}.asset";
         AssetDatabase.CreateAsset(newData, path);
         AssetDatabase.SaveAssets();
-        itemData = newData;
-        Debug.Log($"Đã tạo nhanh {path}");
+
+        EnsureItemHasIcon(newData, model);
+        
+        Debug.Log($"[Auto-Create] Đã tự tạo ItemData mới tại: {path}");
+        return newData;
+    }
+
+    private void EnsureItemHasIcon(ItemData item, GameObject model)
+    {
+        if (item.itemIcon != null) return; // Đã có icon dồi
+        
+        // Tạo ảnh Icon từ Model 3D
+        Texture2D preview = AssetPreview.GetAssetPreview(model);
+        if (preview == null) preview = AssetPreview.GetMiniThumbnail(model);
+        
+        if (preview != null)
+        {
+            string iconDir = "Assets/Resources/Items/Icons";
+            if (!Directory.Exists(iconDir)) Directory.CreateDirectory(iconDir);
+            
+            // --- FIX TRÁNH LỖI "Texture is not readable" ---
+            // Tạo 1 render texture tạm để render cái ảnh preview này ra
+            RenderTexture tmp = RenderTexture.GetTemporary(preview.width, preview.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+            Graphics.Blit(preview, tmp);
+
+            // Gắn active render texture và đọc pixel
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = tmp;
+
+            Texture2D readableTexture = new Texture2D(preview.width, preview.height);
+            readableTexture.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
+            readableTexture.Apply();
+
+            // Dọn dẹp
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(tmp);
+            
+            string iconPath = $"{iconDir}/{item.itemName.Replace(" ", "")}_Icon.png";
+            File.WriteAllBytes(iconPath, readableTexture.EncodeToPNG());
+            AssetDatabase.ImportAsset(iconPath, ImportAssetOptions.ForceUpdate);
+            
+            TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(iconPath);
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.SaveAndReimport();
+            }
+            
+            Sprite iconSprite = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+            item.itemIcon = iconSprite;
+            EditorUtility.SetDirty(item);
+            AssetDatabase.SaveAssets();
+            // Dọn rác
+            DestroyImmediate(readableTexture);
+            Debug.Log($"[Auto-Icon] Đã tạo icon cho {item.itemName}");
+        }
     }
 
     private void CreatePickablePrefab()
     {
-        if (itemData == null || model3D == null)
+        if (model3D == null)
         {
-            EditorUtility.DisplayDialog("Lỗi", "Vui lòng chọn đủ Item Data và Mô Hình 3D!", "OK");
+            EditorUtility.DisplayDialog("Lỗi", "Sếp chưa kéo Mô Hình 3D vào kìa!", "OK");
             return;
         }
 
+        string itemName = model3D.name.Replace("Prefab", "").Replace("Model", "").Trim();
+        ItemData autoItemData = GetOrCreateItemData(itemName, model3D);
+
         GameObject tempObj = Instantiate(model3D);
-        tempObj.name = "Pickable_" + itemData.itemName;
+        tempObj.name = "Pickable_" + autoItemData.itemName;
 
         // Xoá toàn bộ collider rườm rà (ở cả nắp con) để tránh lỗi Physics chặn tia quét Raycast
         Collider[] allCols = tempObj.GetComponentsInChildren<Collider>();
@@ -133,7 +208,7 @@ public class RandomItemSpawnerTool : EditorWindow
         // Gắn script nhặt
         PickableItem pickable = tempObj.GetComponent<PickableItem>();
         if (pickable == null) pickable = tempObj.AddComponent<PickableItem>();
-        pickable.itemData = itemData;
+        pickable.itemData = autoItemData;
         pickable.quantity = 1;
         pickable.autoRotate = true;
 
@@ -169,7 +244,7 @@ public class RandomItemSpawnerTool : EditorWindow
         string dir = "Assets/Prefabs/Items";
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         
-        string prefabPath = $"{dir}/Pickable_{itemData.itemName.Replace(" ", "")}.prefab";
+        string prefabPath = $"{dir}/Pickable_{autoItemData.itemName.Replace(" ", "")}.prefab";
         GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, prefabPath);
         DestroyImmediate(tempObj);
 

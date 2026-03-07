@@ -230,20 +230,29 @@ public class PlayerController : MonoBehaviour
         
         PickableItem previousItem = _currentLookingItem;
 
+        // Vì Camera ở góc nhìn thứ 3 nằm tít sau lưng nhân vật, tia quét phải đủ dài để vượt qua nhân vật
+        float maxRayDistance = Vector3.Distance(cameraTransform.position, transform.position) + interactionRange;
+
         // Use RaycastAll to detect ALL colliders including triggers
-        RaycastHit[] hits = Physics.RaycastAll(ray, interactionRange);
+        // Cần truyền QueryTriggerInteraction.Collide để quét trúng Càn Khôn Đại Na Di (bên trong Trigger) của Tool ItemSpawner
+        RaycastHit[] hits = Physics.RaycastAll(ray, maxRayDistance, Physics.AllLayers, QueryTriggerInteraction.Collide);
         
         PickableItem closestItem = null;
-        float closestDistance = float.MaxValue;
+        float closestHitDistance = float.MaxValue;
         
         // Find closest PickableItem
         foreach (var hit in hits)
         {
             PickableItem item = hit.collider.GetComponentInParent<PickableItem>();
-            if (item != null && hit.distance < closestDistance)
+            if (item != null)
             {
-                closestItem = item;
-                closestDistance = hit.distance;
+                // Chỉ nhặt được nếu vật thể nằm trong tầm với CỦA NHÂN VẬT (không phải camera)
+                float distanceToPlayer = Vector3.Distance(transform.position, hit.point);
+                if (distanceToPlayer <= interactionRange && hit.distance < closestHitDistance)
+                {
+                    closestItem = item;
+                    closestHitDistance = hit.distance;
+                }
             }
         }
         

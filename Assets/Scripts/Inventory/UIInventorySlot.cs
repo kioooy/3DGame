@@ -55,11 +55,12 @@ public class UIInventorySlot : MonoBehaviour
             if (hasItem && _slot.item.itemIcon != null)
             {
                 itemIcon.sprite = _slot.item.itemIcon;
-                Debug.Log($"[UIInventorySlot] Slot {_slotIndex}: Set icon sprite");
+                // Debug.Log($"[UIInventorySlot] Slot {_slotIndex}: Set icon sprite");
             }
             else if (hasItem && _slot.item.itemIcon == null)
             {
-                Debug.LogWarning($"[UIInventorySlot] Slot {_slotIndex}: Item {_slot.item.itemName} has NO ICON!");
+                // Nếu chưa có icon, hiện 1 ô màu trắng hoặc trong suốt mờ mờ thay thế
+                itemIcon.sprite = null; 
             }
         }
         else
@@ -70,8 +71,12 @@ public class UIInventorySlot : MonoBehaviour
         // Quantity text
         if (quantityText != null)
         {
-            quantityText.enabled = hasItem && _slot.quantity > 1;
-            if (hasItem)
+            bool showQty = hasItem && _slot.quantity > 1;
+            quantityText.gameObject.SetActive(showQty);
+            // Một số prefab dùng TextMeshProUGUI enabled ẩn đi, nên gán cả 2 cho chắc ăn
+            quantityText.enabled = showQty; 
+
+            if (showQty)
             {
                 quantityText.text = _slot.quantity.ToString();
             }
