@@ -99,6 +99,7 @@ public class RandomItemSpawnerTool : EditorWindow
         ItemData newData = ScriptableObject.CreateInstance<ItemData>();
         newData.itemName = capitalizedName;
         newData.maxStackSize = 99;
+        newData.isThrowable = true; // Cho phép ném nhặt được theo mặc định
         
         string path = $"{dir}/{capitalizedName}.asset";
         AssetDatabase.CreateAsset(newData, path);
@@ -247,6 +248,14 @@ public class RandomItemSpawnerTool : EditorWindow
         string prefabPath = $"{dir}/Pickable_{autoItemData.itemName.Replace(" ", "")}.prefab";
         GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, prefabPath);
         DestroyImmediate(tempObj);
+
+        // Gắn prefab vừa tạo ngược lại vào ItemData để làm đồ vật ném ra hiện hình thái 3D
+        if (autoItemData.worldModelPrefab == null) autoItemData.worldModelPrefab = savedPrefab;
+        if (autoItemData.projectilePrefab == null) autoItemData.projectilePrefab = savedPrefab;
+        if (autoItemData.handModelPrefab == null) autoItemData.handModelPrefab = savedPrefab;
+        
+        EditorUtility.SetDirty(autoItemData);
+        AssetDatabase.SaveAssets();
 
         itemPrefabToSpawn = savedPrefab;
         EditorUtility.DisplayDialog("Thành công", $"Đã tạo cấu hình đồ có thể nhặt được và lưu tại:\n{prefabPath}", "Tuyệt!");

@@ -19,3 +19,9 @@ MonoBehaviour:
   description: "G\u1ED7 t\u1EEB c\xE2y, nguy\xEAn li\u1EC7u c\u01A1 b\u1EA3n \u0111\u1EC3
     x\xE2y d\u1EF1ng."
   worldModelPrefab: {fileID: 2848898497408389787, guid: 53e370c2a3411a54f84f0daebfc5772f, type: 3}
+  handModelPrefab: {fileID: 0}
+  isEquippable: 1
+  isThrowable: 1
+  throwForce: 15
+  throwDamage: 10
+  projectilePrefab: {fileID: 0}

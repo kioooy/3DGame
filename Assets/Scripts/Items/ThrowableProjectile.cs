@@ -17,6 +17,17 @@ public class ThrowableProjectile : MonoBehaviour
     void Awake()
     {
         _rb = GetComponent<Rigidbody>();
+
+        // Tắt isTrigger để cục đá có thể rớt và đập vào mặt đất (Physics Collision)
+        Collider[] cols = GetComponentsInChildren<Collider>();
+        foreach (Collider c in cols)
+        {
+            c.isTrigger = false;
+        }
+
+        // Tắt khả năng nhặt lại trên không
+        PickableItem pickable = GetComponent<PickableItem>();
+        if (pickable != null) Destroy(pickable);
     }
     
     void Start()

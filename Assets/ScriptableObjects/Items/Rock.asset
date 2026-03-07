@@ -18,4 +18,10 @@ MonoBehaviour:
   maxStackSize: 99
   description: "M\u1ED9t vi\xEAn \u0111\xE1 th\xF4ng th\u01B0\u1EDDng. C\xF3 th\u1EC3
     d\xF9ng \u0111\u1EC3 ch\u1EBF t\u1EA1o c\xF4ng c\u1EE5."
-  worldModelPrefab: {fileID: 0}
+  worldModelPrefab: {fileID: 6234318093613704511, guid: 1b726c05820ffc84f961bebc94e077bd, type: 3}
+  handModelPrefab: {fileID: 6234318093613704511, guid: 1b726c05820ffc84f961bebc94e077bd, type: 3}
+  isEquippable: 1
+  isThrowable: 1
+  throwForce: 15
+  throwDamage: 10
+  projectilePrefab: {fileID: 6234318093613704511, guid: 1b726c05820ffc84f961bebc94e077bd, type: 3}

@@ -17,10 +17,10 @@ MonoBehaviour:
   itemType: 0
   maxStackSize: 99
   description: "M\u1ED9t v\u1EADt ph\u1EA9m th\xFA v\u1ECB..."
-  worldModelPrefab: {fileID: 0}
-  handModelPrefab: {fileID: 0}
+  worldModelPrefab: {fileID: 1359573729392250251, guid: b4b1b6e0dada9b942906ad9c6d20024d, type: 3}
+  handModelPrefab: {fileID: 1359573729392250251, guid: b4b1b6e0dada9b942906ad9c6d20024d, type: 3}
   isEquippable: 1
-  isThrowable: 0
+  isThrowable: 1
   throwForce: 15
   throwDamage: 10
-  projectilePrefab: {fileID: 0}
+  projectilePrefab: {fileID: 1359573729392250251, guid: b4b1b6e0dada9b942906ad9c6d20024d, type: 3}
