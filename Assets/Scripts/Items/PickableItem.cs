@@ -160,16 +160,6 @@ public class PickableItem : MonoBehaviour
         
         return false;
     }
-    
-    void OnDestroy()
-    {
-        // Cleanup materials nếu cần
-        foreach (var renderer in _renderers)
-        {
-            if (renderer != null && renderer.material != null)
-            {
-                Destroy(renderer.material);
-            }
-        }
-    }
 }
+    
+

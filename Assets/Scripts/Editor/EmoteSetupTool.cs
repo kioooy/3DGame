@@ -7,6 +7,7 @@ public class EmoteSetupTool : EditorWindow
 {
     private const string DanceClipPath = "Assets/Animation/Dance.anim";
     private const string WavingClipPath = "Assets/Animation/Waving.fbx";
+    private const string ThrowClipPath = "Assets/Animation/Throw.fbx";
 
     [MenuItem("Tools/Antigravity/Setup Emote For Player")]
     public static void SetupEmote()
@@ -38,16 +39,17 @@ public class EmoteSetupTool : EditorWindow
         // 4. Lấy Animation Clip
         AnimationClip danceClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(DanceClipPath);
         AnimationClip wavingClip = LoadAnimationClipFromFBX(WavingClipPath);
+        AnimationClip throwClip = LoadAnimationClipFromFBX(ThrowClipPath);
         
-        if (danceClip == null || wavingClip == null)
+        if (danceClip == null || wavingClip == null || throwClip == null)
         {
-            EditorUtility.DisplayDialog("Lỗi", $"Không tìm thấy đủ file Animation tại:\n- {DanceClipPath}\n- {WavingClipPath}\n\nVui lòng kiểm tra lại.", "Đã hiểu");
+            EditorUtility.DisplayDialog("Lỗi", $"Không tìm thấy đủ file Animation tại:\n- {DanceClipPath}\n- {WavingClipPath}\n- {ThrowClipPath}\n\nVui lòng kiểm tra lại.", "Đã hiểu");
             return;
         }
 
         // 5. Thêm Parameters (Trigger) và Setup States
-        string[] emoteNames = { "Emote1", "Emote2", "Emote3", "Emote4" };
-        AnimationClip[] emoteClips = { danceClip, danceClip, wavingClip, null }; // Map 1->Dance, 2->Dance, 3->Waving, 4->None
+        string[] emoteNames = { "Emote1", "Emote2", "Emote3", "Emote4", "Throw" };
+        AnimationClip[] emoteClips = { danceClip, danceClip, wavingClip, null, throwClip }; // Map 1->Dance, 2->Dance, 3->Waving, 4->None, 5->Throw
         AnimatorStateMachine rootStateMachine = controller.layers[0].stateMachine;
 
         // Kiểm tra Parameter CancelEmote (Dùng để ngắt Animation khi bật di chuyển)

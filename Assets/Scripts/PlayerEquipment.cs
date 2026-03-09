@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 /// <summary>
 /// Quản lý item đang cầm trên tay và xử lý việc ném items
@@ -16,6 +17,9 @@ public class PlayerEquipment : MonoBehaviour
     private GameObject _currentHandModel;
     private int _currentEquippedSlotIndex = -1;
     
+    private Animator _playerAnimator;
+    private bool _isThrowing = false;
+    
     void Awake()
     {
         // Tạo hand transform nếu chưa có
@@ -32,8 +36,15 @@ public class PlayerEquipment : MonoBehaviour
         {
             GameObject throwObj = new GameObject("ThrowOrigin");
             throwObj.transform.SetParent(transform);
-            throwObj.transform.localPosition = new Vector3(0, 1.5f, 0.5f); // Vị trí ném
+            // Vị trí nằm nhích sang tay phải (0.4f), cao ngang ngực/vai (1f), đẩy về phía trước mặt xíu (0.5f)
+            throwObj.transform.localPosition = new Vector3(0.4f, 1f, 0.5f); 
             throwOrigin = throwObj.transform;
+        }
+
+        _playerAnimator = GetComponentInChildren<Animator>();
+        if (_playerAnimator == null && transform.parent != null)
+        {
+            _playerAnimator = transform.parent.GetComponentInChildren<Animator>();
         }
     }
     
@@ -85,11 +96,32 @@ public class PlayerEquipment : MonoBehaviour
     /// </summary>
     public void ThrowItem(Vector3 throwDirection)
     {
-        if (_currentEquippedItem == null || !_currentEquippedItem.isThrowable)
+        if (_currentEquippedItem == null || !_currentEquippedItem.isThrowable || _isThrowing)
         {
             Debug.LogWarning($"[PlayerEquipment] Cannot throw {_currentEquippedItem?.itemName}");
             return;
         }
+        
+        StartCoroutine(ThrowItemRoutine(throwDirection));
+    }
+
+    private IEnumerator ThrowItemRoutine(Vector3 throwDirection)
+    {
+        _isThrowing = true;
+
+        if (_playerAnimator != null)
+        {
+            _playerAnimator.SetTrigger("Throw");
+            
+            // Xóa animation Emote (Nếu đang nhảy) để ưu tiên Throw
+            if (EmoteUIManager.Instance != null && EmoteUIManager.IsEmoteMenuOpen == false)
+            {
+               EmoteUIManager.Instance.CancelEmote(); 
+            }
+        }
+
+        // Tạm chờ animation vung tay ra sau và ném đi (đo lường Animation Throw kéo dài khoảng 0.7s - 0.8s)
+        yield return new WaitForSeconds(0.7f);
         
         // Lấy prefab cho projectile
         GameObject prefab = _currentEquippedItem.projectilePrefab;
@@ -101,7 +133,8 @@ public class PlayerEquipment : MonoBehaviour
         if (prefab == null)
         {
             Debug.LogError($"[PlayerEquipment] No prefab for throwing {_currentEquippedItem.itemName}");
-            return;
+            _isThrowing = false;
+            yield break;
         }
         
         // Spawn projectile
@@ -142,6 +175,10 @@ public class PlayerEquipment : MonoBehaviour
                 UnequipItem();
             }
         }
+
+        // Chờ nốt animation throw kết thúc hoàn toàn (thêm 0.3s) rồi mới cho ném tiếp
+        yield return new WaitForSeconds(0.3f);
+        _isThrowing = false;
     }
     
     public ItemData CurrentEquippedItem => _currentEquippedItem;
