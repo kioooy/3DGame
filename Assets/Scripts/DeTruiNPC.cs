@@ -129,6 +129,38 @@ public class DeTruiNPC : MonoBehaviour
                     chatBubble.Setup("Không sao, hẹn gặp lại nhé!");
                     Invoke("HideBubble", 2f);
                 }
+                // Option 3: SOLO CARO
+                else if (kb.digit3Key.wasPressedThisFrame)
+                {
+                    isWaitingForChoice = false;
+                    if (chatBubble != null) chatBubble.Hide();
+                    if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
+                    
+                    // Attach Manager if Missing (Lazy load)
+                    CaroGameManager caro = FindFirstObjectByType<CaroGameManager>();
+                    if (caro == null)
+                    {
+                        GameObject gmObj = new GameObject("CaroGameManager");
+                        caro = gmObj.AddComponent<CaroGameManager>();
+                    }
+                    caro.StartGame(this);
+                }
+                // Option 4: VẬT TAY (AUDITION STYLE)
+                else if (kb.digit4Key.wasPressedThisFrame)
+                {
+                    isWaitingForChoice = false;
+                    if (chatBubble != null) chatBubble.Hide();
+                    if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
+                    
+                    // Lấy hoặc tự tạo Manager lúc Runtime (tránh việc báo lỗi vì user quên set vào scene)
+                    ArmWrestlingManager armWrestle = FindFirstObjectByType<ArmWrestlingManager>();
+                    if (armWrestle == null)
+                    {
+                        GameObject awObj = new GameObject("ArmWrestlingManager");
+                        armWrestle = awObj.AddComponent<ArmWrestlingManager>();
+                    }
+                    armWrestle.StartGame(this);
+                }
                 // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
                 else if (kb.tabKey.wasPressedThisFrame)
                 {
@@ -373,7 +405,7 @@ public class DeTruiNPC : MonoBehaviour
             interactionPromptUI.SetActive(true);
             if (promptTextComp != null)
             {
-                promptTextComp.text = "[1] Rủ đi cùng\n[2] Bỏ qua";
+                promptTextComp.text = "[1] Rủ đi cùng\n[2] Bỏ qua\n[3] Giao lưu Cờ Caro (3x3)\n[4] Vật Tay Sinh Tử";
                 promptTextComp.fontSize = 25; 
             }
         }

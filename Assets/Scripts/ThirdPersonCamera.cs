@@ -56,6 +56,12 @@ public class ThirdPersonCamera : MonoBehaviour
         
         // Dừng xoay Camera nếu Emote Menu (vòng tròn) đang bật
         if (EmoteUIManager.Instance != null && EmoteUIManager.IsEmoteMenuOpen) return;
+        
+        // Dừng xoay Camera nếu đang chơi Minigame Caro
+        if (CaroGameManager.Instance != null && CaroGameManager.Instance.IsGameActive) return;
+
+        // Dừng xoay Camera nếu đang chơi Minigame Vật Tay (Audition)
+        if (ArmWrestlingManager.Instance != null && ArmWrestlingManager.Instance.IsGameActive) return;
 
         // Đọc phím V để đổi góc nhìn
         var kb = Keyboard.current;
@@ -129,16 +135,35 @@ public class ThirdPersonCamera : MonoBehaviour
 
             // --- Camera Collision (Chống xuyên tường/đất) ---
             // Bắn một tia từ tâm nhìn (pivot) ra vị trí camera mong muốn
-            RaycastHit hit;
-            // Dùng LayerMask mặc định, hoặc cấu hình layer riêng nếu cần
-            if (Physics.Raycast(pivotPosition, offset.normalized, out hit, _currentDistance))
+            float currentHitDistance = _currentDistance;
+            bool didHit = false;
+
+            // Dùng RaycastAll để xuyên qua chính người chơi và chỉ dừng ở tường/đất
+            // Đồng thời QueryTriggerInteraction.Ignore giúp Camera đi xuyên qua Trigger (ví dụ: vòng item pickable)
+            RaycastHit[] hits = Physics.RaycastAll(pivotPosition, offset.normalized, _currentDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            
+            foreach (RaycastHit hitInfo in hits)
+            {
+                // Bỏ qua nếu hit trúng chính nhân vật đang follow (Mấu chốt chống giật lag zoom)
+                // Cấu trúc nhân vật phải nằm trong hoặc bằng với target
+                if (hitInfo.transform == target || hitInfo.transform.IsChildOf(target)) continue;
+                
+                // Cập nhật vị trí vật cản gần camera nhất (do RaycastAll không sắp xếp sẵn trật tự gần xa)
+                if (hitInfo.distance < currentHitDistance)
+                {
+                    currentHitDistance = hitInfo.distance;
+                    didHit = true;
+                }
+            }
+
+            if (didHit)
             {
                 // Nếu tia chạm phải vật thể (đất, tường...), đưa camera lại gần điểm chạm
                 // Trừ đi một xíu (vd 0.2f) để góc camera không bị kẹt sát vào tường
-                targetPosition = hit.point - offset.normalized * 0.2f;
+                targetPosition = pivotPosition + offset.normalized * (currentHitDistance - 0.2f);
 
-                // Đảm bảo không bị zoom vào quá gần tâm (xuyên qua người)
-                if (Vector3.Distance(pivotPosition, targetPosition) < 0.2f)
+                // Đảm bảo không bị zoom vào quá gần tâm khiến camera chui tọt vào người
+                if (currentHitDistance < 0.2f)
                 {
                     targetPosition = pivotPosition + offset.normalized * 0.2f;
                 }

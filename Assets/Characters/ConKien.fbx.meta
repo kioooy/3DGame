@@ -3,7 +3,12 @@ guid: c9c7e5ead1ce60844b02a72a8ecb8382
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: tripo_mat_968567f7_Pbr_Diffuse
+    second: {fileID: 2800000, guid: d39596a314e5e094f84be6a055e9461a, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

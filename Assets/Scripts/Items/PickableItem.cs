@@ -23,6 +23,8 @@ public class PickableItem : MonoBehaviour
     
     [Tooltip("Màu highlight khi player nhìn vào")]
     public Color highlightColor = new Color(1f, 1f, 0.5f, 1f);
+    [Tooltip("Ép Collider thành Trigger (Xuyên thấu). Tắt đi nếu muốn nhân vật đụng / đứng lên được vật phẩm này.")]
+    public bool forceAsTrigger = true;
     
     private Renderer[] _renderers;
     private Color[] _originalColors;
@@ -30,10 +32,12 @@ public class PickableItem : MonoBehaviour
     
     void Awake()
     {
-        // Set collider as trigger to avoid physics conflicts
+        // Set collider as trigger to avoid physics conflicts (có thể tắt để làm bục nhảy)
         Collider col = GetComponent<Collider>();
-        if (col != null)
+        if (col != null && forceAsTrigger)
+        {
             col.isTrigger = true;
+        }
         
         // Lưu renderers và màu gốc
         _renderers = GetComponentsInChildren<Renderer>();
