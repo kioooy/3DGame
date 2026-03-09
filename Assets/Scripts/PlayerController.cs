@@ -37,6 +37,13 @@ public class PlayerController : MonoBehaviour
     private bool _inventoryOpen = false;
     public bool isDialoguing = false; // Skyrim-like conversation pause flag
 
+    // Emote System
+    private float _tKeyHoldTime = 0f;
+    private bool _tKeyHeld = false;
+    private const float EMOTE_HOLD_THRESHOLD = 0.25f; // Thời gian giữ T để mở Emote Menu
+    
+    // Delegate / Event nhắc nhở PlayerController là đã bị can thiệp logic Emote
+
 
     void Awake()
     {
@@ -117,14 +124,62 @@ public class PlayerController : MonoBehaviour
                     QuestUIManager.Instance.ToggleQuestPanel();
             }
 
-            // Pickup item với E
+            // --- Gắn Input Nhặt đồ (E) ---
             if (kb.eKey.wasPressedThisFrame && _currentLookingItem != null && !_inventoryOpen)
             {
                 TryPickupItem();
             }
 
-            // Disable movement khi inventory mở hoặc đang hội thoại
-            if (!_inventoryOpen && !isDialoguing)
+            // --- Xử lý phím T: Short press = Xài lại Emote cũ, Long press = Mở Radial Menu ---
+            if (kb.tKey.wasPressedThisFrame)
+            {
+                _tKeyHoldTime = 0f;
+                _tKeyHeld = true;
+            }
+
+            if (kb.tKey.isPressed && _tKeyHeld && !_inventoryOpen && !isDialoguing)
+            {
+                _tKeyHoldTime += Time.deltaTime;
+                
+                // Mở giao diện Emote sau thời gian Hold
+                if (_tKeyHoldTime >= EMOTE_HOLD_THRESHOLD)
+                {
+                    if (EmoteUIManager.Instance != null && !EmoteUIManager.IsEmoteMenuOpen)
+                    {
+                        Debug.Log("[PlayerController] Emote Threshold Reached! Opening Radial Menu...");
+                        EmoteUIManager.Instance.OpenRadialMenu();
+                    }
+                    else if (EmoteUIManager.Instance == null)
+                    {
+                        Debug.LogWarning("[PlayerController] EmoteUIManager.Instance is NULL! Vui lòng chạy Tool Setup lại.");
+                    }
+                }
+            }
+
+            if (kb.tKey.wasReleasedThisFrame)
+            {
+                if (_tKeyHeld && _tKeyHoldTime < EMOTE_HOLD_THRESHOLD && !_inventoryOpen && !isDialoguing)
+                {
+                    // Lặp lại Emote cũ
+                    if (EmoteUIManager.Instance != null && !EmoteUIManager.IsEmoteMenuOpen)
+                    {
+                        EmoteUIManager.Instance.PlayLastEmote();
+                    }
+                }
+
+                _tKeyHeld = false;
+                _tKeyHoldTime = 0f;
+
+                // Đóng menu nếu đang bật
+                if (EmoteUIManager.Instance != null && EmoteUIManager.IsEmoteMenuOpen)
+                {
+                    EmoteUIManager.Instance.CloseRadialMenu();
+                }
+            }
+
+            // Disable movement khi inventory mở, hội thoại, HOẶC ĐANG MỞ EMOTE MENU
+            bool isMenuOpened = _inventoryOpen || isDialoguing || EmoteUIManager.IsEmoteMenuOpen;
+            if (!isMenuOpened)
             {
                 // Hotbar selection (1-9)
                 HandleHotbarInput(kb);
@@ -144,6 +199,15 @@ public class PlayerController : MonoBehaviour
                 if (kb.spaceKey.wasPressedThisFrame && _isGrounded)
                 {
                     Jump();
+                }
+
+                // --- Hủy Emote khi nhấn di chuyển (Có hướng đi) hoặc Nhảy ---
+                if (_moveInput.sqrMagnitude > 0.01f || _isJumping)
+                {
+                    if (EmoteUIManager.Instance != null)
+                    {
+                        EmoteUIManager.Instance.CancelEmote();
+                    }
                 }
             }
             else

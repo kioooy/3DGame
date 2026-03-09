@@ -15,9 +15,7 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] float minDistance = 2f;         // Zoom in tối đa (lăn chuột lên)
     [SerializeField] float maxDistance = 12f;        // Zoom out tối đa (lăn chuột xuống)
     [SerializeField] float zoomSpeed = 2f;           // Tốc độ zoom khi lăn chuột
-    [SerializeField] float height = 3.2f;            // Độ cao camera (cao hơn vai, nhìn xuống)
     [SerializeField] float lookAtHeight = 1.4f;      // Điểm camera nhìn vào (lưng/vai nhân vật)
-    [SerializeField] float followSpeed = 10f;        // Tốc độ bám theo
 
     [Header("Xoay chuột")]
     [SerializeField] float mouseSensitivity = 2f;
@@ -55,6 +53,9 @@ public class ThirdPersonCamera : MonoBehaviour
 
         // Dừng xoay Camera và Zoom nếu Menu đang bật để chuột có thể bấm nút
         if (MainMenuManager.IsMenuActive) return;
+        
+        // Dừng xoay Camera nếu Emote Menu (vòng tròn) đang bật
+        if (EmoteUIManager.Instance != null && EmoteUIManager.IsEmoteMenuOpen) return;
 
         // Đọc phím V để đổi góc nhìn
         var kb = Keyboard.current;
