@@ -19,6 +19,20 @@ public class DeTruiNPC : MonoBehaviour
         "Nếu cậu cần người đồng hành, tôi luôn sẵn lòng!" 
     };
 
+    [Header("Minigames Options")]
+    public bool enableCaro = true;
+    public bool enableArmWrestling = true;
+
+    [Header("Wandering Settings")]
+    public bool enableWandering = true;
+    public float wanderRadius = 10f;
+    public float wanderWaitTime = 3f;
+    public float wanderSpeed = 2f;
+    private Vector3 homePosition;
+    private Vector3 wanderTarget;
+    private float wanderTimer = 0f;
+    private bool isWanderingToTarget = false;
+
     [Header("Settings Khung Cảnh (Skyrim-like)")]
     public float interactionDistance = 3.0f;
     [Tooltip("Điều chỉnh vị trí camera khi Focus nói chuyện (So với mặt NPC)")]
@@ -47,6 +61,9 @@ public class DeTruiNPC : MonoBehaviour
     private float verticalVelocity = 0f;
     private bool isJumping = false;
 
+    [Header("Name Tag")]
+    public Transform nameTagTransform;
+
     private Transform player;
     private PlayerController playerController;
     private Camera mainCamera;
@@ -74,6 +91,9 @@ public class DeTruiNPC : MonoBehaviour
 
     void Start()
     {
+        homePosition = transform.position;
+        wanderTimer = Random.Range(0f, wanderWaitTime);
+
         if (player == null)
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
@@ -106,6 +126,11 @@ public class DeTruiNPC : MonoBehaviour
         var kb = Keyboard.current;
         var mouse = Mouse.current;
 
+        if (nameTagTransform != null && mainCamera != null)
+        {
+            nameTagTransform.rotation = mainCamera.transform.rotation;
+        }
+
         // --- CÓ LỰA CHỌN (MENU: ĐI CÙNG HAY KHÔNG) ---
         if (isWaitingForChoice)
         {
@@ -130,7 +155,7 @@ public class DeTruiNPC : MonoBehaviour
                     Invoke("HideBubble", 2f);
                 }
                 // Option 3: SOLO CARO
-                else if (kb.digit3Key.wasPressedThisFrame)
+                else if (enableCaro && kb.digit3Key.wasPressedThisFrame)
                 {
                     isWaitingForChoice = false;
                     if (chatBubble != null) chatBubble.Hide();
@@ -146,7 +171,7 @@ public class DeTruiNPC : MonoBehaviour
                     caro.StartGame(this);
                 }
                 // Option 4: VẬT TAY (AUDITION STYLE)
-                else if (kb.digit4Key.wasPressedThisFrame)
+                else if (enableArmWrestling && kb.digit4Key.wasPressedThisFrame)
                 {
                     isWaitingForChoice = false;
                     if (chatBubble != null) chatBubble.Hide();
@@ -175,8 +200,22 @@ public class DeTruiNPC : MonoBehaviour
         // --- TRONG QUÁ TRÌNH HỘI THOẠI (NEXT BẰNG CHUỘT / THOÁT BẰNG TAB) ---
         if (isTalking)
         {
-            HandleCameraFocusSkyrim();
+            HandleCameraFocusSkyrim(); // Hàm này bản chất đã liên tục gọi FacePlayerTarget() cho NPC nhìn player
             
+            // Ép Player cũng phải quay mặt chăm chú nhìn lại NPC
+            if (player != null)
+            {
+                Vector3 playerToNpc = (transform.position - player.position).normalized;
+                playerToNpc.y = 0;
+                if (playerToNpc != Vector3.zero)
+                {
+                    player.rotation = Quaternion.Slerp(player.rotation, Quaternion.LookRotation(playerToNpc), 10f * Time.deltaTime);
+                }
+            }
+
+            // Chắc chắn NPC đang tắt animation đi dạo (T-Pose) và rơi vào trạng thái Idle
+            if (animator != null) animator.SetBool(runBool, false);
+
             if (kb != null && kb.tabKey.wasPressedThisFrame)
             {
                 // Bấm TAB thoát ngay lập tức
@@ -276,16 +315,65 @@ public class DeTruiNPC : MonoBehaviour
             return;
         }
 
-        // Logic khi ĐỨNG YÊN (Không follow)
+        // Logic khi ĐỨNG YÊN HOẶC ĐI DẠO (Không follow)
         // Vẫn phải check chạm đất nếu bị rớt
         bool groundCheckIdle = Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down, 0.5f, groundLayer);
         if (groundCheckIdle && verticalVelocity <= 0) {
             verticalVelocity = -1f;
+            isJumping = false;
         } else {
             verticalVelocity += gravity * Time.deltaTime;
         }
+        
+        bool isWanderMoving = false;
         currentVelocity = Vector3.zero;
 
+        if (enableWandering)
+        {
+            if (isWanderingToTarget)
+            {
+                Vector3 targetPos = wanderTarget;
+                targetPos.y = transform.position.y;
+                float distToTarget = Vector3.Distance(transform.position, targetPos);
+                
+                if (distToTarget > 0.5f)
+                {
+                    Vector3 dir = (targetPos - transform.position).normalized;
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10f * Time.deltaTime);
+                    currentVelocity = dir * wanderSpeed;
+                    isWanderMoving = true;
+
+                    // Obstacle jump
+                    if (groundCheckIdle && !isJumping)
+                    {
+                        Vector3 rayStart = transform.position + Vector3.up * 0.3f;
+                        if (Physics.Raycast(rayStart, dir, jumpObstacleCheckDist, obstacleLayer))
+                        {
+                            verticalVelocity = jumpForce;
+                            isJumping = true;
+                        }
+                    }
+                }
+                else
+                {
+                    isWanderingToTarget = false;
+                    wanderTimer = wanderWaitTime;
+                }
+            }
+            else
+            {
+                wanderTimer -= Time.deltaTime;
+                if (wanderTimer <= 0f)
+                {
+                    // Chọn một điểm ngẫu nhiên xung quanh khu vực nhà (home)
+                    Vector2 randCircle = Random.insideUnitCircle * wanderRadius;
+                    wanderTarget = homePosition + new Vector3(randCircle.x, 0, randCircle.y);
+                    isWanderingToTarget = true;
+                }
+            }
+        }
+        
+        if (animator != null) animator.SetBool(runBool, isWanderMoving);
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         bool currentlyNearby = distanceToPlayer <= interactionDistance;
@@ -348,11 +436,23 @@ public class DeTruiNPC : MonoBehaviour
     void StartInteraction()
     {
         isTalking = true;
+        currentVelocity = Vector3.zero; // TRIỆT TIÊU LỰC CHẠY
+        isWanderingToTarget = false; // HỦY BỎ ĐIỂM ĐẾN PHÍA TRƯỚC
         
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
-        FacePlayerTarget();
-        if (animator != null) animator.SetTrigger(talkTrigger);
+        // SNAP Xoay mặt thẳng vào mặt sếp ngay lập tức không chần chừ (Bỏ slerp lúc FaceTarget mồi)
+        if (player != null) {
+            Vector3 direction = (player.position - transform.position).normalized;
+            direction.y = 0;
+            if (direction != Vector3.zero) transform.rotation = Quaternion.LookRotation(direction);
+        }
+
+        if (animator != null) 
+        {
+            animator.SetBool(runBool, false); // TẮT T-POSE / RUN ANIM
+            animator.SetTrigger(talkTrigger); // KÍCH HOẠT NÓI CHUYỆN
+        }
 
         if (playerController != null)
         {
@@ -405,7 +505,22 @@ public class DeTruiNPC : MonoBehaviour
             interactionPromptUI.SetActive(true);
             if (promptTextComp != null)
             {
-                promptTextComp.text = "[1] Rủ đi cùng\n[2] Bỏ qua\n[3] Giao lưu Cờ Caro (3x3)\n[4] Vật Tay Sinh Tử";
+                string choices = "[1] Rủ đi cùng\n[2] Bỏ qua";
+                string nameLower = npcName.ToLower();
+                
+                if (enableCaro) 
+                {
+                    if (nameLower.Contains("dechoat")) choices += "\n[3] Giao lưu Cờ Caro (Chữa Bệnh)";
+                    else choices += "\n[3] Giao lưu Cờ Caro (3x3)";
+                }
+                
+                if (enableArmWrestling) 
+                {
+                    if (nameLower.Contains("xentoc")) choices += "\n[4] Tỷ thí Đọ Ngàm (Vật Tay)";
+                    else choices += "\n[4] Vật Tay Sinh Tử";
+                }
+                
+                promptTextComp.text = choices;
                 promptTextComp.fontSize = 25; 
             }
         }
@@ -452,5 +567,48 @@ public class DeTruiNPC : MonoBehaviour
             mainCamera.transform.localPosition = originalCameraPos;
             mainCamera.transform.localRotation = originalCameraRot;
         }
+    }
+
+    public void EndMinigame(bool isWin, bool isDraw = false)
+    {
+        isTalking = true;
+        isWaitingForChoice = false;
+        
+        string resultText = "";
+        
+        string nameLower = npcName.ToLower();
+        if (nameLower.Contains("detrui"))
+        {
+            if (isDraw) resultText = "Chà, không ngờ cậu cầm hòa được tôi cơ đấy!";
+            else if (isWin) resultText = "Quá xuất sắc! Cậu lại thắng tôi rồi, bái phục bái phục!";
+            else resultText = "Hahaha! Lần sau cố gắng hơn nhé, tôi thắng rồi!";
+        }
+        else if (nameLower.Contains("dechoat"))
+        {
+            if (isDraw) resultText = "Hức... một ván hòa... coi như cậu nể mặt kẻ ốm yếu này...";
+            else if (isWin) resultText = "Khụ khụ... tuổi trẻ tài cao... cậu thắng rồi...";
+            else resultText = "Khà khà... Gừng càng già càng cay nhé chàng trai!";
+        }
+        else if (nameLower.Contains("xentoc"))
+        {
+            if (isDraw) resultText = "Cứng đầu đấy! Hoà thì hoà, lần sau ta không nhường đâu!";
+            else if (isWin) resultText = "KHÔNG THỂ NÀO! Sức mạnh của ta bị đánh bại sao?!";
+            else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
+        }
+        else 
+        {
+            if (isDraw) resultText = "Một kết quả Hòa đầy kịch tính!";
+            else if (isWin) resultText = "Xin chúc mừng vị anh hùng chiến thắng!";
+            else resultText = "Rất tiếc, may mắn chưa mỉm cười với bạn.";
+        }
+        
+        // Cập nhật lại khung chat
+        if (chatBubble != null) 
+        {
+            chatBubble.Setup(resultText);
+        }
+        
+        // Tắt sau 3 giây
+        Invoke(nameof(EndInteraction), 3f);
     }
 }

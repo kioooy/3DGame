@@ -13,12 +13,18 @@ public class MinimapMarker : MonoBehaviour
     public float markerSize = 2f;
 
     [Tooltip("How high above the object the marker should float")]
-    public float heightOffset = 5f;
+    public float heightOffset = 25f;
 
     private GameObject markerObject;
 
     void Start()
     {
+        // Ghi đè chỉ số cũ nhỡ các con vật tạo ra trước đó lúc nào cũng bị lưu 3f hay 5f
+        if (heightOffset < 20f) 
+        {
+            heightOffset = 25f;
+        }
+
         CreateMarker();
     }
 
@@ -55,25 +61,23 @@ public class MinimapMarker : MonoBehaviour
         }
         markerObject.layer = minimapLayer;
         
-        // Set Material to a basic unlit color
+        // Set Material to a basic unlit color nhưng bỏ qua cản trở Z (Xuyên địa hình)
         Renderer rend = markerObject.GetComponent<Renderer>();
         if (rend != null)
         {
-            // Use an unlit shader if possible so it's brightly colored
-            Shader unlitColorShader = Shader.Find("Unlit/Color");
-            if (unlitColorShader != null)
+            // Lấy Shader tuỳ chỉnh (ZTest Always) mà ta vừa tạo ở Assets/Shaders/MinimapOverlayMarker.shader
+            Shader overlayShader = Shader.Find("Hidden/MinimapOverlayMarker");
+            if (overlayShader != null)
             {
-                Material mat = new Material(unlitColorShader);
+                Material mat = new Material(overlayShader);
                 mat.color = markerColor;
                 rend.material = mat;
             }
             else
             {
-                // Fallback to standard shader with emission
-                Material mat = new Material(Shader.Find("Standard"));
+                // Fallback cứu cánh nếu lỡ quên tạo file Shader
+                Material mat = new Material(Shader.Find("Unlit/Color"));
                 mat.color = markerColor;
-                mat.EnableKeyword("_EMISSION");
-                mat.SetColor("_EmissionColor", markerColor);
                 rend.material = mat;
             }
         }

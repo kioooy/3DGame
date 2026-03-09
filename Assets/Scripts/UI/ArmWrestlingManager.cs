@@ -299,11 +299,12 @@ public class ArmWrestlingManager : MonoBehaviour
         // Khóa lại chuột nếu cần
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        
-        // Trả control cho Dế Trũi System
+
         if (_currentNPC != null)
         {
-            _currentNPC.EndInteraction();
+            // Trả số điểm về xem Player thắng hay thua
+            bool isWin = (_currentPower >= maxPower);
+            _currentNPC.EndMinigame(isWin, false);
         }
     }
 }

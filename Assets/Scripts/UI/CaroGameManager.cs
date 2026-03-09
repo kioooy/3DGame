@@ -323,11 +323,16 @@ public class CaroGameManager : MonoBehaviour
         // Khóa lại chuột nếu cần
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        
-        // Trả control cho Dế Trũi System
+
+        // Trả lại tương tác cho NPC (Kèm KQ Thắng Thua)
         if (_currentNPC != null)
         {
-            _currentNPC.EndInteraction();
+            bool isPlayerWin = false;
+            bool isDraw = false;
+            if (_winnerText.Contains("BẠN") || _winnerText.Contains("Player")) isPlayerWin = true;
+            if (_winnerText.Contains("BẤT PHÂN") || _winnerText.Contains("HOÀ")) isDraw = true;
+            
+            _currentNPC.EndMinigame(isPlayerWin, isDraw);
         }
     }
 }
