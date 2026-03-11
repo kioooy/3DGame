@@ -28,7 +28,7 @@ public class ArmWrestlingManager : MonoBehaviour
     private float _roundTimer = 0f;
     
     // Tham chiếu NPC để trả control khi kết thúc
-    private DeTruiNPC _currentNPC;
+    private INPCMinigame _currentNPC;
 
     // Dùng để tạo mảng ngẫu nhiên 4 mũi tên
     private KeyCode[] _arrowKeys = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow };
@@ -45,10 +45,20 @@ public class ArmWrestlingManager : MonoBehaviour
         Instance = this;
     }
 
+    private string GetNpcDisplayName()
+    {
+        if (_currentNPC == null) return "Đối thủ";
+        string nameLower = _currentNPC.npcName.ToLower();
+        if (nameLower.Contains("detrui")) return "Dế Trũi";
+        if (nameLower.Contains("dechoat")) return "Dế Choắt";
+        if (nameLower.Contains("xentoc")) return "Xén Tóc";
+        return _currentNPC.npcName;
+    }
+
     /// <summary>
     /// Bắt đầu game Vật Tay.
     /// </summary>
-    public void StartGame(DeTruiNPC npc)
+    public void StartGame(INPCMinigame npc)
     {
         _currentNPC = npc;
         
@@ -56,6 +66,7 @@ public class ArmWrestlingManager : MonoBehaviour
         _isGameOver = false;
         _winnerText = "";
         _isGameActive = true;
+        _currentNPC.isMinigameActive = true;
         
         // Mở khoá chuột để có thể bấm nút Tắt
         Cursor.lockState = CursorLockMode.None;
@@ -117,17 +128,18 @@ public class ArmWrestlingManager : MonoBehaviour
         }
 
         // Check Win/Lose
+        string npcNameUpper = GetNpcDisplayName().ToUpper();
         if (_currentPower >= maxPower)
         {
             _currentPower = maxPower;
             _isGameOver = true;
-            _winnerText = "SỨC MẠNH VÔ SONG! BẠN ĐÃ QUẬT NGÃ DẾ TRŨI!";
+            _winnerText = $"SỨC MẠNH VÔ SONG! BẠN ĐÃ QUẬT NGÃ {npcNameUpper}!";
         }
         else if (_currentPower <= 0)
         {
             _currentPower = 0;
             _isGameOver = true;
-            _winnerText = "YẾU XÌU! BẠN BỊ DẾ TRŨI NGHIỀN NÁT!";
+            _winnerText = $"YẾU XÌU! BẠN BỊ {npcNameUpper} NGHIỀN NÁT!";
         }
     }
 
@@ -193,7 +205,8 @@ public class ArmWrestlingManager : MonoBehaviour
             fontStyle = FontStyle.Bold,
             normal = new GUIStyleState() { textColor = Color.yellow }
         };
-        GUI.Label(new Rect(0, centerY - 150, Screen.width, 60), "THI VẬT TAY CÙNG DẾ TRŨI", titleStyle);
+        string npcNameUpper = GetNpcDisplayName().ToUpper();
+        GUI.Label(new Rect(0, centerY - 150, Screen.width, 60), $"THI VẬT TAY CÙNG {npcNameUpper}", titleStyle);
 
         // Vẽ Power Bar (Thanh Sức lực giữa 2 người)
         float barWidth = 400f;

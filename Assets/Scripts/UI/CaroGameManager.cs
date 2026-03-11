@@ -17,7 +17,7 @@ public class CaroGameManager : MonoBehaviour
     private string _winnerText = "";
     
     // Lưu tham chiếu npc để trả lại control khi kết thúc
-    private DeTruiNPC _currentNPC;
+    private INPCMinigame _currentNPC;
 
     private void Awake()
     {
@@ -29,10 +29,20 @@ public class CaroGameManager : MonoBehaviour
         Instance = this;
     }
 
+    private string GetNpcDisplayName()
+    {
+        if (_currentNPC == null) return "Đối thủ";
+        string nameLower = _currentNPC.npcName.ToLower();
+        if (nameLower.Contains("detrui")) return "Dế Trũi";
+        if (nameLower.Contains("dechoat")) return "Dế Choắt";
+        if (nameLower.Contains("xentoc")) return "Xén Tóc";
+        return _currentNPC.npcName;
+    }
+
     /// <summary>
-    /// Bắt đầu một ván cờ Caro 3x3 với Dế Trũi.
+    /// Bắt đầu một ván cờ Caro 3x3 với NPC.
     /// </summary>
-    public void StartGame(DeTruiNPC npc)
+    public void StartGame(INPCMinigame npc)
     {
         _currentNPC = npc;
         
@@ -49,6 +59,7 @@ public class CaroGameManager : MonoBehaviour
         _isGameOver = false;
         _winnerText = "";
         _isGameActive = true;
+        _currentNPC.isMinigameActive = true;
         
         // Mở khoá con trỏ chuột để bấm cờ
         Cursor.lockState = CursorLockMode.None;
@@ -83,7 +94,8 @@ public class CaroGameManager : MonoBehaviour
             alignment = TextAnchor.MiddleCenter,
             fontSize = 24
         };
-        string turnText = _isGameOver ? _winnerText : (_isPlayerTurn ? "Lượt của BẠN (X)" : "Dế Trũi đang suy nghĩ (O)...");
+        string npcName = GetNpcDisplayName();
+        string turnText = _isGameOver ? _winnerText : (_isPlayerTurn ? "Lượt của BẠN (X)" : $"{npcName} đang suy nghĩ (O)...");
         turnStyle.normal.textColor = _isGameOver ? Color.yellow : (_isPlayerTurn ? Color.green : Color.red);
         GUI.Label(new Rect(0, startY - 30, Screen.width, 30), turnText, turnStyle);
 
@@ -140,7 +152,7 @@ public class CaroGameManager : MonoBehaviour
 
     private IEnumerator NpcMoveCoroutine()
     {
-        yield return new WaitForSeconds(0.6f); // Dế Trũi suy nghĩ...
+        yield return new WaitForSeconds(0.6f); // NPC suy nghĩ...
         
         if (!_isGameOver)
         {
@@ -161,15 +173,17 @@ public class CaroGameManager : MonoBehaviour
     private void CheckWinCondition()
     {
         int winStatus = EvaluateBoard();
+        string npcNameUpper = GetNpcDisplayName().ToUpper();
+        
         if (winStatus == 10)
         {
             _isGameOver = true;
-            _winnerText = "XUẤT SẮC! BẠN ĐÃ CHIẾN THẮNG DẾ TRŨI!";
+            _winnerText = $"XUẤT SẮC! BẠN ĐÃ CHIẾN THẮNG {npcNameUpper}!";
         }
         else if (winStatus == -10)
         {
             _isGameOver = true;
-            _winnerText = "GÀ! DẾ TRŨI ĐÃ CHIẾN THẮNG!";
+            _winnerText = $"GÀ! {npcNameUpper} ĐÃ CHIẾN THẮNG!";
         }
         else if (!IsMovesLeft())
         {

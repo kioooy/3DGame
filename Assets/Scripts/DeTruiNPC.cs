@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class DeTruiNPC : MonoBehaviour
+public class DeTruiNPC : MonoBehaviour, INPCMinigame
 {
     [Header("Chat Bubble")]
     public ChatBubble chatBubble;
@@ -11,7 +11,8 @@ public class DeTruiNPC : MonoBehaviour
     public float timePerSentence = 2.5f;
 
     [Header("Identidade")]
-    public string npcName = "Dế Trũi";
+    [SerializeField] private string _npcName = "Dế Trũi";
+    public string npcName { get => _npcName; set => _npcName = value; }
     [TextArea(3, 10)]
     public string[] dialogue = new string[] {
         "Chào người anh em! Tôi là Dế Trũi đây.",
@@ -22,6 +23,7 @@ public class DeTruiNPC : MonoBehaviour
     [Header("Minigames Options")]
     public bool enableCaro = true;
     public bool enableArmWrestling = true;
+    public bool enableRacing = true;
 
     [Header("Wandering Settings")]
     public bool enableWandering = true;
@@ -72,6 +74,7 @@ public class DeTruiNPC : MonoBehaviour
     private bool isTalking = false;
     private bool isWaitingForChoice = false;
     private bool isFollowing = false;
+    public bool isMinigameActive { get; set; }
     
     // Quản lý đoạn hội thoại Skyrim
     private int currentDialogueIndex = 0;
@@ -122,7 +125,7 @@ public class DeTruiNPC : MonoBehaviour
 
     void Update()
     {
-        if (player == null) return;
+        if (player == null || isMinigameActive) return;
         var kb = Keyboard.current;
         var mouse = Mouse.current;
 
@@ -158,6 +161,7 @@ public class DeTruiNPC : MonoBehaviour
                 else if (enableCaro && kb.digit3Key.wasPressedThisFrame)
                 {
                     isWaitingForChoice = false;
+                    isMinigameActive = true;
                     if (chatBubble != null) chatBubble.Hide();
                     if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
                     
@@ -174,6 +178,7 @@ public class DeTruiNPC : MonoBehaviour
                 else if (enableArmWrestling && kb.digit4Key.wasPressedThisFrame)
                 {
                     isWaitingForChoice = false;
+                    isMinigameActive = true;
                     if (chatBubble != null) chatBubble.Hide();
                     if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
                     
@@ -185,6 +190,22 @@ public class DeTruiNPC : MonoBehaviour
                         armWrestle = awObj.AddComponent<ArmWrestlingManager>();
                     }
                     armWrestle.StartGame(this);
+                }
+                // Option 5: CHẠY ĐUA
+                else if (enableRacing && kb.digit5Key.wasPressedThisFrame)
+                {
+                    isWaitingForChoice = false;
+                    EndInteraction();
+                    
+                    // Lưu lại vị trí để khi kết thúc Race quay lại đúng chỗ này
+                    PlayerPrefs.SetString("PreviousScene", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                    PlayerPrefs.SetFloat("PlayerRawPosX", player.position.x);
+                    PlayerPrefs.SetFloat("PlayerRawPosY", player.position.y);
+                    PlayerPrefs.SetFloat("PlayerRawPosZ", player.position.z);
+                    PlayerPrefs.SetInt("HasSavedPostRacePosition", 1);
+                    
+                    // Load Scene RacingMinigame (người dùng phải add vào Build Settings)
+                    UnityEngine.SceneManagement.SceneManager.LoadScene("RacingMinigame");
                 }
                 // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
                 else if (kb.tabKey.wasPressedThisFrame)
@@ -398,6 +419,8 @@ public class DeTruiNPC : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (isMinigameActive) return;
+        
         if (rb != null)
         {
             // Di chuyển bằng Rigidbody thay vì Transform
@@ -506,7 +529,7 @@ public class DeTruiNPC : MonoBehaviour
             if (promptTextComp != null)
             {
                 string choices = "[1] Rủ đi cùng\n[2] Bỏ qua";
-                string nameLower = npcName.ToLower();
+                string nameLower = _npcName.ToLower();
                 
                 if (enableCaro) 
                 {
@@ -518,6 +541,11 @@ public class DeTruiNPC : MonoBehaviour
                 {
                     if (nameLower.Contains("xentoc")) choices += "\n[4] Tỷ thí Đọ Ngàm (Vật Tay)";
                     else choices += "\n[4] Vật Tay Sinh Tử";
+                }
+                
+                if (enableRacing && nameLower.Contains("detrui"))
+                {
+                    choices += "\n[5] Đua Xe Bọ (Chạy đua)";
                 }
                 
                 promptTextComp.text = choices;
@@ -571,12 +599,13 @@ public class DeTruiNPC : MonoBehaviour
 
     public void EndMinigame(bool isWin, bool isDraw = false)
     {
+        isMinigameActive = false;
         isTalking = true;
         isWaitingForChoice = false;
         
         string resultText = "";
         
-        string nameLower = npcName.ToLower();
+        string nameLower = _npcName.ToLower();
         if (nameLower.Contains("detrui"))
         {
             if (isDraw) resultText = "Chà, không ngờ cậu cầm hòa được tôi cơ đấy!";

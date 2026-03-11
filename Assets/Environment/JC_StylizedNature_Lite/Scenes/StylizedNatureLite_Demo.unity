@@ -1020,7 +1020,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.05, y: 0.1}
   m_AnchorMax: {x: 0.95, y: 0.9}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -248}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &89127386
@@ -1291,7 +1291,7 @@ MonoBehaviour:
   chatBubble: {fileID: 1964973555}
   interactionPromptUI: {fileID: 192319852}
   timePerSentence: 2.5
-  npcName: ConKien
+  _npcName: "D\u1EBF Tr\u0169i"
   dialogue:
   - "H\xE2y d\xF4! T\xF4i l\xE0 Ki\u1EBFn th\u1EE3 \u0111\xE2y."
   - "Khu\xE2n v\xE1c su\u1ED1t ng\xE0y m\u1EC7t qu\xE1 \u0111i m\u1EA5t."
@@ -4082,7 +4082,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -218}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &372240297
@@ -4470,7 +4470,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 806d37c602eed024d8ea0cc5c0c84d73, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.2085876
+      value: 5.87
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 806d37c602eed024d8ea0cc5c0c84d73, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4478,7 +4478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 806d37c602eed024d8ea0cc5c0c84d73, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -119.0701
+      value: -115.17
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 806d37c602eed024d8ea0cc5c0c84d73, type: 3}
       propertyPath: m_LocalRotation.w
@@ -5276,7 +5276,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -212}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &465180559
@@ -6022,7 +6022,7 @@ MonoBehaviour:
   chatBubble: {fileID: 1769205724}
   interactionPromptUI: {fileID: 1099687546}
   timePerSentence: 3
-  npcName: DeTrui
+  _npcName: "D\u1EBF Tr\u0169i"
   dialogue:
   - "Xin ch\xE0o! T\xF4i l\xE0 DeTrui."
   - "H\xF4m nay tr\u1EDDi \u0111\u1EB9p nh\u1EC9!"
@@ -7252,7 +7252,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -8835,7 +8835,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fb45e71e7cdb1b745a432e4f34ec9ffe, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.67
+      value: 1.92
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fb45e71e7cdb1b745a432e4f34ec9ffe, type: 3}
       propertyPath: m_LocalPosition.y
@@ -8923,7 +8923,7 @@ MonoBehaviour:
   chatBubble: {fileID: 1615281310}
   interactionPromptUI: {fileID: 578372884}
   timePerSentence: 2.5
-  npcName: XenToc
+  _npcName: "D\u1EBF Tr\u0169i"
   dialogue:
   - "Kh\xE0 kh\xE0, ta l\xE0 X\xE9n T\xF3c l\u1EF1c l\u01B0\u1EE1ng \u0111\xE2y!"
   - "Tr\xEAn \u0111\u1EDDi n\xE0y ch\u1EC9 c\xF3 s\u1EE9c m\u1EA1nh m\u1EDBi gi\u1EA3i
@@ -10149,7 +10149,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -252}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &730484769
@@ -11927,7 +11927,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.05, y: 0.1}
   m_AnchorMax: {x: 0.95, y: 0.9}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -210}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &883862940
@@ -12841,7 +12841,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -16225,7 +16225,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -174}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1256005585
@@ -16257,7 +16257,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -16270,7 +16270,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -19697,7 +19697,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -208}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1535025838
@@ -19729,7 +19729,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -19742,7 +19742,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -26006,7 +26006,7 @@ MonoBehaviour:
   chatBubble: {fileID: 490986782}
   interactionPromptUI: {fileID: 970186692}
   timePerSentence: 2.5
-  npcName: DeChoat
+  _npcName: "D\u1EBF Tr\u0169i"
   dialogue:
   - "Ch\xE0o ng\u01B0\u1EDDi anh em... T\xF4i d\u1EA1o n\xE0y \u1ED1m y\u1EBFu qu\xE1."
   - "Nh\u01B0ng c\xE1i v\u1EE5 ch\u01A1i c\u1EDD Caro th\xEC \u0111\u1EA7u \xF3c
@@ -26562,7 +26562,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -180}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2132709179

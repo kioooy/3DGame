@@ -75,6 +75,19 @@ public class PlayerController : MonoBehaviour
         // --- Minimap Marker ---
         MinimapMarker marker = gameObject.AddComponent<MinimapMarker>();
         marker.markerColor = Color.blue; // Player
+
+        // --- Load Position if Returning from Racing Minigame ---
+        if (PlayerPrefs.GetInt("HasSavedPostRacePosition", 0) == 1)
+        {
+            float x = PlayerPrefs.GetFloat("PlayerRawPosX", transform.position.x);
+            float y = PlayerPrefs.GetFloat("PlayerRawPosY", transform.position.y);
+            float z = PlayerPrefs.GetFloat("PlayerRawPosZ", transform.position.z);
+            
+            transform.position = new Vector3(x, y, z);
+            
+            // Xóa cờ để lần load scene sau hoặc lúc bật game mới không bị dịch chuyển bậy
+            PlayerPrefs.SetInt("HasSavedPostRacePosition", 0);
+        }
     }
 
     void Update()

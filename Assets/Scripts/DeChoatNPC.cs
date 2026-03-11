@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class DeChoatNPC : MonoBehaviour
+public class DeChoatNPC : MonoBehaviour, INPCMinigame
 {
     [Header("Chat Bubble")]
     public ChatBubble chatBubble;
@@ -11,7 +11,8 @@ public class DeChoatNPC : MonoBehaviour
     public float timePerSentence = 2.5f;
 
     [Header("Identidade")]
-    public string npcName = "Dế Choắt";
+    [SerializeField] private string _npcName = "Dế Choắt";
+    public string npcName { get => _npcName; set => _npcName = value; }
     [TextArea(3, 10)]
     public string[] dialogue = new string[] {
         "Chào anh Mèn... Em dạo này ốm yếu quá.",
@@ -45,6 +46,7 @@ public class DeChoatNPC : MonoBehaviour
     private bool isTalking = false;
     private bool isWaitingForChoice = false;
     private bool isFollowing = false;
+    public bool isMinigameActive { get; set; }
     
     // Quản lý đoạn hội thoại Skyrim
     private int currentDialogueIndex = 0;
@@ -83,7 +85,7 @@ public class DeChoatNPC : MonoBehaviour
 
     void Update()
     {
-        if (player == null) return;
+        if (player == null || isMinigameActive) return;
         var kb = Keyboard.current;
         var mouse = Mouse.current;
 
@@ -337,5 +339,27 @@ public class DeChoatNPC : MonoBehaviour
             mainCamera.transform.localPosition = originalCameraPos;
             mainCamera.transform.localRotation = originalCameraRot;
         }
+    }
+
+    public void EndMinigame(bool isWin, bool isDraw = false)
+    {
+        isMinigameActive = false;
+        isTalking = true;
+        isWaitingForChoice = false;
+        
+        string resultText = "";
+        
+        if (isDraw) resultText = "Hức... một ván hòa... coi như cậu nể mặt kẻ ốm yếu này...";
+        else if (isWin) resultText = "Khụ khụ... tuổi trẻ tài cao... cậu thắng rồi...";
+        else resultText = "Khà khà... Gừng càng già càng cay nhé chàng trai!";
+        
+        // Cập nhật lại khung chat
+        if (chatBubble != null) 
+        {
+            chatBubble.Setup(resultText);
+        }
+        
+        // Tắt sau 3 giây (Mở lại di chuyển bằng EndInteraction)
+        Invoke(nameof(EndInteraction), 3f);
     }
 }

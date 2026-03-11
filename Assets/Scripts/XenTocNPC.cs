@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class XenTocNPC : MonoBehaviour
+public class XenTocNPC : MonoBehaviour, INPCMinigame
 {
     [Header("Chat Bubble / Boss UI")]
     public ChatBubble chatBubble;
@@ -11,7 +11,8 @@ public class XenTocNPC : MonoBehaviour
     public float timePerSentence = 3.5f;
 
     [Header("Identidade")]
-    public string npcName = "Xén Tóc (Boss)";
+    [SerializeField] private string _npcName = "Xén Tóc (Boss)";
+    public string npcName { get => _npcName; set => _npcName = value; }
     [TextArea(3, 10)]
     public string[] dialogue = new string[] {
         "Muahaha! Ngươi tưởng có thể vượt qua ta sao?",
@@ -39,6 +40,7 @@ public class XenTocNPC : MonoBehaviour
     private bool isPlayerNearby = false;
     private bool isTalking = false;
     private bool isWaitingForCombat = false; // Thay vì đợi lựa chọn, Boss đợi đánh
+    public bool isMinigameActive { get; set; }
     
     // Quản lý đoạn hội thoại Skyrim
     private int currentDialogueIndex = 0;
@@ -78,7 +80,7 @@ public class XenTocNPC : MonoBehaviour
 
     void Update()
     {
-        if (player == null) return;
+        if (player == null || isMinigameActive) return;
         var kb = Keyboard.current;
         var mouse = Mouse.current;
 
@@ -290,6 +292,27 @@ public class XenTocNPC : MonoBehaviour
         EndInteraction();
         
         // Khi người chơi thắng trận thì mới gọi hàm này ở nơi khác (ví dụ Health == 0):
-        // if (QuestUIManager.Instance != null) QuestUIManager.Instance.CompleteQuest("defeat_xentoc");
+        }
+
+    public void EndMinigame(bool isWin, bool isDraw = false)
+    {
+        isMinigameActive = false;
+        isTalking = true;
+        isWaitingForCombat = false;
+        
+        string resultText = "";
+        
+        if (isDraw) resultText = "Cứng đầu đấy! Hoà thì hoà, lần sau ta không nhường đâu!";
+        else if (isWin) resultText = "KHÔNG THỂ NÀO! Sức mạnh của ta bị đánh bại sao?!";
+        else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
+        
+        // Cập nhật lại khung chat
+        if (chatBubble != null) 
+        {
+            chatBubble.Setup(resultText);
+        }
+        
+        // Tắt sau 3 giây (Mở lại di chuyển bằng EndInteraction)
+        Invoke(nameof(EndInteraction), 3f);
     }
 }
