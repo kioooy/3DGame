@@ -303,9 +303,9 @@ public class ConKienNPC : MonoBehaviour
         if (chatBubble != null) chatBubble.Hide();
 
         // Hoàn thành quest Dế tìm đường vào Hang Kiến
-        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("find_antcolony"))
+        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("talk_conkien"))
         {
-            QuestUIManager.Instance.CompleteQuest("find_antcolony");
+            QuestUIManager.Instance.CompleteQuest("talk_conkien");
         }
 
         // Phục hồi lại Chữ & Cỡ Chữ gốc Prompt

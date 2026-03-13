@@ -29,11 +29,16 @@ public class RacingMinigameManager : MonoBehaviour
         resultText.text = "";
         instructionsText.text = "BẤM LUÂN PHIÊN [Trái]/[Phải] HOẶC [A]/[D] ĐỂ CHẠY!\nNHẤN [SPACE] ĐỂ NHẢY QUA RÀO!";
         
-        playerRacer.transform.position = playerStartPos.position;
-        npcRacer.transform.position = npcStartPos.position;
+        // Thêm offset Y để tránh việc nhân vật bị lún xuống đất
+        playerRacer.transform.position = playerStartPos.position + new Vector3(0, 0.5f, 0);
+        npcRacer.transform.position = npcStartPos.position + new Vector3(0, 0.5f, 0);
 
         playerRacer.EnableRunning(false);
         npcRacer.EnableRunning(false);
+
+        // Tăng tốc độ của De Trui
+        npcRacer.baseSpeed = 7.0f;
+        npcRacer.speedVariation = 1.0f;
 
         StartCoroutine(CountdownCoroutine());
     }

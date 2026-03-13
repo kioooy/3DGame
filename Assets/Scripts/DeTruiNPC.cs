@@ -157,22 +157,40 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                     chatBubble.Setup("Không sao, hẹn gặp lại nhé!");
                     Invoke("HideBubble", 2f);
                 }
-                // Option 3: SOLO CARO
-                else if (enableCaro && kb.digit3Key.wasPressedThisFrame)
+                // Option 3: SOLO CARO HOẶC CHẠY ĐUA
+                else if (kb.digit3Key.wasPressedThisFrame)
                 {
-                    isWaitingForChoice = false;
-                    isMinigameActive = true;
-                    if (chatBubble != null) chatBubble.Hide();
-                    if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
-                    
-                    // Attach Manager if Missing (Lazy load)
-                    CaroGameManager caro = FindFirstObjectByType<CaroGameManager>();
-                    if (caro == null)
+                    string nameLower = _npcName.ToLower();
+                    if (enableRacing && (nameLower.Contains("dế trũi") || nameLower.Contains("detrui")))
                     {
-                        GameObject gmObj = new GameObject("CaroGameManager");
-                        caro = gmObj.AddComponent<CaroGameManager>();
+                        isWaitingForChoice = false;
+                        EndInteraction();
+                        
+                        // Lưu lại vị trí để khi kết thúc Race quay lại đúng chỗ này
+                        PlayerPrefs.SetString("PreviousScene", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                        PlayerPrefs.SetFloat("PlayerRawPosX", player.position.x);
+                        PlayerPrefs.SetFloat("PlayerRawPosY", player.position.y);
+                        PlayerPrefs.SetFloat("PlayerRawPosZ", player.position.z);
+                        PlayerPrefs.SetInt("HasSavedPostRacePosition", 1);
+                        
+                        // Load Scene RacingMinigame (người dùng phải add vào Build Settings)
+                        UnityEngine.SceneManagement.SceneManager.LoadScene("RacingMinigame");
                     }
-                    caro.StartGame(this);
+                    else if (enableCaro)
+                    {
+                        isWaitingForChoice = false;
+                        isMinigameActive = true;
+                        if (chatBubble != null) chatBubble.Hide();
+                        if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
+                        
+                        CaroGameManager caro = FindFirstObjectByType<CaroGameManager>();
+                        if (caro == null)
+                        {
+                            GameObject gmObj = new GameObject("CaroGameManager");
+                            caro = gmObj.AddComponent<CaroGameManager>();
+                        }
+                        caro.StartGame(this);
+                    }
                 }
                 // Option 4: VẬT TAY (AUDITION STYLE)
                 else if (enableArmWrestling && kb.digit4Key.wasPressedThisFrame)
@@ -191,21 +209,25 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                     }
                     armWrestle.StartGame(this);
                 }
-                // Option 5: CHẠY ĐUA
+                // Option 5: CHẠY ĐUA (FALLBACK NẾU KHÔNG PHẢI DẾ TRŨI)
                 else if (enableRacing && kb.digit5Key.wasPressedThisFrame)
                 {
-                    isWaitingForChoice = false;
-                    EndInteraction();
-                    
-                    // Lưu lại vị trí để khi kết thúc Race quay lại đúng chỗ này
-                    PlayerPrefs.SetString("PreviousScene", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-                    PlayerPrefs.SetFloat("PlayerRawPosX", player.position.x);
-                    PlayerPrefs.SetFloat("PlayerRawPosY", player.position.y);
-                    PlayerPrefs.SetFloat("PlayerRawPosZ", player.position.z);
-                    PlayerPrefs.SetInt("HasSavedPostRacePosition", 1);
-                    
-                    // Load Scene RacingMinigame (người dùng phải add vào Build Settings)
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("RacingMinigame");
+                    string nameLower = _npcName.ToLower();
+                    if (!nameLower.Contains("dế trũi") && !nameLower.Contains("detrui"))
+                    {
+                        isWaitingForChoice = false;
+                        EndInteraction();
+                        
+                        // Lưu lại vị trí để khi kết thúc Race quay lại đúng chỗ này
+                        PlayerPrefs.SetString("PreviousScene", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                        PlayerPrefs.SetFloat("PlayerRawPosX", player.position.x);
+                        PlayerPrefs.SetFloat("PlayerRawPosY", player.position.y);
+                        PlayerPrefs.SetFloat("PlayerRawPosZ", player.position.z);
+                        PlayerPrefs.SetInt("HasSavedPostRacePosition", 1);
+                        
+                        // Load Scene RacingMinigame (người dùng phải add vào Build Settings)
+                        UnityEngine.SceneManagement.SceneManager.LoadScene("RacingMinigame");
+                    }
                 }
                 // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
                 else if (kb.tabKey.wasPressedThisFrame)
@@ -531,21 +553,28 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                 string choices = "[1] Rủ đi cùng\n[2] Bỏ qua";
                 string nameLower = _npcName.ToLower();
                 
-                if (enableCaro) 
+                if (nameLower.Contains("dế trũi") || nameLower.Contains("detrui"))
                 {
-                    if (nameLower.Contains("dechoat")) choices += "\n[3] Giao lưu Cờ Caro (Chữa Bệnh)";
-                    else choices += "\n[3] Giao lưu Cờ Caro (3x3)";
+                    if (enableRacing) choices += "\n[3] Chạy đua";
                 }
-                
-                if (enableArmWrestling) 
+                else
                 {
-                    if (nameLower.Contains("xentoc")) choices += "\n[4] Tỷ thí Đọ Ngàm (Vật Tay)";
-                    else choices += "\n[4] Vật Tay Sinh Tử";
-                }
-                
-                if (enableRacing && nameLower.Contains("detrui"))
-                {
-                    choices += "\n[5] Đua Xe Bọ (Chạy đua)";
+                    if (enableCaro) 
+                    {
+                        if (nameLower.Contains("dế choắt") || nameLower.Contains("dechoat")) choices += "\n[3] Giao lưu Cờ Caro (Chữa Bệnh)";
+                        else choices += "\n[3] Giao lưu Cờ Caro (3x3)";
+                    }
+                    
+                    if (enableArmWrestling) 
+                    {
+                        if (nameLower.Contains("xén tóc") || nameLower.Contains("xentoc")) choices += "\n[4] Tỷ thí Đọ Ngàm (Vật Tay)";
+                        else choices += "\n[4] Vật Tay Sinh Tử";
+                    }
+                    
+                    if (enableRacing)
+                    {
+                        choices += "\n[5] Đua Xe Bọ (Chạy đua)";
+                    }
                 }
                 
                 promptTextComp.text = choices;
@@ -606,23 +635,32 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         string resultText = "";
         
         string nameLower = _npcName.ToLower();
-        if (nameLower.Contains("detrui"))
+        if (nameLower.Contains("dế trũi") || nameLower.Contains("detrui"))
         {
             if (isDraw) resultText = "Chà, không ngờ cậu cầm hòa được tôi cơ đấy!";
             else if (isWin) resultText = "Quá xuất sắc! Cậu lại thắng tôi rồi, bái phục bái phục!";
             else resultText = "Hahaha! Lần sau cố gắng hơn nhé, tôi thắng rồi!";
+            
+            if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_detrui"))
+                QuestUIManager.Instance.CompleteQuest("minigame_detrui");
         }
-        else if (nameLower.Contains("dechoat"))
+        else if (nameLower.Contains("dế choắt") || nameLower.Contains("dechoat"))
         {
             if (isDraw) resultText = "Hức... một ván hòa... coi như cậu nể mặt kẻ ốm yếu này...";
             else if (isWin) resultText = "Khụ khụ... tuổi trẻ tài cao... cậu thắng rồi...";
             else resultText = "Khà khà... Gừng càng già càng cay nhé chàng trai!";
+            
+            if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_dechoat"))
+                QuestUIManager.Instance.CompleteQuest("minigame_dechoat");
         }
-        else if (nameLower.Contains("xentoc"))
+        else if (nameLower.Contains("xén tóc") || nameLower.Contains("xentoc"))
         {
             if (isDraw) resultText = "Cứng đầu đấy! Hoà thì hoà, lần sau ta không nhường đâu!";
             else if (isWin) resultText = "KHÔNG THỂ NÀO! Sức mạnh của ta bị đánh bại sao?!";
             else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
+            
+            if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_xentoc"))
+                QuestUIManager.Instance.CompleteQuest("minigame_xentoc");
         }
         else 
         {

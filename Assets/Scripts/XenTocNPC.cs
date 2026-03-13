@@ -259,6 +259,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         
         if (chatBubble != null) chatBubble.Hide();
 
+        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("talk_xentoc"))
+        {
+            QuestUIManager.Instance.CompleteQuest("talk_xentoc");
+        }
+
         // Phục hồi lại Chữ & Cỡ Chữ gốc Prompt
         if (promptTextComp != null && !string.IsNullOrEmpty(originalPromptText))
         {
@@ -305,6 +310,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         if (isDraw) resultText = "Cứng đầu đấy! Hoà thì hoà, lần sau ta không nhường đâu!";
         else if (isWin) resultText = "KHÔNG THỂ NÀO! Sức mạnh của ta bị đánh bại sao?!";
         else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
+        
+        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_xentoc"))
+        {
+            QuestUIManager.Instance.CompleteQuest("minigame_xentoc");
+        }
         
         // Cập nhật lại khung chat
         if (chatBubble != null) 

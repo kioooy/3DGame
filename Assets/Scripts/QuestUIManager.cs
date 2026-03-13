@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
@@ -29,9 +29,22 @@ public class QuestUIManager : MonoBehaviour
             return;
         }
 
+        // Nếu chưa gán trong Inspector, tự tìm bằng tên
+        if (questPanel == null)
+        {
+            GameObject found = GameObject.Find("QuestPanel");
+            if (found != null)
+            {
+                questPanel = found;
+                Debug.Log("QuestUIManager: Tự tìm thấy QuestPanel!");
+            }
+        }
+
         // Ẩn quest panel khi bắt đầu game
         if (questPanel != null)
             questPanel.SetActive(false);
+        else
+            Debug.LogWarning("QuestUIManager: Không tìm thấy QuestPanel! Hãy chạy 'Generate Quest UI'.");
     }
 
     void Start()
@@ -61,8 +74,22 @@ public class QuestUIManager : MonoBehaviour
     /// </summary>
     public void ToggleQuestPanel()
     {
+        // Tự tìm lại panel nếu reference bị mất
+        if (questPanel == null)
+        {
+            questPanel = GameObject.Find("QuestPanel");
+        }
+
         if (questPanel != null)
-            questPanel.SetActive(!questPanel.activeSelf);
+        {
+            bool newState = !questPanel.activeSelf;
+            questPanel.SetActive(newState);
+            Debug.Log($"QuestUIManager: Panel {(newState ? "MỞ" : "ĐÓNG")}");
+        }
+        else
+        {
+            Debug.LogWarning("QuestUIManager: questPanel null! Hãy chạy Generate Quest UI.");
+        }
     }
 
     /// <summary>
@@ -105,27 +132,22 @@ public class QuestUIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Tạo UI mặc định cho Quest Panel trong Editor
-    /// Click chuột phải vào component → "Generate Quest UI"
-    /// </summary>
     [ContextMenu("Generate Quest UI")]
     public void CreateDefaultUI()
     {
-        // Tìm hoặc tạo Canvas
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            GameObject canvasObj = new GameObject("QuestCanvas");
-            canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObj.AddComponent<CanvasScaler>();
-            canvasObj.AddComponent<GraphicRaycaster>();
-        }
-
-        // Tạo Quest Panel
+        // Nếu chưa có, tạo mới
         if (questPanel == null)
         {
+            Canvas canvas = FindFirstObjectByType<Canvas>();
+            if (canvas == null)
+            {
+                GameObject canvasObj = new GameObject("QuestCanvas");
+                canvas = canvasObj.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvasObj.AddComponent<CanvasScaler>();
+                canvasObj.AddComponent<GraphicRaycaster>();
+            }
+
             questPanel = new GameObject("QuestPanel");
             questPanel.transform.SetParent(canvas.transform, false);
 
@@ -138,74 +160,80 @@ public class QuestUIManager : MonoBehaviour
             panelRect.anchorMax = new Vector2(1f, 1f);
             panelRect.offsetMin = new Vector2(10, 10);
             panelRect.offsetMax = new Vector2(-20, -20);
-
-            // === Tiêu đề "NHIỆM VỤ" ===
-            GameObject titleObj = new GameObject("TitleText");
-            titleObj.transform.SetParent(questPanel.transform, false);
-            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = "NHIỆM VỤ";
-            titleText.fontSize = 32;
-            titleText.fontStyle = FontStyles.Bold;
-            titleText.color = new Color(1f, 0.84f, 0f); // Vàng gold
-            titleText.alignment = TextAlignmentOptions.Center;
-
-            RectTransform titleRect = titleObj.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0, 1);
-            titleRect.anchorMax = new Vector2(1, 1);
-            titleRect.pivot = new Vector2(0.5f, 1);
-            titleRect.anchoredPosition = new Vector2(0, -15);
-            titleRect.sizeDelta = new Vector2(0, 50);
-
-            // === Đường kẻ ngang ===
-            GameObject lineObj = new GameObject("Divider");
-            lineObj.transform.SetParent(questPanel.transform, false);
-            Image lineImage = lineObj.AddComponent<Image>();
-            lineImage.color = new Color(1f, 0.84f, 0f, 0.5f);
-
-            RectTransform lineRect = lineObj.GetComponent<RectTransform>();
-            lineRect.anchorMin = new Vector2(0.05f, 1);
-            lineRect.anchorMax = new Vector2(0.95f, 1);
-            lineRect.pivot = new Vector2(0.5f, 1);
-            lineRect.anchoredPosition = new Vector2(0, -70);
-            lineRect.sizeDelta = new Vector2(0, 2);
-
-            // === Chương 1: Sự khởi đầu ===
-            CreateQuestEntry(questPanel.transform, "pickup_stone",    "○ Nhặt 1 viên đá", -90f);
-            CreateQuestEntry(questPanel.transform, "explore_village",  "○ Khám phá Làng Dế",       -125f);
-
-            // === Chương 2: Bờ Ruộng - Trách nhiệm ===
-            CreateQuestEntry(questPanel.transform, "collect_items",   "○ Thu thập 3 vật phẩm",    -160f);
-
-            // === Chương 3: Hang Kiến - Đoàn kết ===
-            CreateQuestEntry(questPanel.transform, "find_antcolony",  "○ Tìm đường vào Hang Kiến",-195f);
-
-            // === Chương 4: Đối đầu Xén Tóc ===
-            CreateQuestEntry(questPanel.transform, "defeat_xentoc",   "○ Đánh bại Xén Tóc",       -230f);
-
-            // === Hướng dẫn phím tắt ===
-            GameObject hintObj = new GameObject("HintText");
-            hintObj.transform.SetParent(questPanel.transform, false);
-            TextMeshProUGUI hintText = hintObj.AddComponent<TextMeshProUGUI>();
-            hintText.text = "Nhấn [J] để đóng";
-            hintText.fontSize = 18;
-            hintText.fontStyle = FontStyles.Italic;
-            hintText.color = new Color(0.6f, 0.6f, 0.6f);
-            hintText.alignment = TextAlignmentOptions.Center;
-
-            RectTransform hintRect = hintObj.GetComponent<RectTransform>();
-            hintRect.anchorMin = new Vector2(0, 0);
-            hintRect.anchorMax = new Vector2(1, 0);
-            hintRect.pivot = new Vector2(0.5f, 0);
-            hintRect.anchoredPosition = new Vector2(0, 15);
-            hintRect.sizeDelta = new Vector2(0, 30);
-
-            questPanel.SetActive(false);
-            Debug.Log("QuestUIManager: Quest UI đã được tạo thành công!");
         }
         else
         {
-            Debug.LogWarning("QuestUIManager: questPanel đã tồn tại!");
+            // Xóa toàn bộ con bên trong panel cũ
+            while (questPanel.transform.childCount > 0)
+            {
+                DestroyImmediate(questPanel.transform.GetChild(0).gameObject);
+            }
         }
+
+        // === Tiêu đề "NHIỆM VỤ" ===
+        GameObject titleObj = new GameObject("TitleText");
+        titleObj.transform.SetParent(questPanel.transform, false);
+        TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
+        titleText.text = "NHIỆM VỤ";
+        titleText.fontSize = 32;
+        titleText.fontStyle = FontStyles.Bold;
+        titleText.color = new Color(1f, 0.84f, 0f); // Vàng gold
+        titleText.alignment = TextAlignmentOptions.Center;
+
+        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0, 1);
+        titleRect.anchorMax = new Vector2(1, 1);
+        titleRect.pivot = new Vector2(0.5f, 1);
+        titleRect.anchoredPosition = new Vector2(0, -15);
+        titleRect.sizeDelta = new Vector2(0, 50);
+
+        // === Đường kẻ ngang ===
+        GameObject lineObj = new GameObject("Divider");
+        lineObj.transform.SetParent(questPanel.transform, false);
+        Image lineImage = lineObj.AddComponent<Image>();
+        lineImage.color = new Color(1f, 0.84f, 0f, 0.5f);
+
+        RectTransform lineRect = lineObj.GetComponent<RectTransform>();
+        lineRect.anchorMin = new Vector2(0.05f, 1);
+        lineRect.anchorMax = new Vector2(0.95f, 1);
+        lineRect.pivot = new Vector2(0.5f, 1);
+        lineRect.anchoredPosition = new Vector2(0, -70);
+        lineRect.sizeDelta = new Vector2(0, 2);
+
+        // === Các nhiệm vụ ===
+        CreateQuestEntry(questPanel.transform, "talk_detrui",    "○ Trò chuyện với Dế Trũi", -90f);
+        CreateQuestEntry(questPanel.transform, "minigame_detrui", "○ Chơi minigame với Dế Trũi", -125f);
+        CreateQuestEntry(questPanel.transform, "talk_dechoat",   "○ Hỏi thăm Dế Choắt", -160f);
+        CreateQuestEntry(questPanel.transform, "minigame_dechoat","○ Chơi minigame với Dế Choắt", -195f);
+        CreateQuestEntry(questPanel.transform, "talk_conkien",   "○ Trò chuyện với Kiến Chỉ Huy", -230f);
+        CreateQuestEntry(questPanel.transform, "talk_xentoc",    "○ Gặp gỡ Xén Tóc (Boss)", -265f);
+        CreateQuestEntry(questPanel.transform, "minigame_xentoc", "○ Tỷ thí với Xén Tóc", -300f);
+
+        // === Hướng dẫn phím tắt ===
+        GameObject hintObj = new GameObject("HintText");
+        hintObj.transform.SetParent(questPanel.transform, false);
+        TextMeshProUGUI hintText = hintObj.AddComponent<TextMeshProUGUI>();
+        hintText.text = "Nhấn [J] để đóng";
+        hintText.fontSize = 18;
+        hintText.fontStyle = FontStyles.Italic;
+        hintText.color = new Color(0.6f, 0.6f, 0.6f);
+        hintText.alignment = TextAlignmentOptions.Center;
+
+        RectTransform hintRect = hintObj.GetComponent<RectTransform>();
+        hintRect.anchorMin = new Vector2(0, 0);
+        hintRect.anchorMax = new Vector2(1, 0);
+        hintRect.pivot = new Vector2(0.5f, 0);
+        hintRect.anchoredPosition = new Vector2(0, 15);
+        hintRect.sizeDelta = new Vector2(0, 30);
+
+        questPanel.SetActive(false);
+        
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        if (!Application.isPlaying) UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(gameObject.scene);
+#endif
+
+        Debug.Log("QuestUIManager: Quest UI đã được tạo thành công!");
     }
 
     /// <summary>

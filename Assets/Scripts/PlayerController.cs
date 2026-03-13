@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
@@ -25,6 +25,15 @@ public class PlayerController : MonoBehaviour
     
     [Header("Equipment")]
     [SerializeField] private PlayerEquipment playerEquipment;
+
+    [Header("Footstep Audio")]
+    [SerializeField] private AudioClip[] footstepClips;
+    [SerializeField] private float walkStepInterval = 0.45f;
+    [SerializeField] private float runStepInterval  = 0.25f;
+    [Range(0f, 1f)]
+    [SerializeField] private float footstepVolume = 0.55f;
+    private AudioSource _footstepSource;
+    private float _stepTimer = 0f;
 
     Vector3 _moveInput;
     bool _isRunning;
@@ -55,6 +64,13 @@ public class PlayerController : MonoBehaviour
         
         if (cameraTransform == null)
             cameraTransform = Camera.main?.transform;
+
+        // Setup AudioSource for footsteps (2D, no spatial blend)
+        _footstepSource = gameObject.AddComponent<AudioSource>();
+        _footstepSource.spatialBlend = 0f;
+        _footstepSource.playOnAwake  = false;
+        _footstepSource.loop         = false;
+        _footstepSource.volume       = footstepVolume;
     }
 
     void Start()
@@ -133,8 +149,16 @@ public class PlayerController : MonoBehaviour
             // Toggle quest panel với J
             if (kb.jKey.wasPressedThisFrame)
             {
+                Debug.Log("PlayerController: Phím J được nhấn!");
                 if (QuestUIManager.Instance != null)
+                {
+                    Debug.Log("PlayerController: Gọi QuestUIManager.Instance.ToggleQuestPanel()");
                     QuestUIManager.Instance.ToggleQuestPanel();
+                }
+                else
+                {
+                    Debug.LogWarning("PlayerController: Lỗi! QuestUIManager.Instance bị null!");
+                }
             }
 
             // --- Gắn Input Nhặt đồ (E) ---
@@ -222,6 +246,9 @@ public class PlayerController : MonoBehaviour
                         EmoteUIManager.Instance.CancelEmote();
                     }
                 }
+
+                // --- Tiếng bước chân ---
+                HandleFootsteps();
             }
             else
             {
@@ -456,5 +483,35 @@ public class PlayerController : MonoBehaviour
             transform.forward;
         
         playerEquipment.ThrowItem(throwDirection);
+    }
+
+    /// <summary>
+    /// Phát tiếng bước chân khi player di chuyển trên mặt đất
+    /// </summary>
+    void HandleFootsteps()
+    {
+        bool isMoving = _moveInput.sqrMagnitude > 0.01f && _isGrounded && !isDialoguing;
+        if (!isMoving)
+        {
+            _stepTimer = 0f;
+            return;
+        }
+
+        _stepTimer += Time.deltaTime;
+        float interval = _isRunning ? runStepInterval : walkStepInterval;
+
+        if (_stepTimer >= interval)
+        {
+            _stepTimer = 0f;
+            PlayFootstep();
+        }
+    }
+
+    void PlayFootstep()
+    {
+        if (_footstepSource == null || footstepClips == null || footstepClips.Length == 0) return;
+        AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
+        if (clip != null)
+            _footstepSource.PlayOneShot(clip, footstepVolume);
     }
 }
