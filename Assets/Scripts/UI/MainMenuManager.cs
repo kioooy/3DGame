@@ -52,15 +52,26 @@ public class MainMenuManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Bắt đầu game bằng cách load Scene
+    /// Bắt đầu game bằng cách hiện cốt truyện (Story sẽ tự load Scene sau khi xong)
     /// </summary>
     public void PlayGame()
     {
         IsMenuActive = false;
-        Time.timeScale = 1f; // Phục hồi lại thời gian trước khi sang Scene mới
+        Time.timeScale = 1f;
 
-        Debug.Log("Loading Scene: " + gameSceneName);
-        SceneManager.LoadScene(gameSceneName);
+        // Ẩn Menu hiện tại đi
+        if (mainMenuCanvas != null)
+        {
+            mainMenuCanvas.SetActive(false);
+        }
+
+        // Tạo ra hệ thống Cốt truyện
+        Debug.Log("Đang hiển thị cốt truyện...");
+        GameObject storyManagerObj = new GameObject("StoryIntroManager_Auto");
+        StoryIntroManager storyManager = storyManagerObj.AddComponent<StoryIntroManager>();
+        
+        // Truyền tên Scene cần load sang cho Story Manager
+        storyManager.gameSceneName = this.gameSceneName;
     }
 
     /// <summary>
