@@ -6,19 +6,32 @@ using System.Collections;
 /// - Nhạc yên tĩnh, ambient, phát ngẫu nhiên với khoảng nghỉ giữa các bài
 /// - Fade in / Fade out mượt mà
 /// - Hỗ trợ nhiều track
+/// - Tự động tải nhạc và tự chạy mà không cần setup trên Scene.
 /// </summary>
 public class BackgroundMusicManager : MonoBehaviour
 {
     public static BackgroundMusicManager Instance { get; private set; }
 
-    [Header("Music Tracks (kéo file nhạc vào đây)")]
+    // Tự động kích hoạt khi chạy game, không bắt buộc thả vào Scene
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void AutoInitialize()
+    {
+        // Tránh tạo thêm nếu trên Scene đã có sẵn 1 cái người dùng kéo vào
+        if (FindObjectOfType<BackgroundMusicManager>() == null && Instance == null)
+        {
+            GameObject bgmObj = new GameObject("BackgroundMusicManager_Auto");
+            bgmObj.AddComponent<BackgroundMusicManager>();
+        }
+    }
+
+    [Header("Music Tracks (kéo file nhạc vào đây hoặc nó tự động tải từ Resources/Music_BGM)")]
     public AudioClip[] musicTracks;
 
-    [Header("Minecraft-Style Settings")]
-    [Tooltip("Thời gian nghỉ tối thiểu giữa 2 bài (giây) - Minecraft style: im lặng lâu")]
-    public float minSilenceTime = 60f;
+    [Header("Music Settings")]
+    [Tooltip("Thời gian nghỉ tối thiểu giữa 2 bài (giây)")]
+    public float minSilenceTime = 1f;
     [Tooltip("Thời gian nghỉ tối đa giữa 2 bài (giây)")]
-    public float maxSilenceTime = 180f;
+    public float maxSilenceTime = 3f;
     [Tooltip("Âm lượng tối đa (0-1)")]
     [Range(0f, 1f)]
     public float maxVolume = 0.4f;
@@ -50,19 +63,34 @@ public class BackgroundMusicManager : MonoBehaviour
         audioSource.loop = false;
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 0f; // 2D sound
+
+        // Tự động load nhạc nền tĩnh định sẵn nếu ở Inspector chưa gán
+        if (musicTracks == null || musicTracks.Length == 0)
+        {
+            AudioClip mainBgm = Resources.Load<AudioClip>("Music_BGM/domartistudios-magical-wizard-school-orchestral-fantasy-488126");
+            if (mainBgm != null)
+            {
+                musicTracks = new AudioClip[] { mainBgm };
+                Debug.Log($"[BackgroundMusicManager] Đã tải bài nhạc nền chính: {mainBgm.name}");
+            }
+            else
+            {
+                musicTracks = Resources.LoadAll<AudioClip>("Music_BGM");
+            }
+        }
     }
 
     void Start()
     {
         if (musicTracks != null && musicTracks.Length > 0)
         {
-            // Bắt đầu sau một khoảng im lặng ngắn khi mới vào game (Minecraft style)
-            float initialDelay = Random.Range(5f, 20f);
+            // Bắt đầu sau một khoảng im lặng rất ngắn
+            float initialDelay = 1f;
             StartCoroutine(MusicLoop(initialDelay));
         }
         else
         {
-            Debug.LogWarning("BackgroundMusicManager: Chưa có track nhạc! Hãy kéo file .mp3/.ogg vào musicTracks.");
+            Debug.LogWarning("[BackgroundMusicManager] Chưa có track nhạc! Hãy đảm bảo thả file nhạc vào mục Assets/Resources/Music_BGM.");
         }
     }
 
