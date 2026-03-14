@@ -57,6 +57,9 @@ public class ThirdPersonCamera : MonoBehaviour
         // Dừng xoay Camera nếu Emote Menu (vòng tròn) đang bật
         if (EmoteUIManager.Instance != null && EmoteUIManager.IsEmoteMenuOpen) return;
         
+        // Dừng xoay Camera nếu Pause Menu đang bật
+        if (PauseMenuManager.IsPaused) return;
+        
         // Dừng xoay Camera nếu đang chơi Minigame Caro
         if (CaroGameManager.Instance != null && CaroGameManager.Instance.IsGameActive) return;
 

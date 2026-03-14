@@ -47,6 +47,8 @@ public class SettingsUI : MonoBehaviour
     public Button btnApply;
     public Button btnReset;
     public Button btnClose;
+    [Tooltip("Nút mở lại bảng Hướng Dẫn (tuỳ chọn, không bắt buộc wire)")]
+    public Button btnTutorial;
 
     // Tab fields – giu de khong loi tuong thich voi tool cu (co the bo trong)
     [HideInInspector] public Button  tabAudioBtn;
@@ -103,9 +105,10 @@ public class SettingsUI : MonoBehaviour
         if (sliderCursorSize) sliderCursorSize.onValueChanged.AddListener(v
             => UpdateLabel(labelCursorSize, v, "x"));
 
-        if (btnApply) btnApply.onClick.AddListener(OnApply);
-        if (btnReset) btnReset.onClick.AddListener(OnReset);
-        if (btnClose) btnClose.onClick.AddListener(() => Close());
+        if (btnApply)    btnApply.onClick.AddListener(OnApply);
+        if (btnReset)    btnReset.onClick.AddListener(OnReset);
+        if (btnClose)    btnClose.onClick.AddListener(() => Close());
+        if (btnTutorial) btnTutorial.onClick.AddListener(OnShowTutorial);
 
         // Dong ngay
         ForceClose();
@@ -118,10 +121,14 @@ public class SettingsUI : MonoBehaviour
     {
 #if ENABLE_INPUT_SYSTEM
         if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
-            Toggle();
+        {
+            if (_isOpen) Close();
+        }
 #else
         if (Input.GetKeyDown(KeyCode.Escape))
-            Toggle();
+        {
+            if (_isOpen) Close();
+        }
 #endif
     }
 
@@ -284,6 +291,15 @@ public class SettingsUI : MonoBehaviour
         RefreshUI();
         UIAudioFeedback.Play(UIAudioFeedback.SoundType.Tab);
         StartCoroutine(FlashButton(btnReset, "DA DAT LAI!"));
+    }
+
+    void OnShowTutorial()
+    {
+        if (TutorialManager.Instance != null)
+        {
+            TutorialManager.Instance.Show();
+            Close(); // Đóng Settings để nhìn thấy Tutorial ở góc màn hình
+        }
     }
 
     IEnumerator FlashButton(Button btn, string msg)

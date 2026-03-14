@@ -41,6 +41,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     private bool isTalking = false;
     private bool isWaitingForCombat = false; // Thay vì đợi lựa chọn, Boss đợi đánh
     public bool isMinigameActive { get; set; }
+
+    // --- CHẾ ĐỘ CƯỠI (Hidden Interaction) ---
+    private bool _hasWon = false;          // Đã từng thắng Xén Tóc chưa
+    private bool _isWaitingRideChoice = false; // Đang chờ chọn Cưỡi hay không
+    private MountXenTocController _mounter; // Component điều khiển cưỡi
     
     // Quản lý đoạn hội thoại Skyrim
     private int currentDialogueIndex = 0;
@@ -69,6 +74,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         mainCamera = Camera.main;
 
         if (animator == null) animator = GetComponent<Animator>();
+
+        // Thêm component MountController nếu chưa có
+        _mounter = GetComponent<MountXenTocController>();
+        if (_mounter == null)
+            _mounter = gameObject.AddComponent<MountXenTocController>();
             
         // Tìm chữ trong nút bấm UI prompt
         if (interactionPromptUI != null)
@@ -76,6 +86,9 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
             if (promptTextComp != null) originalPromptText = promptTextComp.text;
         }
+
+        // Khôi phục trạng thái thắng từ lần chơi trước
+        _hasWon = PlayerPrefs.GetInt("XenToc_PlayerWon", 0) == 1;
     }
 
     void Update()
@@ -83,6 +96,29 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         if (player == null || isMinigameActive) return;
         var kb = Keyboard.current;
         var mouse = Mouse.current;
+
+        // --- LỰA CHỌN CƯỠI (sau khi thắng vật tay) ---
+        if (_isWaitingRideChoice)
+        {
+            HandleCameraFocusSkyrim();
+            if (kb != null)
+            {
+                if (kb.digit1Key.wasPressedThisFrame)
+                {
+                    _isWaitingRideChoice = false;
+                    HidePrompt();
+                    EndInteraction();
+                    if (_mounter != null && player != null)
+                        _mounter.Mount(player);
+                }
+                else if (kb.digit2Key.wasPressedThisFrame || kb.tabKey.wasPressedThisFrame)
+                {
+                    _isWaitingRideChoice = false;
+                    EndInteraction();
+                }
+            }
+            return;
+        }
 
         // --- CÓ LỰA CHỌN (BẮT ĐẦU ĐÁNH NHAU) ---
         if (isWaitingForCombat)
@@ -221,7 +257,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         }
         else
         {
-            ShowChoice();
+            // Nếu đã từng thắng → hiện lựa chọn cưỡi luôn
+            if (_hasWon)
+                ShowReturnRideChoice();
+            else
+                ShowChoice();
         }
     }
     
@@ -308,7 +348,13 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         string resultText = "";
         
         if (isDraw) resultText = "Cứng đầu đấy! Hoà thì hoà, lần sau ta không nhường đâu!";
-        else if (isWin) resultText = "KHÔNG THỂ NÀO! Sức mạnh của ta bị đánh bại sao?!";
+        else if (isWin)
+        {
+            resultText = "KHÔNG THỂ NÀO! Sức mạnh của ta bị đánh bại sao?! ...Ngươi... không tệ lắm.";
+            _hasWon = true;
+            PlayerPrefs.SetInt("XenToc_PlayerWon", 1);
+            PlayerPrefs.Save();
+        }
         else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
         
         if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_xentoc"))
@@ -316,13 +362,60 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
             QuestUIManager.Instance.CompleteQuest("minigame_xentoc");
         }
         
-        // Cập nhật lại khung chat
         if (chatBubble != null) 
         {
             chatBubble.Setup(resultText);
         }
         
-        // Tắt sau 3 giây (Mở lại di chuyển bằng EndInteraction)
-        Invoke(nameof(EndInteraction), 3f);
+        if (isWin)
+        {
+            // Sau 3 giây hiện lựa chọn Cưỡi
+            Invoke(nameof(ShowRideChoice), 3f);
+        }
+        else
+        {
+            Invoke(nameof(EndInteraction), 3f);
+        }
+    }
+
+    // Hiện lựa chọn bí mật: Cưỡi Xén Tóc
+    void ShowRideChoice()
+    {
+        isTalking = false;
+        _isWaitingRideChoice = true;
+        if (chatBubble != null) chatBubble.Hide();
+
+        if (interactionPromptUI != null)
+        {
+            interactionPromptUI.SetActive(true);
+            if (promptTextComp != null)
+            {
+                promptTextComp.text = "🪲 [1] Cưỡi Xén Tóc!\n[2] Bỏ qua";
+                promptTextComp.fontSize = 22;
+            }
+        }
+    }
+
+    // Hiện lựa chọn khi player quay lại nói chuyện sau khi đã thắng
+    void ShowReturnRideChoice()
+    {
+        isTalking = false;
+        _isWaitingRideChoice = true;
+        if (chatBubble != null) chatBubble.Hide();
+
+        if (interactionPromptUI != null)
+        {
+            interactionPromptUI.SetActive(true);
+            if (promptTextComp != null)
+            {
+                promptTextComp.text = "🪲 Muốn cưỡi ta không?\n[1] Cưỡi tiếp!\n[2] Thôi";
+                promptTextComp.fontSize = 22;
+            }
+        }
+    }
+
+    void HidePrompt()
+    {
+        if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
     }
 }

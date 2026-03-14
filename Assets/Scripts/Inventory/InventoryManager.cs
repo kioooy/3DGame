@@ -27,7 +27,6 @@ public class InventoryManager : MonoBehaviour
         // Singleton pattern
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning($"[InventoryManager] Duplicate InventoryManager detected! Destroying {gameObject.name}");
             Destroy(gameObject);
             return;
         }
