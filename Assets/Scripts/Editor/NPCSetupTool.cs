@@ -159,8 +159,9 @@ public class NPCSetupTool : EditorWindow
             string nameLower = obj.name.ToLower();
             if (nameLower.Contains("detrui"))
             {
-                npcScript.enableCaro = true;
-                npcScript.enableArmWrestling = true;
+                npcScript.enableRacing = true;
+                npcScript.enableCaro = false;
+                npcScript.enableArmWrestling = false;
                 npcScript.dialogue = new string[] {
                     "Xin chào người anh em! Tôi là Dế Trũi.",
                     "Lâu rồi không có ai đến thăm khu vườn này.",
@@ -169,6 +170,7 @@ public class NPCSetupTool : EditorWindow
             }
             else if (nameLower.Contains("kien"))
             {
+                npcScript.enableRacing = false;
                 npcScript.enableCaro = false;
                 npcScript.enableArmWrestling = false;
                 npcScript.dialogue = new string[] {
@@ -179,6 +181,7 @@ public class NPCSetupTool : EditorWindow
             }
             else if (nameLower.Contains("dechoat"))
             {
+                npcScript.enableRacing = false;
                 npcScript.enableCaro = true;
                 npcScript.enableArmWrestling = false;
                 npcScript.dialogue = new string[] {
@@ -189,6 +192,7 @@ public class NPCSetupTool : EditorWindow
             }
             else if (nameLower.Contains("xentoc"))
             {
+                npcScript.enableRacing = false;
                 npcScript.enableCaro = false;
                 npcScript.enableArmWrestling = true;
                 npcScript.dialogue = new string[] {
@@ -199,6 +203,7 @@ public class NPCSetupTool : EditorWindow
             }
             else
             {
+                npcScript.enableRacing = false;
                 npcScript.enableCaro = false;
                 npcScript.enableArmWrestling = false;
                 npcScript.dialogue = new string[] {

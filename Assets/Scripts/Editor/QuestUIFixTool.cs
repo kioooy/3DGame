@@ -79,12 +79,12 @@ public class QuestUIFixTool : EditorWindow
         // Danh sách nhiệm vụ
         float y = -75f;
         CreateQuestEntry(questPanel.transform, "talk_detrui",     "○ Trò chuyện với Dế Trũi",        ref y);
-        CreateQuestEntry(questPanel.transform, "minigame_detrui", "○ Chơi minigame với Dế Trũi",     ref y);
-        CreateQuestEntry(questPanel.transform, "talk_dechoat",    "○ Hỏi thăm Dế Choắt",             ref y);
-        CreateQuestEntry(questPanel.transform, "minigame_dechoat","○ Chơi minigame với Dế Choắt",    ref y);
+        CreateQuestEntry(questPanel.transform, "minigame_detrui", "○ Chạy đua với Dế Trũi",     ref y);
+        CreateQuestEntry(questPanel.transform, "talk_dechoat",    "○ Hỏi thăm Dế Choắt",       ref y);
+        CreateQuestEntry(questPanel.transform, "minigame_dechoat","○ Chơi Cờ Caro với Dế Choắt",     ref y);
         CreateQuestEntry(questPanel.transform, "talk_conkien",    "○ Trò chuyện với Kiến Chỉ Huy",   ref y);
         CreateQuestEntry(questPanel.transform, "talk_xentoc",     "○ Gặp gỡ Xén Tóc (Boss)",         ref y);
-        CreateQuestEntry(questPanel.transform, "minigame_xentoc", "○ Tỷ thí với Xén Tóc",            ref y);
+        CreateQuestEntry(questPanel.transform, "minigame_xentoc", "○ Tỷ thí Vật tay với Xén Tóc",    ref y);
 
         // Gợi ý phím
         CreateText(questPanel.transform, "Hint", "[J] Đóng", 16, FontStyles.Italic,

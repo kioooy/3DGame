@@ -70,17 +70,17 @@ public class MinimapSetupTool : EditorWindow
             Undo.RegisterCreatedObjectUndo(canvasObj, "Create Canvas");
         }
 
-        // 4. Tạo Minimap UI (Góc trên bên phải)
+        // 4. Tạo Minimap UI (Góc trên bên trái)
         var existingUI = GameObject.Find("MinimapUI");
         if (existingUI != null) DestroyImmediate(existingUI);
 
         GameObject miniUI = new GameObject("MinimapUI", typeof(RectTransform));
         miniUI.transform.SetParent(canvas.transform, false);
         var miniRT = miniUI.GetComponent<RectTransform>();
-        miniRT.anchorMin = new Vector2(1, 1);
-        miniRT.anchorMax = new Vector2(1, 1);
-        miniRT.pivot = new Vector2(1, 1);
-        miniRT.anchoredPosition = new Vector2(-20, -20);
+        miniRT.anchorMin = new Vector2(0, 1);
+        miniRT.anchorMax = new Vector2(0, 1);
+        miniRT.pivot = new Vector2(0, 1);
+        miniRT.anchoredPosition = new Vector2(20, -20); // Sát góc trên trái, cách lề 20px
         miniRT.sizeDelta = new Vector2(200, 200);
 
         // Nền ngoài (Mặt nạ cắt hình tròn)

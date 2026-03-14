@@ -202,12 +202,12 @@ public class QuestUIManager : MonoBehaviour
 
         // === Các nhiệm vụ ===
         CreateQuestEntry(questPanel.transform, "talk_detrui",    "○ Trò chuyện với Dế Trũi", -90f);
-        CreateQuestEntry(questPanel.transform, "minigame_detrui", "○ Chơi minigame với Dế Trũi", -125f);
+        CreateQuestEntry(questPanel.transform, "minigame_detrui", "○ Chạy đua với Dế Trũi", -125f);
         CreateQuestEntry(questPanel.transform, "talk_dechoat",   "○ Hỏi thăm Dế Choắt", -160f);
-        CreateQuestEntry(questPanel.transform, "minigame_dechoat","○ Chơi minigame với Dế Choắt", -195f);
+        CreateQuestEntry(questPanel.transform, "minigame_dechoat","○ Chơi Cờ Caro với Dế Choắt", -195f);
         CreateQuestEntry(questPanel.transform, "talk_conkien",   "○ Trò chuyện với Kiến Chỉ Huy", -230f);
         CreateQuestEntry(questPanel.transform, "talk_xentoc",    "○ Gặp gỡ Xén Tóc (Boss)", -265f);
-        CreateQuestEntry(questPanel.transform, "minigame_xentoc", "○ Tỷ thí với Xén Tóc", -300f);
+        CreateQuestEntry(questPanel.transform, "minigame_xentoc", "○ Tỷ thí Vật tay với Xén Tóc", -300f);
 
         // === Hướng dẫn phím tắt ===
         GameObject hintObj = new GameObject("HintText");

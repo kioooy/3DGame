@@ -48,11 +48,10 @@ public class PlayerController : MonoBehaviour
 
     // Emote System
     private float _tKeyHoldTime = 0f;
-    private bool _tKeyHeld = false;
-    private const float EMOTE_HOLD_THRESHOLD = 0.25f; // Thời gian giữ T để mở Emote Menu
+    private bool  _tKeyHeld     = false;
+    private const float EMOTE_HOLD_THRESHOLD = 0.25f; // Giữ T >= 0.25s để mở Emote Menu
     
     // Delegate / Event nhắc nhở PlayerController là đã bị can thiệp logic Emote
-
 
     void Awake()
     {

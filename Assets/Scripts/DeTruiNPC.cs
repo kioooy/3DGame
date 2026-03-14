@@ -157,7 +157,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                     chatBubble.Setup("Không sao, hẹn gặp lại nhé!");
                     Invoke("HideBubble", 2f);
                 }
-                // Option 3: SOLO CARO HOẶC CHẠY ĐUA
+                // Option 3: SOLO MINIGAME THEO ĐẶC ĐIỂM NPC
                 else if (kb.digit3Key.wasPressedThisFrame)
                 {
                     string nameLower = _npcName.ToLower();
@@ -191,42 +191,21 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                         }
                         caro.StartGame(this);
                     }
-                }
-                // Option 4: VẬT TAY (AUDITION STYLE)
-                else if (enableArmWrestling && kb.digit4Key.wasPressedThisFrame)
-                {
-                    isWaitingForChoice = false;
-                    isMinigameActive = true;
-                    if (chatBubble != null) chatBubble.Hide();
-                    if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
-                    
-                    // Lấy hoặc tự tạo Manager lúc Runtime (tránh việc báo lỗi vì user quên set vào scene)
-                    ArmWrestlingManager armWrestle = FindFirstObjectByType<ArmWrestlingManager>();
-                    if (armWrestle == null)
-                    {
-                        GameObject awObj = new GameObject("ArmWrestlingManager");
-                        armWrestle = awObj.AddComponent<ArmWrestlingManager>();
-                    }
-                    armWrestle.StartGame(this);
-                }
-                // Option 5: CHẠY ĐUA (FALLBACK NẾU KHÔNG PHẢI DẾ TRŨI)
-                else if (enableRacing && kb.digit5Key.wasPressedThisFrame)
-                {
-                    string nameLower = _npcName.ToLower();
-                    if (!nameLower.Contains("dế trũi") && !nameLower.Contains("detrui"))
+                    else if (enableArmWrestling)
                     {
                         isWaitingForChoice = false;
-                        EndInteraction();
+                        isMinigameActive = true;
+                        if (chatBubble != null) chatBubble.Hide();
+                        if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
                         
-                        // Lưu lại vị trí để khi kết thúc Race quay lại đúng chỗ này
-                        PlayerPrefs.SetString("PreviousScene", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-                        PlayerPrefs.SetFloat("PlayerRawPosX", player.position.x);
-                        PlayerPrefs.SetFloat("PlayerRawPosY", player.position.y);
-                        PlayerPrefs.SetFloat("PlayerRawPosZ", player.position.z);
-                        PlayerPrefs.SetInt("HasSavedPostRacePosition", 1);
-                        
-                        // Load Scene RacingMinigame (người dùng phải add vào Build Settings)
-                        UnityEngine.SceneManagement.SceneManager.LoadScene("RacingMinigame");
+                        // Lấy hoặc tự tạo Manager lúc Runtime
+                        ArmWrestlingManager armWrestle = FindFirstObjectByType<ArmWrestlingManager>();
+                        if (armWrestle == null)
+                        {
+                            GameObject awObj = new GameObject("ArmWrestlingManager");
+                            armWrestle = awObj.AddComponent<ArmWrestlingManager>();
+                        }
+                        armWrestle.StartGame(this);
                     }
                 }
                 // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
@@ -553,28 +532,19 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                 string choices = "[1] Rủ đi cùng\n[2] Bỏ qua";
                 string nameLower = _npcName.ToLower();
                 
-                if (nameLower.Contains("dế trũi") || nameLower.Contains("detrui"))
+                if (enableRacing) 
                 {
-                    if (enableRacing) choices += "\n[3] Chạy đua";
+                    choices += "\n[3] Chạy đua";
                 }
-                else
+                else if (enableCaro) 
                 {
-                    if (enableCaro) 
-                    {
-                        if (nameLower.Contains("dế choắt") || nameLower.Contains("dechoat")) choices += "\n[3] Giao lưu Cờ Caro (Chữa Bệnh)";
-                        else choices += "\n[3] Giao lưu Cờ Caro (3x3)";
-                    }
-                    
-                    if (enableArmWrestling) 
-                    {
-                        if (nameLower.Contains("xén tóc") || nameLower.Contains("xentoc")) choices += "\n[4] Tỷ thí Đọ Ngàm (Vật Tay)";
-                        else choices += "\n[4] Vật Tay Sinh Tử";
-                    }
-                    
-                    if (enableRacing)
-                    {
-                        choices += "\n[5] Đua Xe Bọ (Chạy đua)";
-                    }
+                    if (nameLower.Contains("dế choắt") || nameLower.Contains("dechoat")) choices += "\n[3] Giao lưu Cờ Caro (Chữa Bệnh)";
+                    else choices += "\n[3] Giao lưu Cờ Caro (3x3)";
+                }
+                else if (enableArmWrestling) 
+                {
+                    if (nameLower.Contains("xén tóc") || nameLower.Contains("xentoc")) choices += "\n[3] Tỷ thí Đọ Ngàm (Vật Tay)";
+                    else choices += "\n[3] Vật Tay Sinh Tử";
                 }
                 
                 promptTextComp.text = choices;
@@ -590,9 +560,18 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         
         if (chatBubble != null) chatBubble.Hide();
 
-        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("talk_detrui"))
+        if (QuestUIManager.Instance != null)
         {
-            QuestUIManager.Instance.CompleteQuest("talk_detrui");
+            string nameLower = _npcName.ToLower();
+            string talkQuest = "talk_detrui";
+            if (nameLower.Contains("dechoat") || nameLower.Contains("dế choắt")) talkQuest = "talk_dechoat";
+            else if (nameLower.Contains("xentoc") || nameLower.Contains("xén tóc")) talkQuest = "talk_xentoc";
+            else if (nameLower.Contains("kien") || nameLower.Contains("kiến")) talkQuest = "talk_conkien";
+
+            if (!QuestUIManager.Instance.IsQuestCompleted(talkQuest))
+            {
+                QuestUIManager.Instance.CompleteQuest(talkQuest);
+            }
         }
 
         // Phục hồi lại Chữ & Cỡ Chữ gốc Prompt
