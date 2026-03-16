@@ -11,6 +11,14 @@ public class CaroGameManager : MonoBehaviour
     private bool _isGameActive = false;
     public bool IsGameActive => _isGameActive;
 
+    [Header("Audio SFX")]
+    public AudioClip clickSFX;
+    public AudioClip winSFX;
+    public AudioClip loseSFX;
+    public AudioClip bgmClip;
+    private AudioSource _audioSource;
+    private AudioSource _bgmSource;
+
     private int[,] _board = new int[3, 3]; // 0: Trống, 1: Player (X), 2: Dế Trũi (O)
     private bool _isPlayerTurn = true;
     private bool _isGameOver = false;
@@ -27,6 +35,21 @@ public class CaroGameManager : MonoBehaviour
             return;
         }
         Instance = this;
+        
+        _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false;
+        _audioSource.spatialBlend = 0f;
+        
+        _bgmSource = gameObject.AddComponent<AudioSource>();
+        _bgmSource.playOnAwake = false;
+        _bgmSource.spatialBlend = 0f;
+        _bgmSource.loop = true;
+    }
+
+    private void PlaySFX(AudioClip clip)
+    {
+        if (clip != null && _audioSource != null)
+            _audioSource.PlayOneShot(clip);
     }
 
     private string GetNpcDisplayName()
@@ -64,6 +87,15 @@ public class CaroGameManager : MonoBehaviour
         // Mở khoá con trỏ chuột để bấm cờ
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        // Tắt nhạc nền chung, bật nhạc Minigame
+        if (BackgroundMusicManager.Instance != null) BackgroundMusicManager.Instance.PauseMusic();
+        if (_bgmSource != null && bgmClip != null)
+        {
+            _bgmSource.clip = bgmClip;
+            _bgmSource.volume = 0.5f;
+            _bgmSource.Play();
+        }
     }
 
     private void OnGUI()
@@ -100,7 +132,7 @@ public class CaroGameManager : MonoBehaviour
         GUI.Label(new Rect(0, startY - 30, Screen.width, 30), turnText, turnStyle);
 
         // Vẽ Khung Lưới Bàn Cờ
-        GUIStyle cellStyle = new GUIStyle(GUI.skin.button) { fontSize = 36, fontStyle = FontStyle.Bold };
+        GUIStyle cellStyle = new GUIStyle(GUI.skin.button) { fontSize = 48, fontStyle = FontStyle.Bold };
 
         for (int x = 0; x < 3; x++)
         {
@@ -108,22 +140,38 @@ public class CaroGameManager : MonoBehaviour
             {
                 Rect cellRect = new Rect(startX + x * cellSize, startY + y * cellSize, cellSize, cellSize);
                 string cellText = "";
-                if (_board[x, y] == 1) cellText = "X";
-                else if (_board[x, y] == 2) cellText = "O";
+                
+                // Tô màu X, O
+                GUI.backgroundColor = Color.white;
+                if (_board[x, y] == 1) 
+                {
+                    cellText = "X";
+                    GUI.backgroundColor = new Color(0.4f, 1f, 0.4f); // Xanh lá nhạt
+                }
+                else if (_board[x, y] == 2) 
+                {
+                    cellText = "O";
+                    GUI.backgroundColor = new Color(1f, 0.4f, 0.4f); // Đỏ nhạt
+                }
 
-                // Nút được bấm
+                // Hiệu ứng Hover khi đưa chuột vào (nếu là ô trống và tới lượt)
+                if (_board[x, y] == 0 && _isPlayerTurn && !_isGameOver && cellRect.Contains(Event.current.mousePosition))
+                {
+                    GUI.backgroundColor = new Color(0.8f, 0.8f, 0.8f);
+                }
+
                 if (GUI.Button(cellRect, cellText, cellStyle))
                 {
                     // Lượt của Player và ô chưa đánh
                     if (_isPlayerTurn && !_isGameOver && _board[x, y] == 0)
                     {
+                        PlaySFX(clickSFX);
                         PlayerMove(x, y);
                     }
-                } // End if button click
+                }
+                GUI.backgroundColor = Color.white; // Phục hồi màu cũ
             }
-        } // End for
-
-        // Vẽ Nút Thoát / Chơi lại khi Game kết thúc
+        }
         if (_isGameOver)
         {
             if (GUI.Button(new Rect(Screen.width / 2f - 110, startY + cellSize * 3 + 40, 100, 40), "Chơi Lại"))
@@ -159,6 +207,7 @@ public class CaroGameManager : MonoBehaviour
             int[] bestMove = FindBestMove();
             if (bestMove[0] != -1)
             {
+                PlaySFX(clickSFX);
                 _board[bestMove[0], bestMove[1]] = 2; // 2 = O
             }
             
@@ -179,16 +228,19 @@ public class CaroGameManager : MonoBehaviour
         {
             _isGameOver = true;
             _winnerText = $"XUẤT SẮC! BẠN ĐÃ CHIẾN THẮNG {npcNameUpper}!";
+            PlaySFX(winSFX);
         }
         else if (winStatus == -10)
         {
             _isGameOver = true;
             _winnerText = $"GÀ! {npcNameUpper} ĐÃ CHIẾN THẮNG!";
+            PlaySFX(loseSFX);
         }
         else if (!IsMovesLeft())
         {
             _isGameOver = true;
             _winnerText = "BẤT PHÂN THẮNG BẠI! HOÀ RỒI!";
+            PlaySFX(loseSFX);
         }
     }
 
@@ -337,6 +389,10 @@ public class CaroGameManager : MonoBehaviour
         // Khóa lại chuột nếu cần
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Tắt nhạc Minigame, mở lại nhạc chung
+        if (_bgmSource != null) _bgmSource.Stop();
+        if (BackgroundMusicManager.Instance != null) BackgroundMusicManager.Instance.ResumeMusic();
 
         // Trả lại tương tác cho NPC (Kèm KQ Thắng Thua)
         if (_currentNPC != null)

@@ -17,7 +17,7 @@ public class BackgroundMusicManager : MonoBehaviour
     static void AutoInitialize()
     {
         // Tránh tạo thêm nếu trên Scene đã có sẵn 1 cái người dùng kéo vào
-        if (FindObjectOfType<BackgroundMusicManager>() == null && Instance == null)
+        if (FindFirstObjectByType<BackgroundMusicManager>() == null && Instance == null)
         {
             GameObject bgmObj = new GameObject("BackgroundMusicManager_Auto");
             bgmObj.AddComponent<BackgroundMusicManager>();
@@ -40,7 +40,6 @@ public class BackgroundMusicManager : MonoBehaviour
 
     private AudioSource audioSource;
     private int lastPlayedIndex = -1;
-    private bool isFading = false;
 
     void Awake()
     {
@@ -129,7 +128,6 @@ public class BackgroundMusicManager : MonoBehaviour
 
     IEnumerator FadeVolume(float from, float to, float duration)
     {
-        isFading = true;
         float elapsed = 0f;
         while (elapsed < duration)
         {
@@ -138,7 +136,6 @@ public class BackgroundMusicManager : MonoBehaviour
             yield return null;
         }
         audioSource.volume = to;
-        isFading = false;
     }
 
     int PickRandomTrack()
@@ -159,6 +156,18 @@ public class BackgroundMusicManager : MonoBehaviour
 
     // API công khai
     public void SetVolume(float vol) => maxVolume = Mathf.Clamp01(vol);
+
+    public void PauseMusic()
+    {
+        StopAllCoroutines();
+        StartCoroutine(FadeVolume(audioSource.volume, 0f, 1f));
+    }
+
+    public void ResumeMusic()
+    {
+        StopAllCoroutines();
+        StartCoroutine(MusicLoop(1f));
+    }
 
     public void StopMusic()
     {

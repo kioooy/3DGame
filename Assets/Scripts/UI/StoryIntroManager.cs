@@ -86,7 +86,7 @@ public class StoryIntroManager : MonoBehaviour
         storyText.color = Color.white;
         storyText.fontSize = 40;
         storyText.alignment = TextAlignmentOptions.Center;
-        storyText.enableWordWrapping = true;
+        storyText.textWrappingMode = TextWrappingModes.Normal;
         RectTransform txtRect = storyText.GetComponent<RectTransform>();
         txtRect.anchorMin = new Vector2(0.1f, 0.2f);
         txtRect.anchorMax = new Vector2(0.9f, 0.8f);
@@ -143,7 +143,7 @@ public class StoryIntroManager : MonoBehaviour
         nextTxtRect.sizeDelta = Vector2.zero;
         
         // Cần đảm bảo EventSystem tồn tại để bấm được nút
-        if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
+        if (FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
         {
             GameObject esObj = new GameObject("EventSystem");
             esObj.AddComponent<UnityEngine.EventSystems.EventSystem>();

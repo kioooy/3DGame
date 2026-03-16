@@ -7,6 +7,15 @@ public class ArmWrestlingManager : MonoBehaviour
 {
     public static ArmWrestlingManager Instance { get; private set; }
 
+    [Header("Audio SFX")]
+    public AudioClip correctSFX;
+    public AudioClip wrongSFX;
+    public AudioClip winSFX;
+    public AudioClip loseSFX;
+    public AudioClip bgmClip;
+    private AudioSource _audioSource;
+    private AudioSource _bgmSource;
+
     [Header("Settings")]
     public float maxPower = 100f;
     public float targetKeysCount = 5; // Số phím mũi tên cần bấm trong 1 lượt
@@ -43,6 +52,21 @@ public class ArmWrestlingManager : MonoBehaviour
             return;
         }
         Instance = this;
+        
+        _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false;
+        _audioSource.spatialBlend = 0f;
+        
+        _bgmSource = gameObject.AddComponent<AudioSource>();
+        _bgmSource.playOnAwake = false;
+        _bgmSource.spatialBlend = 0f;
+        _bgmSource.loop = true;
+    }
+
+    private void PlaySFX(AudioClip clip)
+    {
+        if (clip != null && _audioSource != null)
+            _audioSource.PlayOneShot(clip);
     }
 
     private string GetNpcDisplayName()
@@ -71,6 +95,15 @@ public class ArmWrestlingManager : MonoBehaviour
         // Mở khoá chuột để có thể bấm nút Tắt
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        // Tắt nhạc nền chung, bật nhạc Minigame
+        if (BackgroundMusicManager.Instance != null) BackgroundMusicManager.Instance.PauseMusic();
+        if (_bgmSource != null && bgmClip != null)
+        {
+            _bgmSource.clip = bgmClip;
+            _bgmSource.volume = 0.8f; // Tăng âm lượng nhạc nền
+            _bgmSource.Play();
+        }
 
         GenerateNewSequence();
     }
@@ -104,14 +137,14 @@ public class ArmWrestlingManager : MonoBehaviour
             return;
         }
 
-        // Logic check Input người chơi
         KeyCode pressedArrow = GetPressedArrowKey();
-        
+
         if (pressedArrow != KeyCode.None)
         {
             if (pressedArrow == _targetSequence[_currentKeyIndex])
             {
                 // Gõ đúng
+                PlaySFX(correctSFX);
                 _currentKeyIndex++;
                 
                 // Nếu gõ xong nguyên chuỗi
@@ -123,6 +156,7 @@ public class ArmWrestlingManager : MonoBehaviour
             else
             {
                 // Gõ sai
+                PlaySFX(wrongSFX);
                 HandleTurnResult(false);
             }
         }
@@ -134,12 +168,14 @@ public class ArmWrestlingManager : MonoBehaviour
             _currentPower = maxPower;
             _isGameOver = true;
             _winnerText = $"SỨC MẠNH VÔ SONG! BẠN ĐÃ QUẬT NGÃ {npcNameUpper}!";
+            PlaySFX(winSFX);
         }
         else if (_currentPower <= 0)
         {
             _currentPower = 0;
             _isGameOver = true;
             _winnerText = $"YẾU XÌU! BẠN BỊ {npcNameUpper} NGHIỀN NÁT!";
+            PlaySFX(loseSFX);
         }
     }
 
@@ -266,13 +302,15 @@ public class ArmWrestlingManager : MonoBehaviour
             GUI.color = Color.white;
 
             // Hiển thị các ô phím Mũi tên (Kiểu Audition)
-            float keyBoxSize = 50f;
-            float spacing = 15f;
+            float keyBoxSize = 65f; // Làm phím bự hơn
+            float spacing = 20f;
             int totalKeys = _targetSequence.Count;
             float startXKeys = centerX - (totalKeys * keyBoxSize + (totalKeys - 1) * spacing) / 2f;
 
-            GUIStyle keyBoxNormal = new GUIStyle(GUI.skin.box) { fontSize = 35, alignment = TextAnchor.MiddleCenter };
+            GUIStyle keyBoxNormal = new GUIStyle(GUI.skin.box) { fontSize = 45, alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold };
             GUIStyle keyBoxPassed = new GUIStyle(keyBoxNormal) { normal = new GUIStyleState() { background = Texture2D.whiteTexture, textColor = Color.black } };
+            // Style cho phím đang chờ bấm (Pulse effect ngọc cam)
+            GUIStyle keyBoxCurrent = new GUIStyle(keyBoxNormal) { normal = new GUIStyleState() { background = Texture2D.whiteTexture, textColor = Color.white } };
 
             for (int i = 0; i < totalKeys; i++)
             {
@@ -282,20 +320,29 @@ public class ArmWrestlingManager : MonoBehaviour
 
                 if (i < _currentKeyIndex)
                 {
-                    // Phím đã gõ trúng (Sáng lên)
-                    GUI.backgroundColor = Color.green;
+                    // Phím đã gõ trúng (Sáng màu xanh)
+                    GUI.backgroundColor = new Color(0.2f, 1f, 0.2f);
                     GUI.Box(keyRect, symbol, keyBoxPassed);
-                    GUI.backgroundColor = Color.white;
+                }
+                else if (i == _currentKeyIndex)
+                {
+                    // Phím đang cần bấm (Flash màu cam/vàng liên tục)
+                    float pulse = Mathf.PingPong(Time.time * 5f, 1f);
+                    GUI.backgroundColor = Color.Lerp(new Color(1f, 0.5f, 0f), Color.yellow, pulse);
+                    GUI.Box(keyRect, symbol, keyBoxCurrent);
                 }
                 else
                 {
-                    // Phím chờ gõ (Tối)
+                    // Phím chờ gõ tiếp theo (Tối/Trắng mờ)
+                    GUI.backgroundColor = new Color(1f, 1f, 1f, 0.4f);
                     GUI.Box(keyRect, symbol, keyBoxNormal);
                 }
+                GUI.backgroundColor = Color.white; // Reset
             }
 
-            GUIStyle hintStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 20 };
-            GUI.Label(new Rect(0, centerY + 120, Screen.width, 30), "Múa nhanh các phím Mũi tên trên bàn phím trước khi hết giờ!", hintStyle);
+            GUIStyle hintStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 24, fontStyle = FontStyle.Bold };
+            hintStyle.normal.textColor = new Color(1f, 0.8f, 0.2f);
+            GUI.Label(new Rect(0, centerY + 130, Screen.width, 30), "Múa nhanh các phím Mũi tên trên bàn phím trước khi hết giờ!", hintStyle);
 
             // Nút Thoát Ngang
             if (GUI.Button(new Rect(10, 10, 100, 30), "Đầu Hàng Ngay"))
@@ -312,6 +359,10 @@ public class ArmWrestlingManager : MonoBehaviour
         // Khóa lại chuột nếu cần
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Tắt nhạc Minigame, mở lại nhạc chung
+        if (_bgmSource != null) _bgmSource.Stop();
+        if (BackgroundMusicManager.Instance != null) BackgroundMusicManager.Instance.ResumeMusic();
 
         if (_currentNPC != null)
         {
