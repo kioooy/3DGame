@@ -7532,6 +7532,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChatBubble
   textMeshPro: {fileID: 883862940}
   background: {fileID: 372240295}
+  defaultTypewriterClips: {fileID: 0}
+  typeWriterPitchMin: 0.9
+  typeWriterPitchMax: 1.1
 --- !u!223 &490986783
 Canvas:
   m_ObjectHideFlags: 0
@@ -9331,7 +9334,13 @@ MonoBehaviour:
   height: 90
   rotateWithTarget: 0
   toggleKey: 109
+  holdTimeToHide: 0.5
   minimapUI: {fileID: 0}
+  waypointClearDistance: 3
+  panSpeed: 50
+  zoomSpeed: 5
+  minZoom: 20
+  maxZoom: 250
 --- !u!20 &589096946
 Camera:
   m_ObjectHideFlags: 0
@@ -23197,6 +23206,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChatBubble
   textMeshPro: {fileID: 89127386}
   background: {fileID: 730484767}
+  defaultTypewriterClips: {fileID: 0}
+  typeWriterPitchMin: 0.9
+  typeWriterPitchMax: 1.1
 --- !u!223 &1615281311
 Canvas:
   m_ObjectHideFlags: 0
@@ -25415,6 +25427,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChatBubble
   textMeshPro: {fileID: 1461699486}
   background: {fileID: 525909918}
+  defaultTypewriterClips: {fileID: 0}
+  typeWriterPitchMin: 0.9
+  typeWriterPitchMax: 1.1
 --- !u!224 &1769205725
 RectTransform:
   m_ObjectHideFlags: 0
@@ -26853,9 +26868,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
   dialoguePanel: {fileID: 0}
+  interactionPrompt: {fileID: 1952787363}
   dialogueText: {fileID: 0}
   nameText: {fileID: 0}
-  interactionPrompt: {fileID: 1952787363}
+  defaultTypewriterClips: {fileID: 0}
+  typeWriterPitchMin: 0.9
+  typeWriterPitchMax: 1.1
 --- !u!1 &1921334667
 GameObject:
   m_ObjectHideFlags: 0
@@ -27520,6 +27538,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChatBubble
   textMeshPro: {fileID: 1384972100}
   background: {fileID: 774706394}
+  defaultTypewriterClips: {fileID: 0}
+  typeWriterPitchMin: 0.9
+  typeWriterPitchMax: 1.1
 --- !u!223 &1964973556
 Canvas:
   m_ObjectHideFlags: 0
@@ -28712,7 +28733,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.381531
+      value: -6.04
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -28720,11 +28741,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -120.68033
+      value: -125.08
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.734245
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalRotation.x
@@ -28732,7 +28753,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0.6788846
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalRotation.z
@@ -28740,11 +28761,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -75.64
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 85.513
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 4d92dcc27ee924a47a1e50c9d778cf2f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z

@@ -1,17 +1,42 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class ChatBubble : MonoBehaviour
 {
     public TextMeshProUGUI textMeshPro;
     public GameObject background;
     
+    [Header("Audio Settings")]
+    public AudioClip defaultTypewriterClips;
+    [Range(0.1f, 3f)] public float typeWriterPitchMin = 0.9f;
+    [Range(0.1f, 3f)] public float typeWriterPitchMax = 1.1f;
+    private AudioSource audioSource;
+    private AudioClip currentTypewriterClip;
+
     private Transform mainCameraTransform;
+    private Coroutine typingCoroutine;
 
     void Awake()
     {
         mainCameraTransform = Camera.main != null ? Camera.main.transform : null;
         
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+            
+        // Load default SFX if null
+        if (defaultTypewriterClips == null)
+        {
+            defaultTypewriterClips = Resources.Load<AudioClip>("sfx_dialogue_tick"); 
+#if UNITY_EDITOR
+            if (defaultTypewriterClips == null)
+            {
+                defaultTypewriterClips = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/SFX/sfx_dialogue_tick.wav");
+            }
+#endif
+        }
+
         // Hide by default
         gameObject.SetActive(false);
     }
@@ -27,18 +52,49 @@ public class ChatBubble : MonoBehaviour
         }
     }
 
-    public void Setup(string text)
+    public void Setup(string text, AudioClip customBeep = null)
     {
         gameObject.SetActive(true);
-        textMeshPro.text = text;
-        textMeshPro.ForceMeshUpdate();
+        currentTypewriterClip = customBeep != null ? customBeep : defaultTypewriterClips;
 
-        // Optional: Adjust background size based on text if needed
-        // For now, we assume the background is sliced and automatically handled by layout or manually set fixed size
+        // Duck BGM
+        if (BackgroundMusicManager.Instance != null)
+        {
+            BackgroundMusicManager.Instance.DuckAudio(0.05f, 0.5f);
+        }
+
+        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+        typingCoroutine = StartCoroutine(TypeSentence(text));
+    }
+
+    IEnumerator TypeSentence(string sentence)
+    {
+        textMeshPro.text = "";
+        foreach (char letter in sentence.ToCharArray())
+        {
+            textMeshPro.text += letter;
+            
+            // Play typing sound, skip spaces
+            if (letter != ' ' && audioSource != null && currentTypewriterClip != null)
+            {
+                audioSource.pitch = Random.Range(typeWriterPitchMin, typeWriterPitchMax);
+                audioSource.PlayOneShot(currentTypewriterClip, 0.4f);
+            }
+            
+            yield return new WaitForSeconds(0.03f);
+        }
+        textMeshPro.ForceMeshUpdate();
     }
 
     public void Hide()
     {
+        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
         gameObject.SetActive(false);
+        
+        // Restore BGM
+        if (BackgroundMusicManager.Instance != null)
+        {
+            BackgroundMusicManager.Instance.RestoreAudio(1.0f);
+        }
     }
 }

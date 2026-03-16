@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 using UnityEngine.UI;
@@ -12,9 +12,15 @@ public class DialogueManager : MonoBehaviour
 
     [Header("UI References")]
     public GameObject dialoguePanel;
+    public GameObject interactionPrompt;
     public TextMeshProUGUI dialogueText;
     public TextMeshProUGUI nameText;
-    public GameObject interactionPrompt;
+    [Header("Audio Settings")]
+    public AudioClip defaultTypewriterClips;
+    [Range(0.1f, 3f)] public float typeWriterPitchMin = 0.9f;
+    [Range(0.1f, 3f)] public float typeWriterPitchMax = 1.1f;
+    private AudioSource audioSource;
+    private AudioClip currentTypewriterClip;
 
     private Queue<string> sentences;
 
@@ -25,6 +31,23 @@ public class DialogueManager : MonoBehaviour
 
         sentences = new Queue<string>();
         
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+            
+        // Load default SFX if null
+        if (defaultTypewriterClips == null)
+        {
+            defaultTypewriterClips = Resources.Load<AudioClip>("sfx_dialogue_tick"); 
+            // Also check direct path for the python generated one if Resources fails later:
+#if UNITY_EDITOR
+            if (defaultTypewriterClips == null)
+            {
+                defaultTypewriterClips = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/SFX/sfx_dialogue_tick.wav");
+            }
+#endif
+        }
+
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
         if (interactionPrompt != null) interactionPrompt.SetActive(false);
     }
@@ -121,12 +144,20 @@ public class DialogueManager : MonoBehaviour
             interactionPrompt.SetActive(show);
     }
 
-    public void StartDialogue(string npcName, string[] dialogue)
+    public void StartDialogue(string npcName, string[] dialogue, AudioClip customTypewriterClip = null)
     {
         if (interactionPrompt != null) interactionPrompt.SetActive(false);
         if (dialoguePanel != null) dialoguePanel.SetActive(true);
         if (nameText != null) nameText.text = npcName;
         
+        currentTypewriterClip = customTypewriterClip != null ? customTypewriterClip : defaultTypewriterClips;
+
+        // Duck background music
+        if (BackgroundMusicManager.Instance != null)
+        {
+            BackgroundMusicManager.Instance.DuckAudio(0.05f, 0.5f);
+        }
+
         sentences.Clear();
         foreach (string sentence in dialogue)
             sentences.Enqueue(sentence);
@@ -155,6 +186,14 @@ public class DialogueManager : MonoBehaviour
             foreach (char letter in sentence.ToCharArray())
             {
                 dialogueText.text += letter;
+                
+                // Play typing sound, skip spaces for a more dynamic feel
+                if (letter != ' ' && audioSource != null && currentTypewriterClip != null)
+                {
+                    audioSource.pitch = Random.Range(typeWriterPitchMin, typeWriterPitchMax);
+                    audioSource.PlayOneShot(currentTypewriterClip, 0.4f);
+                }
+                
                 yield return new WaitForSeconds(0.03f);
             }
         }
@@ -163,6 +202,12 @@ public class DialogueManager : MonoBehaviour
     public void EndDialogue()
     {
         if (dialoguePanel != null) dialoguePanel.SetActive(false);
+        
+        // Restore background music
+        if (BackgroundMusicManager.Instance != null)
+        {
+            BackgroundMusicManager.Instance.RestoreAudio(1.0f);
+        }
     }
 
     void Update() {

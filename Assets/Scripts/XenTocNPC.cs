@@ -19,6 +19,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         "Tên Dế Mèn bé nhỏ kia, đây sẽ là nơi chôn xác ngươi!",
         "Chuẩn bị chịu chết đi!" 
     };
+    public AudioClip typewriterBeep;
 
     [Header("Settings Khung Cảnh (Skyrim-like)")]
     public float interactionDistance = 4.0f; // Khoảng cách nói chuyện xa hơn vì là Boss
@@ -133,7 +134,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
                     EndInteractionForCombat();
                     
                     if (animator != null) animator.SetTrigger(aggroTrigger);
-                    chatBubble.Setup("TỚI ĐÂYYY!");
+                    chatBubble.Setup("TỚI ĐÂYYY!", typewriterBeep);
                     Invoke("HideBubble", 2f);
                     
                     // TODO: GỌI HÀM BẮT ĐẦU COMBAT Ở ĐÂY
@@ -142,7 +143,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
                 {
                     isWaitingForCombat = false;
                     EndInteraction(); // Cho chạy trốn
-                    chatBubble.Setup("Hahaha! Kẻ hèn nhát!");
+                    chatBubble.Setup("Hahaha! Kẻ hèn nhát!", typewriterBeep);
                     Invoke("HideBubble", 2f);
                 }
             }
@@ -270,7 +271,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         dialogueTimerLengthThreshold = 0f; // Reset khung giờ chờ
         if (chatBubble != null)
         {
-            chatBubble.Setup(dialogue[currentDialogueIndex]);
+            chatBubble.Setup(dialogue[currentDialogueIndex], typewriterBeep);
         }
     }
 
@@ -364,7 +365,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         
         if (chatBubble != null) 
         {
-            chatBubble.Setup(resultText);
+            chatBubble.Setup(resultText, typewriterBeep);
         }
         
         if (isWin)

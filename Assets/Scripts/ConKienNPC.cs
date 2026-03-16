@@ -18,6 +18,7 @@ public class ConKienNPC : MonoBehaviour
         "Xin hãy cẩn thận, dạo này lũ Xén Tóc lộng hành ghê lắm.",
         "Nếu cậu vào hang, hãy theo tôi!" 
     };
+    public AudioClip typewriterBeep;
 
     [Header("Settings Khung Cảnh (Skyrim-like)")]
     public float interactionDistance = 3.0f;
@@ -100,7 +101,7 @@ public class ConKienNPC : MonoBehaviour
                     isFollowing = true;
                     isWaitingForChoice = false;
                     EndInteraction();
-                    chatBubble.Setup("Tiến lên nào!");
+                    chatBubble.Setup("Tiến lên nào!", typewriterBeep);
                     Invoke("HideBubble", 2f);
                 }
                 else if (kb.digit2Key.wasPressedThisFrame)
@@ -108,7 +109,7 @@ public class ConKienNPC : MonoBehaviour
                     isFollowing = false;
                     isWaitingForChoice = false;
                     EndInteraction();
-                    chatBubble.Setup("Hãy gọi nếu cậu cần bảo vệ!");
+                    chatBubble.Setup("Hãy gọi nếu cậu cần bảo vệ!", typewriterBeep);
                     Invoke("HideBubble", 2f);
                 }
                 // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
@@ -176,7 +177,7 @@ public class ConKienNPC : MonoBehaviour
             {
                 isFollowing = false;
                 if (animator != null) animator.SetBool(runBool, false);
-                chatBubble.Setup("Tập hợp hàng ngũ!");
+                chatBubble.Setup("Tập hợp hàng ngũ!", typewriterBeep);
                 Invoke("HideBubble", 2f);
             }
             return;
@@ -274,7 +275,7 @@ public class ConKienNPC : MonoBehaviour
         dialogueTimerLengthThreshold = 0f; // Reset khung giờ chờ
         if (chatBubble != null)
         {
-            chatBubble.Setup(dialogue[currentDialogueIndex]);
+            chatBubble.Setup(dialogue[currentDialogueIndex], typewriterBeep);
         }
     }
 

@@ -40,7 +40,8 @@ public class BackgroundMusicManager : MonoBehaviour
 
     private AudioSource audioSource;
     private int lastPlayedIndex = -1;
-
+    private Coroutine currentFadeCoroutine;
+    private bool isDucked = false;
     void Awake()
     {
         // Singleton
@@ -109,7 +110,11 @@ public class BackgroundMusicManager : MonoBehaviour
             // Fade in
             audioSource.clip = clip;
             audioSource.Play();
-            yield return StartCoroutine(FadeVolume(0f, maxVolume, fadeDuration));
+            
+            float targetVol = isDucked ? 0.05f : maxVolume;
+            if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
+            currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, targetVol, fadeDuration));
+            yield return currentFadeCoroutine;
 
             // Phát đến hết bài
             float playDuration = clip.length - fadeDuration * 2f;
@@ -117,7 +122,10 @@ public class BackgroundMusicManager : MonoBehaviour
                 yield return new WaitForSeconds(playDuration);
 
             // Fade out
-            yield return StartCoroutine(FadeVolume(maxVolume, 0f, fadeDuration));
+            if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
+            currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, 0f, fadeDuration));
+            yield return currentFadeCoroutine;
+            
             audioSource.Stop();
 
             // Nghỉ im lặng kiểu Minecraft
@@ -160,7 +168,8 @@ public class BackgroundMusicManager : MonoBehaviour
     public void PauseMusic()
     {
         StopAllCoroutines();
-        StartCoroutine(FadeVolume(audioSource.volume, 0f, 1f));
+        if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
+        currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, 0f, 1f));
     }
 
     public void ResumeMusic()
@@ -172,6 +181,21 @@ public class BackgroundMusicManager : MonoBehaviour
     public void StopMusic()
     {
         StopAllCoroutines();
-        StartCoroutine(FadeVolume(audioSource.volume, 0f, fadeDuration));
+        if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
+        currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, 0f, fadeDuration));
+    }
+
+    public void DuckAudio(float targetVolume = 0.05f, float duration = 0.5f)
+    {
+        isDucked = true;
+        if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
+        currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, targetVolume, duration));
+    }
+
+    public void RestoreAudio(float duration = 0.5f)
+    {
+        isDucked = false;
+        if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
+        currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, maxVolume, duration));
     }
 }

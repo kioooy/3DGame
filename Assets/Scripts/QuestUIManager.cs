@@ -163,10 +163,10 @@ public class QuestUIManager : MonoBehaviour
         if (questTextMap.ContainsKey(questId) && questTextMap[questId] != null)
         {
             TextMeshProUGUI text = questTextMap[questId];
-            // Đổi ○ thành ✔, thêm màu xanh lá
+            // Đổi ○ thành [v], thêm màu xanh lá
             string questName = text.text;
             if (questName.StartsWith("○"))
-                questName = "✔" + questName.Substring(1);
+                questName = "[v]" + questName.Substring(1);
 
             text.text = questName;
             text.color = new Color(0.3f, 0.9f, 0.3f); // Xanh lá sáng

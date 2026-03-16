@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class NPCInteraction : MonoBehaviour
@@ -6,6 +6,7 @@ public class NPCInteraction : MonoBehaviour
     public string npcName = "Dế Trũi";
     [TextArea(3, 10)]
     public string[] dialogue = new string[] { "Chào bạn! Tôi là Dế Trũi đây.", "Rất vui được gặp bạn trong khu vườn này.", "Bạn cần tôi giúp gì không?" };
+    public AudioClip typewriterBeep;
     
     public float interactionDistance = 4f;
     private Transform player;
@@ -38,7 +39,7 @@ public class NPCInteraction : MonoBehaviour
         if (isPlayerNearby && Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
         {
             if (DialogueManager.Instance != null)
-                DialogueManager.Instance.StartDialogue(npcName, dialogue);
+                DialogueManager.Instance.StartDialogue(npcName, dialogue, typewriterBeep);
         }
     }
 }
