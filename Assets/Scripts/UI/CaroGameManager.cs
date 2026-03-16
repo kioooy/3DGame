@@ -19,6 +19,9 @@ public class CaroGameManager : MonoBehaviour
     private AudioSource _audioSource;
     private AudioSource _bgmSource;
 
+    [Header("Story")]
+    public Sprite[] storyImages;
+
     private int[,] _board = new int[3, 3]; // 0: Trống, 1: Player (X), 2: Dế Trũi (O)
     private bool _isPlayerTurn = true;
     private bool _isGameOver = false;
@@ -403,6 +406,12 @@ public class CaroGameManager : MonoBehaviour
             if (_winnerText.Contains("BẤT PHÂN") || _winnerText.Contains("HOÀ")) isDraw = true;
             
             _currentNPC.EndMinigame(isPlayerWin, isDraw);
+
+            // Bật màn hình Lật truyện nếu có setup truyện và đã thắng
+            if (isPlayerWin && storyImages != null && storyImages.Length > 0 && StoryViewerManager.Instance != null)
+            {
+                StoryViewerManager.Instance.ShowStory(storyImages);
+            }
         }
     }
 }

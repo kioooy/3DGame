@@ -67,6 +67,47 @@ public class QuestUIManager : MonoBehaviour
                 }
             }
         }
+
+        Invoke("UpdateWaypointTarget", 0.5f);
+    }
+
+    /// <summary>
+    /// Cập nhật mục tiêu chỉ đường ngay sau khi load hoặc hoàn thành quest
+    /// </summary>
+    public void UpdateWaypointTarget()
+    {
+        if (QuestWaypointManager.Instance == null) return;
+
+        string targetNPCName = "";
+
+        if (!IsQuestCompleted("talk_detrui") || !IsQuestCompleted("minigame_detrui")) targetNPCName = "DeTrui";
+        else if (!IsQuestCompleted("talk_dechoat") || !IsQuestCompleted("minigame_dechoat")) targetNPCName = "DeChoat";
+        else if (!IsQuestCompleted("talk_conkien")) targetNPCName = "ConKien";
+        else if (!IsQuestCompleted("talk_xentoc") || !IsQuestCompleted("minigame_xentoc")) targetNPCName = "XenToc";
+
+        if (string.IsNullOrEmpty(targetNPCName))
+        {
+            QuestWaypointManager.Instance.ClearTarget();
+            return;
+        }
+
+        // Tìm NPC trong scene
+        object npcScript = null;
+        if (targetNPCName == "DeTrui") npcScript = Object.FindFirstObjectByType<DeTruiNPC>();
+        else if (targetNPCName == "DeChoat") npcScript = Object.FindFirstObjectByType<DeChoatNPC>();
+        else if (targetNPCName == "ConKien") npcScript = Object.FindFirstObjectByType<ConKienNPC>();
+        else if (targetNPCName == "XenToc") npcScript = Object.FindFirstObjectByType<XenTocNPC>();
+
+        if (npcScript != null)
+        {
+            MonoBehaviour mono = npcScript as MonoBehaviour;
+            if (mono != null)
+                QuestWaypointManager.Instance.SetTarget(mono.transform);
+        }
+        else
+        {
+            QuestWaypointManager.Instance.ClearTarget();
+        }
     }
 
     /// <summary>
@@ -101,6 +142,7 @@ public class QuestUIManager : MonoBehaviour
         {
             questStatus[questId] = true;
             UpdateQuestDisplay(questId);
+            UpdateWaypointTarget();
             Debug.Log($"QuestUIManager: Nhiệm vụ '{questId}' đã hoàn thành!");
         }
     }

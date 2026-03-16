@@ -16,6 +16,9 @@ public class ArmWrestlingManager : MonoBehaviour
     private AudioSource _audioSource;
     private AudioSource _bgmSource;
 
+    [Header("Story")]
+    public Sprite[] storyImages;
+
     [Header("Settings")]
     public float maxPower = 100f;
     public float targetKeysCount = 5; // Số phím mũi tên cần bấm trong 1 lượt
@@ -369,6 +372,12 @@ public class ArmWrestlingManager : MonoBehaviour
             // Trả số điểm về xem Player thắng hay thua
             bool isWin = (_currentPower >= maxPower);
             _currentNPC.EndMinigame(isWin, false);
+
+            // Hiện màn hình truyện nếu thắng và có dữ liệu bộ truyện
+            if (isWin && storyImages != null && storyImages.Length > 0 && StoryViewerManager.Instance != null)
+            {
+                StoryViewerManager.Instance.ShowStory(storyImages);
+            }
         }
     }
 }
