@@ -102,4 +102,17 @@ win_samples = l1 + [0]*int(SAMPLE_RATE*0.05) + l2 + [0]*int(SAMPLE_RATE*0.05) + 
 lose = apply_envelope(win_samples, 0.05, 0.0, 1.0, 0.3)
 save_wav("sfx_ui_lose.wav", lose)
 
+# 6. Impact (Racing) - Low thump
+thump = sine_wave(100, 0.2, 0.8)
+thump = apply_envelope(thump, 0.01, 0.1, 0.1, 0.05)
+save_wav("sfx_racing_impact.wav", thump)
+
+# 7. Jump (Racing) - Slide up sine wave
+jump_samples = []
+for i in range(int(SAMPLE_RATE * 0.15)):
+    freq = 300 + (i / (SAMPLE_RATE * 0.15)) * 400 # Pitch slide up from 300 to 700
+    jump_samples.append(math.sin(2 * math.pi * freq * i / SAMPLE_RATE) * 0.5)
+jump_samples = apply_envelope(jump_samples, 0.02, 0.05, 0.2, 0.08)
+save_wav("sfx_racing_jump.wav", jump_samples)
+
 print("SFX generation complete.")

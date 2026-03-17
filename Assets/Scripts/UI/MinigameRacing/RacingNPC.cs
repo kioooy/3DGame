@@ -33,6 +33,14 @@ public class RacingNPC : MonoBehaviour
     private bool _isJumping = false;
     private float _yVelocity = 0f;
 
+    [Header("Audio Settings")]
+    public AudioClip[] footstepSFX;
+    public AudioClip impactSFX;
+    public AudioClip jumpSFX;
+    private AudioSource _audioSource;
+    private float _footstepTimer = 0f;
+    private float _footstepInterval = 0.35f; // NPC bước chân thưa hơn xíu cho đỡ loạn
+
     public void EnableRunning(bool state)
     {
         _canRun = state;
@@ -56,6 +64,11 @@ public class RacingNPC : MonoBehaviour
     {
         if (animator == null)
             animator = GetComponentInChildren<Animator>();
+            
+        _audioSource = GetComponent<AudioSource>();
+        if (_audioSource == null) _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.spatialBlend = 1.0f; // 3D Sound
+        _audioSource.maxDistance = 20f; // Để NPC ở xa không nghe quá rõ
     }
 
     void Start()
@@ -110,18 +123,42 @@ public class RacingNPC : MonoBehaviour
                 {
                     if (_hasJump) animator.SetBool(jumpBool, false);
                     if (_hasIsJumping) animator.SetBool(isJumpingBool, false);
+                    
+                    // FORCE chuyển sang trạng thái chạy ngay lập tức để cắt ngắn animation nhảy
+                    // Sử dụng CrossFadeInFixedTime(0) để ghi đè tức thì. Tên state chính xác là "Run".
+                    animator.CrossFadeInFixedTime("Run", 0f);
+                    animator.Update(0); // Buộc Animator cập nhật ngay lập tức trong frame này
+                    
+                    // Cập nhật luôn các thông số chạy
+                    bool isMoving = _currentSpeed > 0.1f;
+                    float animSpeed = isMoving ? 1f : 0f;
+                    if (_hasSpeed) animator.SetFloat(speedFloat, animSpeed);
+                    if (_hasIsRunning) animator.SetBool("IsRunning", isMoving);
                 }
             }
             transform.position = pos;
         }
 
-        // Cập nhật Animation
+        // Cập nhật Animation & Footsteps
         if (animator != null && !_isJumping)
         {
-            float animSpeed = _currentSpeed > 0.1f ? 1f : 0f;
+            bool isMoving = _currentSpeed > 0.1f;
+            float animSpeed = isMoving ? 1f : 0f;
             if (_hasSpeed) animator.SetFloat(speedFloat, animSpeed);
             if (_hasMoveY) animator.SetFloat(moveYFloat, animSpeed);
-            if (_hasIsRunning) animator.SetBool("IsRunning", _currentSpeed > 0.1f);
+            if (_hasIsRunning) animator.SetBool("IsRunning", isMoving);
+
+            // Audio: NPC Footsteps
+            if (isMoving && footstepSFX != null && footstepSFX.Length > 0)
+            {
+                _footstepTimer -= Time.deltaTime;
+                if (_footstepTimer <= 0)
+                {
+                    // NPC phát tiếng chân nhỏ hơn
+                    _audioSource.PlayOneShot(footstepSFX[Random.Range(0, footstepSFX.Length)], 0.3f);
+                    _footstepTimer = _footstepInterval;
+                }
+            }
         }
 
         // ====== AI NHẢY QUA RÀO ======
@@ -145,6 +182,12 @@ public class RacingNPC : MonoBehaviour
                     if (_hasJump) animator.SetBool(jumpBool, true);
                     if (_hasIsJumping) animator.SetBool(isJumpingBool, true);
                 }
+
+                // Phát tiếng nhảy cho NPC
+                if (jumpSFX != null && _audioSource != null)
+                {
+                    _audioSource.PlayOneShot(jumpSFX, 0.4f); // NPC nhỏ hơn
+                }
             }
         }
 
@@ -155,12 +198,22 @@ public class RacingNPC : MonoBehaviour
     {
         if (other.name.Contains("Obstacle"))
         {
-            // Kiểm tra cao độ: Nếu đang nhảy cao hơn rào chắn thì bỏ qua
-            if (transform.position.y > other.transform.position.y + 0.5f) return;
+            // Debug để kiểm tra tên object và vị trí NPC
+            Debug.Log($"[RacingNPC] Va chạm với: {other.name} tại Y={transform.position.y}, Obstacle Y={other.transform.position.y}");
+
+            // Nếu đang nhảy cao hẳn qua rào thì mới bỏ qua
+            if (_isJumping && transform.position.y > other.transform.position.y + 0.6f) return;
 
             // Vấp chướng ngại vật => té
             _currentSpeed = 0f;
             
+            // Âm thanh va chạm
+            if (impactSFX != null && _audioSource != null)
+            {
+                _audioSource.PlayOneShot(impactSFX, 0.5f); // NPC phát nhỏ hơn
+                Debug.Log("[RacingNPC] Phát âm thanh va chạm!");
+            }
+
             // Xóa rào chắn đi để khỏi đụng lại (Vỡ rào)
             other.gameObject.SetActive(false);
         }

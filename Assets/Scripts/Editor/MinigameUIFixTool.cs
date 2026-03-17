@@ -77,6 +77,22 @@ public class MinigameUIFixTool
             fixCount++;
         }
 
+        // --- 4. Xử lý RacingMinigameManager ---
+        RacingMinigameManager racing = Object.FindAnyObjectByType<RacingMinigameManager>(FindObjectsInactive.Include);
+        if (racing != null)
+        {
+            SerializedObject so = new SerializedObject(racing);
+            so.FindProperty("winSFX").objectReferenceValue = winSFX;
+            so.FindProperty("loseSFX").objectReferenceValue = loseSFX;
+            // Dùng sfx_bgm_armwrestling làm nhạc đua xe vì nó sôi động nhất
+            so.FindProperty("bgmClip").objectReferenceValue = armBGM;
+            so.ApplyModifiedProperties();
+
+            EditorUtility.SetDirty(racing);
+            Debug.Log("MinigameUIFixTool: ✅ Đã gán âm thanh sôi động cho RacingMinigameManager.");
+            fixCount++;
+        }
+
         // 4. Save
         if (fixCount > 0)
         {
