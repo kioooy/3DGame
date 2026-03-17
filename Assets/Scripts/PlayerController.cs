@@ -145,18 +145,20 @@ public class PlayerController : MonoBehaviour
                     InventoryUI.Instance.ToggleInventory();
             }
 
-            // Toggle quest panel với J
-            if (kb.jKey.wasPressedThisFrame)
+            // Toggle quest panel với Q
+            if (kb.qKey.wasPressedThisFrame)
             {
-                Debug.Log("PlayerController: Phím J được nhấn!");
-                if (QuestUIManager.Instance != null)
+                Debug.Log("PlayerController: Phím Q được nhấn!");
+                if (Demen.Quests.DemenQuestUIManager.Instance != null)
                 {
-                    Debug.Log("PlayerController: Gọi QuestUIManager.Instance.ToggleQuestPanel()");
-                    QuestUIManager.Instance.ToggleQuestPanel();
+                    Demen.Quests.DemenQuestUIManager.Instance.ToggleQuestPanel();
                 }
                 else
                 {
-                    Debug.LogWarning("PlayerController: Lỗi! QuestUIManager.Instance bị null!");
+                    Debug.LogWarning("PlayerController: DemenQuestUIManager.Instance is NULL. Try Setup Tool.");
+                    // Fallback to bridge if target found
+                    var bridge = FindFirstObjectByType<QuestUIManager>();
+                    if (bridge != null) bridge.ToggleQuestPanel();
                 }
             }
 

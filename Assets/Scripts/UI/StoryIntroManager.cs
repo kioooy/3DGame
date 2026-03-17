@@ -40,8 +40,11 @@ public class StoryIntroManager : MonoBehaviour
         if (storyLines == null || storyLines.Length == 0)
         {
             storyLines = new string[] { 
-                "Ngày xửa ngày xưa, trong một khu rừng nọ...", 
-                "Một cuộc phiêu lưu vĩ đại sắp bắt đầu." 
+                "Ở một bờ đầm nhỏ, nơi cây cỏ xanh rì và dòng nước hiền hòa...", 
+                "Có một chú Dế Mèn trẻ tuổi, mang trong mình sức mạnh và vẻ ngoài oai vệ.",
+                "Nhưng sự kiêu ngạo đã khiến Mèn lầm lỗi, vô tình phá hỏng tổ ấm của người bạn Dế Choắt hiền lành.",
+                "Hối hận vì sai lầm của mình, Mèn quyết định lên đường tìm lại Choắt để nói lời xin lỗi...",
+                "...và bắt đầu một hành trình phiêu lưu kỳ thú cùng những người bạn mới."
             };
         }
 
@@ -84,7 +87,8 @@ public class StoryIntroManager : MonoBehaviour
         textObj.transform.SetParent(canvasObj.transform, false);
         storyText = textObj.AddComponent<TextMeshProUGUI>();
         storyText.color = Color.white;
-        storyText.fontSize = 40;
+        storyText.fontSize = 32;
+        storyText.lineSpacing = 15;
         storyText.alignment = TextAlignmentOptions.Center;
         storyText.textWrappingMode = TextWrappingModes.Normal;
         RectTransform txtRect = storyText.GetComponent<RectTransform>();
@@ -121,21 +125,22 @@ public class StoryIntroManager : MonoBehaviour
         GameObject nextObj = new GameObject("NextButton");
         nextObj.transform.SetParent(canvasObj.transform, false);
         Image nextImg = nextObj.AddComponent<Image>();
-        nextImg.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        nextImg.color = new Color(0.22f, 0.75f, 0.97f, 1f); // Màu xanh accent #38BDF8
         nextButton = nextObj.AddComponent<Button>();
         RectTransform nextRect = nextObj.GetComponent<RectTransform>();
-        nextRect.anchorMin = new Vector2(1, 0);
-        nextRect.anchorMax = new Vector2(1, 0);
-        nextRect.pivot = new Vector2(1, 0);
-        nextRect.anchoredPosition = new Vector2(-20, 20);
-        nextRect.sizeDelta = new Vector2(180, 50);
+        nextRect.anchorMin = new Vector2(0.5f, 0);
+        nextRect.anchorMax = new Vector2(0.5f, 0);
+        nextRect.pivot = new Vector2(0.5f, 0);
+        nextRect.anchoredPosition = new Vector2(0, 50);
+        nextRect.sizeDelta = new Vector2(240, 60);
 
         GameObject nextTextObj = new GameObject("Text");
         nextTextObj.transform.SetParent(nextObj.transform, false);
         TextMeshProUGUI nextTxt = nextTextObj.AddComponent<TextMeshProUGUI>();
         nextTxt.text = "Tiếp Theo >>";
-        nextTxt.color = Color.white;
+        nextTxt.color = new Color(0.05f, 0.05f, 0.1f); // Chữ tối trên nền sáng
         nextTxt.fontSize = 24;
+        nextTxt.fontStyle = FontStyles.Bold;
         nextTxt.alignment = TextAlignmentOptions.Center;
         RectTransform nextTxtRect = nextTxt.GetComponent<RectTransform>();
         nextTxtRect.anchorMin = Vector2.zero;
@@ -233,7 +238,13 @@ public class StoryIntroManager : MonoBehaviour
     void Update()
     {
         // Cho phép bấm Space hoặc Click chuột để Next
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        var kb = UnityEngine.InputSystem.Keyboard.current;
+        var mouse = UnityEngine.InputSystem.Mouse.current;
+
+        bool skipPressed = (kb != null && kb.spaceKey.wasPressedThisFrame) || 
+                           (mouse != null && mouse.leftButton.wasPressedThisFrame);
+
+        if (skipPressed)
         {
             // Tránh việc nhấn trúng UI button bị gọi 2 lần
             if (UnityEngine.EventSystems.EventSystem.current != null && 

@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class GameLogoManager : MonoBehaviour
 {
     // Tự động kích hoạt khi chạy game
+    /*
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void AutoInitialize()
     {
@@ -15,6 +16,7 @@ public class GameLogoManager : MonoBehaviour
         DontDestroyOnLoad(logoObj); // Giữ Logo không bị mất khi đổi Scene
         logoObj.AddComponent<GameLogoManager>();
     }
+    */
 
     void Start()
     {
