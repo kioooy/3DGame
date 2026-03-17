@@ -15,6 +15,10 @@ namespace Demen.Quests
         public bool isCompleted = false;
         public bool isUnlocked = false;
 
+        [Header("Target")]
+        [Tooltip("The NPC or location this quest points to. Assign in Inspector.")]
+        public Transform targetLocation;
+
         [Header("Reward")]
         public string rewardDescription;
 

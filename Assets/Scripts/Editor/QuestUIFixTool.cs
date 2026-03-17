@@ -13,13 +13,14 @@ public class QuestUIFixTool : EditorWindow
     [MenuItem("Window/Quest System/Fix Quest UI (J Key)")]
     public static void FixQuestUI()
     {
-        // --- Bước 1: Tìm hoặc tạo QuestUIManager ---
-        QuestUIManager questManager = Object.FindFirstObjectByType<QuestUIManager>();
+        // --- Bước 1: Tìm hoặc tạo DemenQuestUIManager ---
+        Demen.Quests.DemenQuestUIManager questManager = Object.FindFirstObjectByType<Demen.Quests.DemenQuestUIManager>();
         if (questManager == null)
         {
-            GameObject managerObj = new GameObject("QuestManager");
-            questManager = managerObj.AddComponent<QuestUIManager>();
-            Debug.Log("QuestUIFixTool: Tạo mới QuestManager.");
+            GameObject managerObj = GameObject.Find("DemenQuestCanvas");
+            if (managerObj == null) managerObj = new GameObject("DemenQuestCanvas");
+            questManager = managerObj.AddComponent<Demen.Quests.DemenQuestUIManager>();
+            Debug.Log("QuestUIFixTool: Tạo mới DemenQuestUIManager.");
         }
 
         // --- Bước 2: Tìm Canvas chính ---
@@ -70,7 +71,7 @@ public class QuestUIFixTool : EditorWindow
 
         // --- Bước 5: Tạo nội dung bên trong ---
         // Tiêu đề
-        CreateText(questPanel.transform, "Title", "📜 NHIỆM VỤ", 28, FontStyles.Bold,
+        CreateText(questPanel.transform, "Title", "NHIỆM VỤ", 28, FontStyles.Bold,
             new Color(1f, 0.85f, 0.2f), TextAlignmentOptions.Center, new Vector2(0, -12), new Vector2(0, 40));
 
         // Đường kẻ
@@ -91,11 +92,14 @@ public class QuestUIFixTool : EditorWindow
             new Color(0.55f, 0.55f, 0.55f), TextAlignmentOptions.Center,
             new Vector2(0, 12), new Vector2(0, 28), anchorBottom: true);
 
-        // --- Bước 6: Gán reference về QuestUIManager ---
+        // --- Bước 6: Gán reference về DemenQuestUIManager ---
         SerializedObject so = new SerializedObject(questManager);
         SerializedProperty panelProp = so.FindProperty("questPanel");
-        panelProp.objectReferenceValue = questPanel;
-        so.ApplyModifiedProperties();
+        if (panelProp != null)
+        {
+            panelProp.objectReferenceValue = questPanel;
+            so.ApplyModifiedProperties();
+        }
 
         questPanel.SetActive(false);
 

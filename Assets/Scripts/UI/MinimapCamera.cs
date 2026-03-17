@@ -104,7 +104,7 @@ public class MinimapCamera : MonoBehaviour
         HandlePlayerIconFix();
     }
 
-    // Một hàm nhỏ tự động fix kích thước của avatar (người chơi) lỡ bị phóng quá to 
+    // Tự động fix kích thước và MÀU SẮC của player icon trên minimap
     void HandlePlayerIconFix()
     {
         if (minimapUI != null)
@@ -112,11 +112,27 @@ public class MinimapCamera : MonoBehaviour
             Transform pIcon = minimapUI.transform.Find("BorderMask/PlayerIcon");
             if (pIcon != null)
             {
-                RectTransform pRect = pIcon.GetComponent<RectTransform>();
-                if (pRect.sizeDelta.x > 50f || pRect.sizeDelta.y > 50f)
+                // Ẩn khi mở bản đồ lớn
+                if (currentState == MapState.Fullscreen)
                 {
-                    // Cho kích thước tối đa là 30x30 để tránh che map
-                    pRect.sizeDelta = new Vector2(30f, 30f); 
+                    pIcon.gameObject.SetActive(false);
+                }
+                else
+                {
+                    pIcon.gameObject.SetActive(true);
+                    
+                    RectTransform pRect = pIcon.GetComponent<RectTransform>();
+                    if (pRect.sizeDelta.x > 50f || pRect.sizeDelta.y > 50f)
+                    {
+                        pRect.sizeDelta = new Vector2(30f, 30f); 
+                    }
+                    
+                    // Ép màu luôn là XANH LÁ để tránh bị đổi sang xanh dương
+                    Image pImg = pIcon.GetComponent<Image>();
+                    if (pImg != null && pImg.color != Color.green)
+                    {
+                        pImg.color = Color.green;
+                    }
                 }
             }
         }
@@ -305,12 +321,13 @@ public class MinimapCamera : MonoBehaviour
             worldPos = transform.position + ray.direction * height;
         }
 
-        // Tạo Pillar
-        if (currentWaypoint == null)
+        // Xoá cột cũ và tạo cột mới (đảm bảo màu luôn đúng)
+        if (currentWaypoint != null)
         {
-            currentWaypoint = CreateWaypointPillar();
+            Destroy(currentWaypoint);
+            currentWaypoint = null;
         }
-        
+        currentWaypoint = CreateWaypointPillar();
         currentWaypoint.SetActive(true);
         currentWaypoint.transform.position = worldPos;
     }
@@ -321,11 +338,16 @@ public class MinimapCamera : MonoBehaviour
         pillar.name = "ActiveWaypoint";
         Destroy(pillar.GetComponent<Collider>());
         
-        pillar.transform.localScale = new Vector3(1.5f, 20f, 1.5f); // Cột cao
+        // Cột cao gấp 4 lần so với trước (20 -> 80), mảnh hơn một chút
+        pillar.transform.localScale = new Vector3(1.2f, 80f, 1.2f);
         
         Material mat = new Material(Shader.Find("Standard"));
-        mat.color = new Color(1f, 1f, 0.7f, 0.6f); // Vàng nhạt trắng nhiều
-        mat.SetFloat("_Mode", 3); // Transparent
+        // Màu vàng nhạt ấm (hơi ngả trắng), trong suốt nhẹ
+        Color lightYellow = new Color(1f, 0.95f, 0.6f, 0.45f);
+        mat.color = lightYellow;
+        
+        // Bật Transparent mode
+        mat.SetFloat("_Mode", 3);
         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
         mat.SetInt("_ZWrite", 0);
@@ -333,6 +355,11 @@ public class MinimapCamera : MonoBehaviour
         mat.EnableKeyword("_ALPHABLEND_ON");
         mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         mat.renderQueue = 3000;
+        
+        // Bật Emission để cột phát sáng vàng, dễ thấy từ xa
+        mat.EnableKeyword("_EMISSION");
+        mat.SetColor("_EmissionColor", new Color(1f, 0.92f, 0.5f, 1f) * 1.5f);
+        
         pillar.GetComponent<MeshRenderer>().sharedMaterial = mat;
 
         return pillar;

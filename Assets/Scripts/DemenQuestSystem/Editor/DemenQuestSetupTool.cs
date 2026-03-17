@@ -60,33 +60,67 @@ namespace Demen.Quests.Editor
             panelRT.anchorMin = new Vector2(1, 1);
             panelRT.anchorMax = new Vector2(1, 1);
             panelRT.pivot = new Vector2(1, 1);
-            panelRT.anchoredPosition = new Vector2(-20, -150); // Đưa xuống thấp hơn một chút để tránh vướng map
-            panelRT.sizeDelta = new Vector2(320, 380); // Tăng nhẹ kích thước để chứa chữ tốt hơn
+            panelRT.anchoredPosition = new Vector2(-20, -150);
+            panelRT.sizeDelta = new Vector2(340, 400);
 
-            // 4. Tạo Text
-            GameObject textObj = new GameObject("QuestText");
-            textObj.transform.SetParent(panel.transform, false);
-            TextMeshProUGUI questText = textObj.AddComponent<TextMeshProUGUI>();
-            questText.fontSize = 18;
-            questText.alignment = TextAlignmentOptions.TopLeft; // Căn trên bên trái
-            questText.margin = new Vector4(25, 25, 25, 25); // Tăng lề để chữ không sát viền
-            questText.textWrappingMode = TextWrappingModes.Normal;
-            
-            RectTransform textRT = questText.GetComponent<RectTransform>();
-            textRT.anchorMin = Vector2.zero;
-            textRT.anchorMax = Vector2.one;
-            textRT.sizeDelta = Vector2.zero;
+            // 4. Tạo ScrollView bên trong Panel
+            GameObject scrollView = new GameObject("Scroll View", typeof(RectTransform));
+            scrollView.transform.SetParent(panel.transform, false);
+            var svRT = scrollView.GetComponent<RectTransform>();
+            svRT.anchorMin = Vector2.zero;
+            svRT.anchorMax = Vector2.one;
+            svRT.offsetMin = new Vector2(8, 8);
+            svRT.offsetMax = new Vector2(-8, -8);
+            var scrollRect = scrollView.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+
+            // Viewport
+            GameObject viewport = new GameObject("Viewport", typeof(RectTransform));
+            viewport.transform.SetParent(scrollView.transform, false);
+            var vpRT = viewport.GetComponent<RectTransform>();
+            vpRT.anchorMin = Vector2.zero;
+            vpRT.anchorMax = Vector2.one;
+            vpRT.sizeDelta = Vector2.zero;
+            vpRT.offsetMin = Vector2.zero;
+            vpRT.offsetMax = Vector2.zero;
+            var vpMask = viewport.AddComponent<Mask>();
+            vpMask.showMaskGraphic = false;
+            var vpImg = viewport.AddComponent<Image>();
+            vpImg.color = Color.white;
+            scrollRect.viewport = vpRT;
+
+            // Content
+            GameObject content = new GameObject("Content", typeof(RectTransform));
+            content.transform.SetParent(viewport.transform, false);
+            var cRT = content.GetComponent<RectTransform>();
+            cRT.anchorMin = new Vector2(0, 1);
+            cRT.anchorMax = new Vector2(1, 1);
+            cRT.pivot = new Vector2(0.5f, 1);
+            cRT.sizeDelta = new Vector2(0, 0);
+
+            var cLayout = content.AddComponent<VerticalLayoutGroup>();
+            cLayout.spacing = 6f;
+            cLayout.padding = new RectOffset(5, 5, 5, 5);
+            cLayout.childForceExpandWidth = true;
+            cLayout.childForceExpandHeight = false;
+            cLayout.childControlWidth = true;
+            cLayout.childControlHeight = true;
+
+            var cFitter = content.AddComponent<ContentSizeFitter>();
+            cFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.content = cRT;
 
             // 5. Thêm UI Manager
             DemenQuestUIManager uiManager = canvasObj.AddComponent<DemenQuestUIManager>();
             uiManager.questPanel = panel;
-            uiManager.questListText = questText;
+            uiManager.questListContainer = content.transform;
 
             // 6. Tạo Sample Quests
             CreateSampleQuests(managerObj.GetComponent<DemenQuestManager>());
 
             Debug.Log("[DemenQuestSetupTool] Setup thành công!");
-            EditorUtility.DisplayDialog("Thành công", "Hệ thống Quest (Demen) đã được thêm.\nNhấn 'Q' để xem.", "OK");
+            EditorUtility.DisplayDialog("Thành công", "Hệ thống Quest (Demen) đã được thêm.\nNhấn 'J' để xem bảng nhiệm vụ.\nClick vào nhiệm vụ để hiện cột sáng chỉ đường!", "OK");
         }
 
         private static void CreateSampleQuests(DemenQuestManager manager)

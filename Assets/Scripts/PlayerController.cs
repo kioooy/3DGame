@@ -145,10 +145,10 @@ public class PlayerController : MonoBehaviour
                     InventoryUI.Instance.ToggleInventory();
             }
 
-            // Toggle quest panel với Q
-            if (kb.qKey.wasPressedThisFrame)
+            // Toggle quest panel với J
+            if (kb.jKey.wasPressedThisFrame)
             {
-                Debug.Log("PlayerController: Phím Q được nhấn!");
+                Debug.Log("PlayerController: Phím J được nhấn!");
                 if (Demen.Quests.DemenQuestUIManager.Instance != null)
                 {
                     Demen.Quests.DemenQuestUIManager.Instance.ToggleQuestPanel();
