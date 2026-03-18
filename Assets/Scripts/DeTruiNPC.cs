@@ -208,6 +208,33 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                         armWrestle.StartGame(this);
                     }
                 }
+                // Option 4: Cưỡi Xén Tóc (Hiện luôn nhưng khóa nếu chưa thắng)
+                else if (kb.digit4Key.wasPressedThisFrame)
+                {
+                    string nameLower = _npcName.ToLower();
+                    string objNameLower = gameObject.name.ToLower();
+                    bool isXenToc = nameLower.Contains("xén") || nameLower.Contains("xen") || objNameLower.Contains("xen");
+                    
+                    if (enableArmWrestling && isXenToc)
+                    {
+                        if (PlayerPrefs.GetInt("XenToc_PlayerWon", 0) == 1)
+                        {
+                            isWaitingForChoice = false;
+                            EndInteraction();
+                            MountXenTocController mounter = GetComponent<MountXenTocController>();
+                            if (mounter == null) mounter = gameObject.AddComponent<MountXenTocController>();
+                            if (mounter != null) mounter.Mount(player);
+                        }
+                        else
+                        {
+                            if (chatBubble != null) 
+                            {
+                                chatBubble.Setup("Ngươi chê sống lâu quá à? Thắng ta trước rồi tính tiếp!");
+                                Invoke("HideBubble", 2.5f);
+                            }
+                        }
+                    }
+                }
                 // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
                 else if (kb.tabKey.wasPressedThisFrame)
                 {
@@ -543,8 +570,22 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                 }
                 else if (enableArmWrestling) 
                 {
-                    if (nameLower.Contains("xén tóc") || nameLower.Contains("xentoc")) choices += "\n[3] Tỷ thí Đọ Ngàm (Vật Tay)";
-                    else choices += "\n[3] Vật Tay Sinh Tử";
+                    string objNameLower = gameObject.name.ToLower();
+                    bool isXenToc = nameLower.Contains("xén") || nameLower.Contains("xen") || objNameLower.Contains("xen");
+                    
+                    if (isXenToc) 
+                    {
+                        choices += "\n[3] Tỷ thí Đọ Ngàm (Vật Tay)";
+                        if (PlayerPrefs.GetInt("XenToc_PlayerWon", 0) == 1)
+                        {
+                            choices += "\n[4] 🪲 Cưỡi Xén Tóc";
+                        }
+                        else
+                        {
+                            choices += "\n[4] <color=gray>🪲 Cưỡi Xén Tóc (Khóa - Hãy Đánh Bại Xén Tóc)</color>";
+                        }
+                    }
+                    else choices += "\n[3] Vật Tay";
                 }
                 
                 promptTextComp.text = choices;
@@ -614,16 +655,27 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         string resultText = "";
         
         string nameLower = _npcName.ToLower();
-        if (nameLower.Contains("dế trũi") || nameLower.Contains("detrui"))
+        string objNameLower = gameObject.name.ToLower();
+        
+        bool isXenToc = nameLower.Contains("xén") || nameLower.Contains("xen") || objNameLower.Contains("xen");
+        bool isDeChoat = nameLower.Contains("choắt") || nameLower.Contains("choat") || objNameLower.Contains("choat");
+        bool isDeTrui = nameLower.Contains("trũi") || nameLower.Contains("trui") || objNameLower.Contains("trui");
+
+        if (isXenToc)
         {
-            if (isDraw) resultText = "Chà, không ngờ cậu cầm hòa được tôi cơ đấy!";
-            else if (isWin) resultText = "Quá xuất sắc! Cậu lại thắng tôi rồi, bái phục bái phục!";
-            else resultText = "Hahaha! Lần sau cố gắng hơn nhé, tôi thắng rồi!";
+            if (isDraw) resultText = "Cứng đầu đấy! Hoà thì hoà, lần sau ta không nhường đâu!";
+            else if (isWin) 
+            {
+                resultText = "Sức mạnh của ta... bị đánh bại sao?! Ngươi làm ta bất ngờ đấy.";
+                PlayerPrefs.SetInt("XenToc_PlayerWon", 1);
+                PlayerPrefs.Save();
+            }
+            else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
             
-            if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_detrui"))
-                QuestUIManager.Instance.CompleteQuest("minigame_detrui");
+            if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_xentoc"))
+                QuestUIManager.Instance.CompleteQuest("minigame_xentoc");
         }
-        else if (nameLower.Contains("dế choắt") || nameLower.Contains("dechoat"))
+        else if (isDeChoat)
         {
             if (isDraw) resultText = "Hức... một ván hòa... coi như cậu nể mặt kẻ ốm yếu này...";
             else if (isWin) resultText = "Khụ khụ... tuổi trẻ tài cao... cậu thắng rồi...";
@@ -632,20 +684,18 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
             if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_dechoat"))
                 QuestUIManager.Instance.CompleteQuest("minigame_dechoat");
         }
-        else if (nameLower.Contains("xén tóc") || nameLower.Contains("xentoc"))
+        else if (isDeTrui || true) // Mặc định là Dế Trũi nếu không nhận diện được
         {
-            if (isDraw) resultText = "Cứng đầu đấy! Hoà thì hoà, lần sau ta không nhường đâu!";
-            else if (isWin) resultText = "KHÔNG THỂ NÀO! Sức mạnh của ta bị đánh bại sao?!";
-            else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
+            if (isDraw) resultText = "Chà, không ngờ cậu cầm hòa được tôi cơ đấy!";
+            else if (isWin) 
+            {
+                // Câu thoại tự nhiên dành cho Dế Trũi khi thắng
+                resultText = "Cậu rành môn này quá! Tôi thua tâm phục khẩu phục!";
+            }
+            else resultText = "Hahaha! Lần sau cố gắng hơn nhé, tôi thắng rồi!";
             
-            if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_xentoc"))
-                QuestUIManager.Instance.CompleteQuest("minigame_xentoc");
-        }
-        else 
-        {
-            if (isDraw) resultText = "Một kết quả Hòa đầy kịch tính!";
-            else if (isWin) resultText = "Xin chúc mừng vị anh hùng chiến thắng!";
-            else resultText = "Rất tiếc, may mắn chưa mỉm cười với bạn.";
+            if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("minigame_detrui"))
+                QuestUIManager.Instance.CompleteQuest("minigame_detrui");
         }
         
         // Cập nhật lại khung chat

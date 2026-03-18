@@ -27,7 +27,7 @@ public class ThirdPersonCamera : MonoBehaviour
     [SerializeField] float fpHeightOffset = 1.6f;     // Chiều cao mắt nhân vật
     [SerializeField] float fpForwardOffset = 0.2f;    // Tiến lên một chút khỏi tâm nhân vật để tránh cạ mặt vào model
 
-    float _horizontalAngle;   // Góc xoay ngang (quanh nhân vật/mắt)
+    public float horizontalAngle;   // Góc xoay ngang (quanh nhân vật/mắt)
     float _verticalAngle;     // Góc xoay dọc (lên/xuống)
     float _currentDistance;   // Khoảng cách hiện tại (dùng cho zoom)
 
@@ -41,7 +41,7 @@ public class ThirdPersonCamera : MonoBehaviour
 
         if (target != null)
         {
-            _horizontalAngle = target.eulerAngles.y;
+            horizontalAngle = target.eulerAngles.y;
             _verticalAngle = 12f;  // Góc nhìn mặc định
         }
         _currentDistance = distance;
@@ -84,7 +84,7 @@ public class ThirdPersonCamera : MonoBehaviour
             }
 
             Vector2 delta = mouse.delta.ReadValue();
-            _horizontalAngle += delta.x * currentSensitivity;
+            horizontalAngle += delta.x * currentSensitivity;
             _verticalAngle -= delta.y * currentSensitivity;
             _verticalAngle = Mathf.Clamp(_verticalAngle, minVerticalAngle, maxVerticalAngle);
 
@@ -101,7 +101,7 @@ public class ThirdPersonCamera : MonoBehaviour
         }
 
         // Tính toán vòng xoay chung cho camera
-        Quaternion rotation = Quaternion.Euler(_verticalAngle, _horizontalAngle, 0f);
+        Quaternion rotation = Quaternion.Euler(_verticalAngle, horizontalAngle, 0f);
 
         if (isFirstPerson)
         {

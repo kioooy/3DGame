@@ -11658,6 +11658,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fb45e71e7cdb1b745a432e4f34ec9ffe, type: 3}
       insertIndex: -1
       addedObject: {fileID: 658993121}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fb45e71e7cdb1b745a432e4f34ec9ffe, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 658993122}
   m_SourcePrefab: {fileID: 100100000, guid: fb45e71e7cdb1b745a432e4f34ec9ffe, type: 3}
 --- !u!4 &658993116 stripped
 Transform:
@@ -11799,6 +11802,31 @@ MonoBehaviour:
   markerColor: {r: 0.8, g: 0.2, b: 0.8, a: 1}
   markerSize: 2
   heightOffset: 25
+--- !u!114 &658993122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 571739660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 450ecc5315b5f444e949fa369374f7e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MountXenTocController
+  riderOffset: {x: 0, y: 1.8, z: 0.2}
+  flySpeed: 18
+  verticalSpeed: 10
+  rotationSpeed: 120
+  smoothing: 0.12
+  turnSpeed: 150
+  staminaSlider: {fileID: 1142247989}
+  maxStamina: 100
+  staminaDrainRate: 18
+  staminaRecoverRate: 10
+  flyParticle: {fileID: 0}
+  xenTocFlyingClip: {fileID: -203655887218126122, guid: 0e0cf8dd9b17bd84dbe9cf856f36b1f5, type: 3}
+  playerSittingClip: {fileID: -203655887218126122, guid: 18555a568a256fa4181086ad89ba543c, type: 3}
 --- !u!1 &662379790
 GameObject:
   m_ObjectHideFlags: 0
@@ -19195,7 +19223,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_NormalColor: {r: 0.93962264, g: 0.9130186, b: 0.2606123, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
