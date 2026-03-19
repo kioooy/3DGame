@@ -144,7 +144,6 @@ public class MinimapCamera : MonoBehaviour
         bool keyUp = false;
         bool keyHold = false;
 
-#if ENABLE_INPUT_SYSTEM
         var kb = UnityEngine.InputSystem.Keyboard.current;
         if (kb != null)
         {
@@ -152,11 +151,6 @@ public class MinimapCamera : MonoBehaviour
             keyUp = kb.mKey.wasReleasedThisFrame;
             keyHold = kb.mKey.isPressed;
         }
-#else
-        keyDown = Input.GetKeyDown(toggleKey);
-        keyUp = Input.GetKeyUp(toggleKey);
-        keyHold = Input.GetKey(toggleKey);
-#endif
 
         if (keyDown)
         {
@@ -178,12 +172,8 @@ public class MinimapCamera : MonoBehaviour
         }
 
         bool escDown = false;
-#if ENABLE_INPUT_SYSTEM
         var kbCurrent = UnityEngine.InputSystem.Keyboard.current;
         if (kbCurrent != null) escDown = kbCurrent.escapeKey.wasPressedThisFrame;
-#else
-        escDown = Input.GetKeyDown(KeyCode.Escape);
-#endif
 
         if (escDown && currentState == MapState.Fullscreen)
         {
@@ -266,20 +256,12 @@ public class MinimapCamera : MonoBehaviour
         bool mouseClicked = false;
         Vector2 mousePos = Vector2.zero;
 
-#if ENABLE_INPUT_SYSTEM
         var mouse = UnityEngine.InputSystem.Mouse.current;
         if (mouse != null && mouse.leftButton.wasPressedThisFrame)
         {
             mouseClicked = true;
             mousePos = mouse.position.ReadValue();
         }
-#else
-        if (Input.GetMouseButtonDown(0))
-        {
-            mouseClicked = true;
-            mousePos = Input.mousePosition;
-        }
-#endif
 
         if (mouseClicked)
         {
@@ -390,7 +372,6 @@ public class MinimapCamera : MonoBehaviour
         bool rightMouseUp = false;
         Vector2 mousePos = Vector2.zero;
 
-#if ENABLE_INPUT_SYSTEM
         var mouse = UnityEngine.InputSystem.Mouse.current;
         if (mouse != null)
         {
@@ -399,12 +380,6 @@ public class MinimapCamera : MonoBehaviour
             rightMouseUp = mouse.rightButton.wasReleasedThisFrame;
             mousePos = mouse.position.ReadValue();
         }
-#else
-        rightMouseDown = Input.GetMouseButtonDown(1);
-        rightMouseHold = Input.GetMouseButton(1);
-        rightMouseUp = Input.GetMouseButtonUp(1);
-        mousePos = Input.mousePosition;
-#endif
 
         if (rightMouseDown)
         {
@@ -444,7 +419,6 @@ public class MinimapCamera : MonoBehaviour
 
         float scrollDelta = 0f;
 
-#if ENABLE_INPUT_SYSTEM
         var mouse = UnityEngine.InputSystem.Mouse.current;
         if (mouse != null)
         {
@@ -452,11 +426,6 @@ public class MinimapCamera : MonoBehaviour
             if (y > 0) scrollDelta = 1f;
             else if (y < 0) scrollDelta = -1f;
         }
-#else
-        float rawScroll = Input.GetAxis("Mouse ScrollWheel");
-        if (rawScroll > 0) scrollDelta = 1f;
-        else if (rawScroll < 0) scrollDelta = -1f;
-#endif
 
         if (scrollDelta != 0)
         {

@@ -185,5 +185,5 @@ public class ThirdPersonCamera : MonoBehaviour
     /// <summary>
     /// Góc ngang hiện tại - dùng cho PlayerController để di chuyển theo hướng nhìn.
     /// </summary>
-    public float HorizontalAngle => _horizontalAngle;
+    public float HorizontalAngle => horizontalAngle;
 }

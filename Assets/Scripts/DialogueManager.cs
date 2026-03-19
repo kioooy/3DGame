@@ -57,7 +57,7 @@ public class DialogueManager : MonoBehaviour
     {
         // 1. Ensure EventSystem exists
         if (FindFirstObjectByType<EventSystem>() == null)
-            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+            new GameObject("EventSystem", typeof(EventSystem), typeof(UnityEngine.InputSystem.UI.InputSystemUIInputModule));
 
         // 2. Find or Create Canvas
         Canvas canvas = FindFirstObjectByType<Canvas>();

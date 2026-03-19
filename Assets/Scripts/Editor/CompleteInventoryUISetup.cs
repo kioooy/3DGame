@@ -286,7 +286,7 @@ public class CompleteInventoryUISetup : EditorWindow
         {
             GameObject eventSystemObj = new GameObject("EventSystem");
             eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
-            eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            eventSystemObj.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
             
             Undo.RegisterCreatedObjectUndo(eventSystemObj, "Create EventSystem");
         }

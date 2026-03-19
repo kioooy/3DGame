@@ -484,6 +484,16 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
 
     void HideBubble() { if (chatBubble != null) chatBubble.Hide(); }
 
+    private bool HasParameter(string paramName)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null || string.IsNullOrEmpty(paramName)) return false;
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == paramName) return true;
+        }
+        return false;
+    }
+
     void StartInteraction()
     {
         isTalking = true;
@@ -502,7 +512,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         if (animator != null) 
         {
             animator.SetBool(runBool, false); // TẮT T-POSE / RUN ANIM
-            animator.SetTrigger(talkTrigger); // KÍCH HOẠT NÓI CHUYỆN
+            if (HasParameter(talkTrigger)) animator.SetTrigger(talkTrigger); // KÍCH HOẠT NÓI CHUYỆN
         }
 
         if (playerController != null)
@@ -578,11 +588,11 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                         choices += "\n[3] Tỷ thí Đọ Ngàm (Vật Tay)";
                         if (PlayerPrefs.GetInt("XenToc_PlayerWon", 0) == 1)
                         {
-                            choices += "\n[4] 🪲 Cưỡi Xén Tóc";
+                            choices += "\n[4] Cưỡi Xén Tóc";
                         }
                         else
                         {
-                            choices += "\n[4] <color=gray>🪲 Cưỡi Xén Tóc (Khóa - Hãy Đánh Bại Xén Tóc)</color>";
+                            choices += "\n[4] <color=gray>Cưỡi Xén Tóc (Khóa - Hãy Đánh Bại Xén Tóc)</color>";
                         }
                     }
                     else choices += "\n[3] Vật Tay";
@@ -631,7 +641,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
             if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
         }
 
-        if (animator != null) animator.SetTrigger(idleTrigger);
+        if (animator != null && HasParameter(idleTrigger)) animator.SetTrigger(idleTrigger);
 
         // -- Skyrim Action RECOVER --
         if (playerController != null)

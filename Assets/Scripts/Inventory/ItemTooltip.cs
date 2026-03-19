@@ -76,7 +76,7 @@ public class ItemTooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         tooltipPanel.SetActive(true);
         
         // Position tooltip near mouse
-        Vector2 mousePos = Input.mousePosition;
+        Vector2 mousePos = UnityEngine.InputSystem.Mouse.current != null ? UnityEngine.InputSystem.Mouse.current.position.ReadValue() : Vector2.zero;
         RectTransform tooltipRect = tooltipPanel.GetComponent<RectTransform>();
         if (tooltipRect != null)
         {

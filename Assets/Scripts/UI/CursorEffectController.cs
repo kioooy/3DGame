@@ -30,7 +30,7 @@ public class CursorEffectController : MonoBehaviour
 
     void Update()
     {
-        Vector3 mousePos = Input.mousePosition;
+        Vector3 mousePos = UnityEngine.InputSystem.Mouse.current != null ? (Vector3)UnityEngine.InputSystem.Mouse.current.position.ReadValue() : Vector3.zero;
 
         // ── Smooth cursor ──
         if (_smooth)
@@ -120,6 +120,6 @@ public class CursorEffectController : MonoBehaviour
     public void SetSmooth(bool enabled)
     {
         _smooth = enabled;
-        if (!enabled) _smoothPos = Input.mousePosition;
+        if (!enabled) _smoothPos = UnityEngine.InputSystem.Mouse.current != null ? (Vector3)UnityEngine.InputSystem.Mouse.current.position.ReadValue() : Vector3.zero;
     }
 }

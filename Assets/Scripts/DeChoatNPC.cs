@@ -232,6 +232,16 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
 
     void HideBubble() { if (chatBubble != null) chatBubble.Hide(); }
 
+    private bool HasParameter(string paramName)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null || string.IsNullOrEmpty(paramName)) return false;
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == paramName) return true;
+        }
+        return false;
+    }
+
     void StartInteraction()
     {
         isTalking = true;
@@ -239,7 +249,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
         FacePlayerTarget();
-        if (animator != null) animator.SetTrigger(talkTrigger);
+        if (animator != null && HasParameter(talkTrigger)) animator.SetTrigger(talkTrigger);
 
         if (playerController != null)
         {
@@ -326,7 +336,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
             if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
         }
 
-        if (animator != null) animator.SetTrigger(idleTrigger);
+        if (animator != null && HasParameter(idleTrigger)) animator.SetTrigger(idleTrigger);
 
         // -- Skyrim Action RECOVER --
         if (playerController != null)

@@ -19,6 +19,10 @@ public class ArmWrestlingManager : MonoBehaviour
     [Header("Story")]
     public Sprite[] storyImages;
 
+    [Header("Health Settings")]
+    private const int maxLives = 5;
+    private int _currentLives = 5;
+
     [Header("Settings")]
     public float maxPower = 100f;
     public float targetKeysCount = 5; // Số phím mũi tên cần bấm trong 1 lượt
@@ -85,9 +89,14 @@ public class ArmWrestlingManager : MonoBehaviour
     /// <summary>
     /// Bắt đầu game Vật Tay.
     /// </summary>
-    public void StartGame(INPCMinigame npc)
+    public void StartGame(INPCMinigame npc, bool resetLives = true)
     {
         _currentNPC = npc;
+        
+        if (resetLives)
+        {
+            _currentLives = maxLives;
+        }
         
         _currentPower = maxPower / 2f; // Bắt đầu ở mốc 50%
         _isGameOver = false;
@@ -177,7 +186,16 @@ public class ArmWrestlingManager : MonoBehaviour
         {
             _currentPower = 0;
             _isGameOver = true;
-            _winnerText = $"YẾU XÌU! BẠN BỊ {npcNameUpper} NGHIỀN NÁT!";
+            _currentLives--;
+            
+            if (_currentLives > 0)
+            {
+                _winnerText = $"YẾU XÌU! BẠN BỊ {npcNameUpper} NGHIỀN NÁT! (-1 Mạng)";
+            }
+            else
+            {
+                _winnerText = $"BẠN ĐÃ HẾT MẠNG! HÃY NGHỈ TAY RỒI QUAY LẠI SAU!";
+            }
             PlaySFX(loseSFX);
         }
     }
@@ -233,6 +251,21 @@ public class ArmWrestlingManager : MonoBehaviour
         GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
+        // Vẽ thanh máu (Trái tim) góc trái trên
+        GUIStyle hpStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleLeft,
+            fontSize = 32,
+            fontStyle = FontStyle.Bold
+        };
+        hpStyle.normal.textColor = new Color(1f, 0.3f, 0.3f); // Đỏ nhạt
+        string hearts = "Mạng: ";
+        for (int m = 0; m < maxLives; m++)
+        {
+            hearts += (m < _currentLives) ? "♥" : "♡";
+        }
+        GUI.Label(new Rect(30, 30, 600, 50), hearts, hpStyle);
+
         float centerX = Screen.width / 2f;
         float centerY = Screen.height / 2f;
 
@@ -282,12 +315,17 @@ public class ArmWrestlingManager : MonoBehaviour
                 fontStyle = FontStyle.Bold
             };
             resultStyle.normal.textColor = _currentPower >= maxPower ? Color.green : Color.red;
-            GUI.Label(new Rect(0, centerY + 20, Screen.width, 50), _winnerText, resultStyle);
+            resultStyle.wordWrap = true;
+            GUI.Label(new Rect(0, centerY + 20, Screen.width, 80), _winnerText, resultStyle);
 
-            if (GUI.Button(new Rect(centerX - 120, centerY + 100, 100, 40), "Chơi Lại"))
+            if (_currentLives > 0)
             {
-                StartGame(_currentNPC);
+                if (GUI.Button(new Rect(centerX - 120, centerY + 100, 100, 40), "Chơi Lại"))
+                {
+                    StartGame(_currentNPC, false);
+                }
             }
+            
             if (GUI.Button(new Rect(centerX + 20, centerY + 100, 100, 40), "Tạm Nghỉ"))
             {
                 QuitGame();
