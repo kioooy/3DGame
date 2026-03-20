@@ -251,6 +251,8 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     void StartInteraction()
     {
         isTalking = true;
+
+        // Đã dời xuống EndMinigame để unlock sau khi đấu xong
         
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
@@ -369,6 +371,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     public void EndMinigame(bool isWin, bool isDraw = false)
     {
         isMinigameActive = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("XenToc");
         isTalking = true;
         isWaitingForCombat = false;
         

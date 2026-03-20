@@ -122,17 +122,10 @@ public class SettingsUI : MonoBehaviour
 
     void Update()
     {
-#if ENABLE_INPUT_SYSTEM
         if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (_isOpen) Close();
         }
-#else
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (_isOpen) Close();
-        }
-#endif
     }
 
     // ════════════════════════════════════════

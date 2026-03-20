@@ -248,6 +248,8 @@ public class ConKienNPC : MonoBehaviour
     void StartInteraction()
     {
         isTalking = true;
+
+        // Đã dời xuống EndInteraction để unlock sau khi nói chuyện xong
         
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
@@ -314,6 +316,7 @@ public class ConKienNPC : MonoBehaviour
     public void EndInteraction()
     {
         isTalking = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("ConKien");
         isWaitingForChoice = false;
         
         if (chatBubble != null) chatBubble.Hide();

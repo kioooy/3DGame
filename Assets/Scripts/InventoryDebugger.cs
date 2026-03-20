@@ -20,7 +20,7 @@ public class InventoryDebugger : MonoBehaviour
     
     void Update()
     {
-        if (debugEveryFrame && Input.GetKeyDown(KeyCode.F1))
+        if (debugEveryFrame && UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.f1Key.wasPressedThisFrame)
         {
             DebugInventorySystem();
         }

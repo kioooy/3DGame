@@ -525,6 +525,9 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
     void StartInteraction()
     {
         isTalking = true;
+
+        // Đã dời xuống EndMinigame để unlock sau khi đấu xong
+
         currentVelocity = Vector3.zero; // TRIỆT TIÊU LỰC CHẠY
         isWanderingToTarget = false; // HỦY BỎ ĐIỂM ĐẾN PHÍA TRƯỚC
         
@@ -687,6 +690,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
     public void EndMinigame(bool isWin, bool isDraw = false)
     {
         isMinigameActive = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("DeTrui");
         isTalking = true;
         isWaitingForChoice = false;
         

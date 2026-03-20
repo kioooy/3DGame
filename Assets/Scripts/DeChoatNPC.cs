@@ -250,6 +250,8 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     void StartInteraction()
     {
         isTalking = true;
+
+        // Đã dời mở cửa số tay sang khi kết thúc trò chơi
         
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
@@ -359,6 +361,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     public void EndMinigame(bool isWin, bool isDraw = false)
     {
         isMinigameActive = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("DeChoat");
         isTalking = true;
         isWaitingForChoice = false;
         
