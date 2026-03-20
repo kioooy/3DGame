@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5988ace40e2219742882913402229a2a, type: 3}
+  m_Name: KiemTra_Da
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: "\u0110\xE1"
+  itemIcon: {fileID: 0}
+  itemType: 0
+  maxStackSize: 99
+  description: "M\u1ED9t v\u1EADt ph\u1EA9m th\xFA v\u1ECB..."
+  worldModelPrefab: {fileID: 6234318093613704511, guid: 1b726c05820ffc84f961bebc94e077bd, type: 3}
+  handModelPrefab: {fileID: 6234318093613704511, guid: 1b726c05820ffc84f961bebc94e077bd, type: 3}
+  isEquippable: 1
+  isThrowable: 1
+  throwForce: 15
+  throwDamage: 10
+  projectilePrefab: {fileID: 6234318093613704511, guid: 1b726c05820ffc84f961bebc94e077bd, type: 3}
