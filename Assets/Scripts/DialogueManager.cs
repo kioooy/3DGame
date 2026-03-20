@@ -23,6 +23,9 @@ public class DialogueManager : MonoBehaviour
     private AudioClip currentTypewriterClip;
 
     private Queue<string> sentences;
+    private bool isTyping = false;
+    private string currentSentence = "";
+    private Coroutine typingCoroutine;
 
     void Awake()
     {
@@ -165,6 +168,21 @@ public class DialogueManager : MonoBehaviour
         DisplayNextSentence();
     }
 
+    public void OnDialogueInteract()
+    {
+        if (isTyping)
+        {
+            // Stop typing and show full sentence
+            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+            dialogueText.text = currentSentence;
+            isTyping = false;
+        }
+        else
+        {
+            DisplayNextSentence();
+        }
+    }
+
     public void DisplayNextSentence()
     {
         if (sentences.Count == 0)
@@ -173,13 +191,14 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        string sentence = sentences.Dequeue();
-        StopAllCoroutines();
-        StartCoroutine(TypeSentence(sentence));
+        currentSentence = sentences.Dequeue();
+        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+        typingCoroutine = StartCoroutine(TypeSentence(currentSentence));
     }
 
     IEnumerator TypeSentence(string sentence)
     {
+        isTyping = true;
         if (dialogueText != null)
         {
             dialogueText.text = "";
@@ -197,6 +216,7 @@ public class DialogueManager : MonoBehaviour
                 yield return new WaitForSeconds(0.03f);
             }
         }
+        isTyping = false;
     }
 
     public void EndDialogue()
@@ -212,8 +232,12 @@ public class DialogueManager : MonoBehaviour
 
     void Update() {
         var kb = Keyboard.current;
-        if (kb != null && dialoguePanel != null && dialoguePanel.activeSelf && (kb.spaceKey.wasPressedThisFrame || kb.fKey.wasPressedThisFrame)) {
-            DisplayNextSentence();
+        var mouse = Mouse.current;
+        bool interactPressed = (kb != null && (kb.spaceKey.wasPressedThisFrame || kb.fKey.wasPressedThisFrame)) || 
+                               (mouse != null && mouse.leftButton.wasPressedThisFrame);
+
+        if (interactPressed && dialoguePanel != null && dialoguePanel.activeSelf) {
+            OnDialogueInteract();
         }
     }
 }

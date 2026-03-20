@@ -67,7 +67,7 @@ public class BackgroundMusicManager : MonoBehaviour
         // Tự động load nhạc nền tĩnh định sẵn nếu ở Inspector chưa gán
         if (musicTracks == null || musicTracks.Length == 0)
         {
-            AudioClip mainBgm = Resources.Load<AudioClip>("Music_BGM/domartistudios-magical-wizard-school-orchestral-fantasy-488126");
+            AudioClip mainBgm = Resources.Load<AudioClip>("Music_BGM/Jungle (7) Loop");
             if (mainBgm != null)
             {
                 musicTracks = new AudioClip[] { mainBgm };

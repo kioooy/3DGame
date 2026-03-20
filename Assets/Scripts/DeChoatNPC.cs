@@ -7,8 +7,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     public ChatBubble chatBubble;
     public GameObject interactionPromptUI; 
     
-    // Tốc độ bình thường mỗi câu chữ
-    public float timePerSentence = 2.5f;
+
 
     [Header("Identidade")]
     [SerializeField] private string _npcName = "Dế Choắt";
@@ -50,7 +49,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     
     // Quản lý đoạn hội thoại Skyrim
     private int currentDialogueIndex = 0;
-    private float dialogueTimerLengthThreshold = 0f;
+
     
     // Lưu tạm thời vị trí Camera (Trở về ban đầu kết thúc Dialog)
     private Vector3 originalCameraPos;
@@ -135,13 +134,19 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
                 return;
             }
 
-            // Đếm thời gian tự động đổi dòng
-            dialogueTimerLengthThreshold += Time.deltaTime;
+            bool nextPressed = (mouse != null && mouse.leftButton.wasPressedThisFrame) ||
+                               (kb != null && (kb.spaceKey.wasPressedThisFrame || kb.fKey.wasPressedThisFrame));
 
-            if ((mouse != null && mouse.leftButton.wasPressedThisFrame) || dialogueTimerLengthThreshold >= timePerSentence)
+            if (nextPressed)
             {
-                // Qua câu tiếp theo
-                TriggerNextSentence();
+                if (chatBubble != null && chatBubble.isTyping)
+                {
+                    chatBubble.FastForward();
+                }
+                else
+                {
+                    TriggerNextSentence();
+                }
             }
             return;
         }
@@ -265,7 +270,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
         }
 
         currentDialogueIndex = 0;
-        dialogueTimerLengthThreshold = 0f;
+
         DisplayCurrentSentence();
     }
     
@@ -284,7 +289,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     
     void DisplayCurrentSentence()
     {
-        dialogueTimerLengthThreshold = 0f; // Reset khung giờ chờ
+
         if (chatBubble != null)
         {
             chatBubble.Setup(dialogue[currentDialogueIndex]);

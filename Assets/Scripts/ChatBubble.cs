@@ -16,6 +16,9 @@ public class ChatBubble : MonoBehaviour
 
     private Transform mainCameraTransform;
     private Coroutine typingCoroutine;
+    
+    public bool isTyping { get; private set; }
+    private string currentSentence;
 
     void Awake()
     {
@@ -56,6 +59,7 @@ public class ChatBubble : MonoBehaviour
     {
         gameObject.SetActive(true);
         currentTypewriterClip = customBeep != null ? customBeep : defaultTypewriterClips;
+        currentSentence = text;
 
         // Duck BGM
         if (BackgroundMusicManager.Instance != null)
@@ -67,8 +71,20 @@ public class ChatBubble : MonoBehaviour
         typingCoroutine = StartCoroutine(TypeSentence(text));
     }
 
+    public void FastForward()
+    {
+        if (isTyping)
+        {
+            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+            textMeshPro.text = currentSentence;
+            textMeshPro.ForceMeshUpdate();
+            isTyping = false;
+        }
+    }
+
     IEnumerator TypeSentence(string sentence)
     {
+        isTyping = true;
         textMeshPro.text = "";
         foreach (char letter in sentence.ToCharArray())
         {
@@ -84,6 +100,7 @@ public class ChatBubble : MonoBehaviour
             yield return new WaitForSeconds(0.03f);
         }
         textMeshPro.ForceMeshUpdate();
+        isTyping = false;
     }
 
     public void Hide()

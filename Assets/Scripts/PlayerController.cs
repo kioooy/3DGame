@@ -27,11 +27,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerEquipment playerEquipment;
 
     [Header("Footstep Audio")]
-    [SerializeField] private AudioClip[] footstepClips;
+    [SerializeField] private AudioClip walkClip;
+    [SerializeField] private AudioClip runClip;
     [SerializeField] private float walkStepInterval = 0.45f;
     [SerializeField] private float runStepInterval  = 0.25f;
     [Range(0f, 1f)]
-    [SerializeField] private float footstepVolume = 0.55f;
+    [SerializeField] private float footstepVolume = 1.0f;
+    
+    [Header("Jump Audio")]
+    [SerializeField] private AudioClip jumpClip;
+    [Range(0f, 1f)]
+    [SerializeField] private float jumpVolume = 1.0f;
+    
     private AudioSource _footstepSource;
     private float _stepTimer = 0f;
 
@@ -284,6 +291,12 @@ public class PlayerController : MonoBehaviour
         _verticalVelocity = jumpForce;
         _isJumping = true;
 
+        if (jumpClip != null && _footstepSource != null)
+        {
+            float playerVol = SettingsManager.Instance != null ? SettingsManager.Instance.playerVolume * SettingsManager.Instance.masterVolume : 1f;
+            _footstepSource.PlayOneShot(jumpClip, jumpVolume * playerVol);
+        }
+
         if (animator != null)
         {
             animator.SetBool("Jump", true);
@@ -510,9 +523,13 @@ public class PlayerController : MonoBehaviour
 
     void PlayFootstep()
     {
-        if (_footstepSource == null || footstepClips == null || footstepClips.Length == 0) return;
-        AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
-        if (clip != null)
-            _footstepSource.PlayOneShot(clip, footstepVolume);
+        if (_footstepSource == null) return;
+        
+        AudioClip clipToPlay = _isRunning ? runClip : walkClip;
+        if (clipToPlay != null)
+        {
+            float playerVol = SettingsManager.Instance != null ? SettingsManager.Instance.playerVolume * SettingsManager.Instance.masterVolume : 1f;
+            _footstepSource.PlayOneShot(clipToPlay, footstepVolume * playerVol);
+        }
     }
 }

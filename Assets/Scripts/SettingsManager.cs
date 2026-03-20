@@ -35,6 +35,7 @@ public class SettingsManager : MonoBehaviour
     [HideInInspector] public float masterVolume   = 1f;
     [HideInInspector] public float musicVolume    = 0.8f;
     [HideInInspector] public float sfxVolume      = 1f;
+    [HideInInspector] public float playerVolume   = 1f;
 
     [HideInInspector] public int   qualityLevel   = 2;   // 0=Thấp 1=TB 2=Cao 3=Rất cao
     [HideInInspector] public bool  fullscreen     = true;
@@ -56,6 +57,7 @@ public class SettingsManager : MonoBehaviour
     const string K_MASTER       = "s_masterVol";
     const string K_MUSIC        = "s_musicVol";
     const string K_SFX          = "s_sfxVol";
+    const string K_PLAYER       = "s_playerVol";
     const string K_QUALITY      = "s_quality";
     const string K_FULLSCR      = "s_fullscreen";
     const string K_RESOL        = "s_resolution";
@@ -84,6 +86,7 @@ public class SettingsManager : MonoBehaviour
         masterVolume      = PlayerPrefs.GetFloat(K_MASTER,  1f);
         musicVolume       = PlayerPrefs.GetFloat(K_MUSIC,  0.8f);
         sfxVolume         = PlayerPrefs.GetFloat(K_SFX,    1f);
+        playerVolume      = PlayerPrefs.GetFloat(K_PLAYER, 1f);
         qualityLevel      = PlayerPrefs.GetInt  (K_QUALITY, 2);
         fullscreen        = PlayerPrefs.GetInt  (K_FULLSCR, 1) == 1;
         mouseSensitivity  = PlayerPrefs.GetFloat(K_SENSI,  2f);
@@ -103,6 +106,7 @@ public class SettingsManager : MonoBehaviour
         PlayerPrefs.SetFloat(K_MASTER,  masterVolume);
         PlayerPrefs.SetFloat(K_MUSIC,   musicVolume);
         PlayerPrefs.SetFloat(K_SFX,     sfxVolume);
+        PlayerPrefs.SetFloat(K_PLAYER,  playerVolume);
         PlayerPrefs.SetInt  (K_QUALITY, qualityLevel);
         PlayerPrefs.SetInt  (K_FULLSCR, fullscreen ? 1 : 0);
         PlayerPrefs.SetInt  (K_RESOL,   resolutionIdx);
@@ -122,6 +126,7 @@ public class SettingsManager : MonoBehaviour
         masterVolume       = 1f;
         musicVolume        = 0.8f;
         sfxVolume          = 1f;
+        playerVolume       = 1f;
         qualityLevel       = 2;
         fullscreen         = true;
         resolutionIdx      = Screen.resolutions.Length - 1;
@@ -155,6 +160,7 @@ public class SettingsManager : MonoBehaviour
             audioMixer.SetFloat("MasterVolume", VolumeToDb(masterVolume));
             audioMixer.SetFloat("MusicVolume",  VolumeToDb(musicVolume));
             audioMixer.SetFloat("SFXVolume",    VolumeToDb(sfxVolume));
+            audioMixer.SetFloat("PlayerVolume", VolumeToDb(playerVolume));
         }
         AudioListener.volume = masterVolume;
     }

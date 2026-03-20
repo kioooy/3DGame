@@ -23,6 +23,8 @@ public class SettingsUI : MonoBehaviour
     public TextMeshProUGUI labelMusic;
     public Slider          sliderSFX;
     public TextMeshProUGUI labelSFX;
+    public Slider          sliderPlayer;
+    public TextMeshProUGUI labelPlayer;
 
     [Header("Graphics")]
     public TMP_Dropdown dropdownQuality;
@@ -100,6 +102,7 @@ public class SettingsUI : MonoBehaviour
         if (sliderMaster)  sliderMaster.onValueChanged.AddListener(v  => UpdateLabel(labelMaster, v));
         if (sliderMusic)   sliderMusic.onValueChanged.AddListener(v   => UpdateLabel(labelMusic, v));
         if (sliderSFX)     sliderSFX.onValueChanged.AddListener(v     => UpdateLabel(labelSFX, v));
+        if (sliderPlayer)  sliderPlayer.onValueChanged.AddListener(v  => UpdateLabel(labelPlayer, v));
         if (sliderSensitivity) sliderSensitivity.onValueChanged.AddListener(v
             => UpdateLabel(labelSensitivity, v, "x"));
         if (sliderCursorSize) sliderCursorSize.onValueChanged.AddListener(v
@@ -240,6 +243,7 @@ public class SettingsUI : MonoBehaviour
         if (sliderMaster)  { sliderMaster.value  = sm.masterVolume;  UpdateLabel(labelMaster,  sm.masterVolume); }
         if (sliderMusic)   { sliderMusic.value   = sm.musicVolume;   UpdateLabel(labelMusic,   sm.musicVolume); }
         if (sliderSFX)     { sliderSFX.value     = sm.sfxVolume;     UpdateLabel(labelSFX,     sm.sfxVolume); }
+        if (sliderPlayer)  { sliderPlayer.value  = sm.playerVolume;  UpdateLabel(labelPlayer,  sm.playerVolume); }
 
         if (dropdownQuality)    dropdownQuality.value    = sm.qualityLevel;
         if (dropdownResolution) dropdownResolution.value = sm.resolutionIdx;
@@ -267,6 +271,7 @@ public class SettingsUI : MonoBehaviour
         if (sliderMaster)       sm.masterVolume      = sliderMaster.value;
         if (sliderMusic)        sm.musicVolume       = sliderMusic.value;
         if (sliderSFX)          sm.sfxVolume         = sliderSFX.value;
+        if (sliderPlayer)       sm.playerVolume      = sliderPlayer.value;
         if (dropdownQuality)    sm.qualityLevel      = dropdownQuality.value;
         if (dropdownResolution) sm.resolutionIdx     = dropdownResolution.value;
         if (toggleFullscreen)   sm.fullscreen        = toggleFullscreen.isOn;

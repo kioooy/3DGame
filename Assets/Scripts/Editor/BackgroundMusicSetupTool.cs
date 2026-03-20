@@ -39,8 +39,8 @@ public class BackgroundMusicSetupTool
         manager.maxVolume = 0.4f;
         manager.fadeDuration = 3f;
 
-        // 5. Tự động tìm và gán các file nhạc trong Assets/Audio/Music
-        string[] guids = AssetDatabase.FindAssets("t:AudioClip", new[] { "Assets/Audio/Music" });
+        // 5. Tự động tìm và gán các file nhạc trong Assets/Resources/Music_BGM
+        string[] guids = AssetDatabase.FindAssets("t:AudioClip", new[] { "Assets/Resources/Music_BGM" });
         if (guids.Length > 0)
         {
             AudioClip[] clips = new AudioClip[guids.Length];
@@ -55,8 +55,8 @@ public class BackgroundMusicSetupTool
         }
         else
         {
-            Debug.LogWarning("BackgroundMusicSetupTool: Chưa có file nhạc trong Assets/Audio/Music.\n" +
-                             "Hãy tải nhạc Minecraft-style và đặt vào thư mục: Assets/Audio/Music/\n" +
+            Debug.LogWarning("BackgroundMusicSetupTool: Chưa có file nhạc trong Assets/Resources/Music_BGM.\n" +
+                             "Hãy đặt nhạc vào thư mục: Assets/Resources/Music_BGM/\n" +
                              "Sau đó chạy lại tool này hoặc kéo file vào Inspector.");
         }
 
@@ -66,6 +66,6 @@ public class BackgroundMusicSetupTool
         Selection.activeGameObject = musicObj;
 
         Debug.Log("BackgroundMusicSetupTool: ✅ Đã tạo BackgroundMusicManager!\n" +
-                  "Bước tiếp theo: Tải nhạc Minecraft-style (.ogg/.mp3) vào Assets/Audio/Music/ rồi Inspector sẽ tự nhận.");
+                  "Bước tiếp theo: Nhạc sẽ được nhận tự động từ Assets/Resources/Music_BGM/.");
     }
 }

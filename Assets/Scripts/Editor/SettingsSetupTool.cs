@@ -126,7 +126,7 @@ public class SettingsSetupTool : EditorWindow
         var panel    = MakeChild("SettingsPanel", canvasGO.transform);
         var panelRT  = panel.GetComponent<RectTransform>();
         panelRT.anchorMin = panelRT.anchorMax = panelRT.pivot = new Vector2(0.5f, 0.5f);
-        panelRT.sizeDelta = new Vector2(680, 560);
+        panelRT.sizeDelta = new Vector2(680, 860);
         panelRT.anchoredPosition = Vector2.zero;
         var panelImg = panel.AddComponent<Image>();
         panelImg.color = PANEL_BG;
@@ -173,8 +173,23 @@ public class SettingsSetupTool : EditorWindow
         // ── 1. VolumeSlider ─────────────────────
         Slider sliderMaster;
         TextMeshProUGUI lblMaster;
-        MakeSliderRow(panel.transform, "VolumeSlider", "Am Luong",
+        MakeSliderRow(panel.transform, "VolumeSlider", "Am Luong Tong",
             0f, 1f, 1f, ref rowY, ROW_H, PAD, out sliderMaster, out lblMaster);
+
+        Slider sliderMusic;
+        TextMeshProUGUI lblMusic;
+        MakeSliderRow(panel.transform, "MusicSlider", "Nhac Nen",
+            0f, 1f, 0.8f, ref rowY, ROW_H, PAD, out sliderMusic, out lblMusic);
+
+        Slider sliderSFX;
+        TextMeshProUGUI lblSFX;
+        MakeSliderRow(panel.transform, "SFXSlider", "Am Thanh Canh Vat",
+            0f, 1f, 1f, ref rowY, ROW_H, PAD, out sliderSFX, out lblSFX);
+
+        Slider sliderPlayer;
+        TextMeshProUGUI lblPlayer;
+        MakeSliderRow(panel.transform, "PlayerSlider", "Am Thanh Nhan Vat",
+            0f, 1f, 1f, ref rowY, ROW_H, PAD, out sliderPlayer, out lblPlayer);
 
         // ── 2. QualityDropdown ────────────────────
         TMP_Dropdown ddQuality;
@@ -228,6 +243,15 @@ public class SettingsSetupTool : EditorWindow
         so.FindProperty("backdropImage").objectReferenceValue      = overlayImg;
         so.FindProperty("sliderMaster").objectReferenceValue       = sliderMaster;
         so.FindProperty("labelMaster").objectReferenceValue        = lblMaster;
+        
+        so.FindProperty("sliderMusic").objectReferenceValue        = sliderMusic;
+        so.FindProperty("labelMusic").objectReferenceValue         = lblMusic;
+        
+        so.FindProperty("sliderSFX").objectReferenceValue          = sliderSFX;
+        so.FindProperty("labelSFX").objectReferenceValue           = lblSFX;
+
+        so.FindProperty("sliderPlayer").objectReferenceValue       = sliderPlayer;
+        so.FindProperty("labelPlayer").objectReferenceValue        = lblPlayer;
         so.FindProperty("dropdownQuality").objectReferenceValue    = ddQuality;
         so.FindProperty("dropdownResolution").objectReferenceValue = ddRes;
         so.FindProperty("toggleFullscreen").objectReferenceValue   = tFullscreen;
