@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Giao diện danh sách NPC hiện ra khi mở Minimap (Fullscreen).
@@ -29,20 +30,59 @@ public class MinimapNPCListUI : MonoBehaviour
     // Con trỏ hiển thị hướng nhìn của Player trên Minimap
     private GameObject _playerFacingIndicator;
 
+    private static MinimapNPCListUI _instance;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void AutoSetup()
     {
+        if (_instance != null) return;
+
         // Tự động Add Component vào Game
         GameObject go = new GameObject("MinimapNPCListUI_System");
-        go.AddComponent<MinimapNPCListUI>();
+        _instance = go.AddComponent<MinimapNPCListUI>();
         DontDestroyOnLoad(go);
+    }
+
+    void Awake()
+    {
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        _instance = this;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Reset và tìm lại mọi thứ khi đổi Scene
+        InitializeInScene();
     }
 
     void Start()
     {
+        InitializeInScene();
+    }
+
+    private void InitializeInScene()
+    {
+        // 0. Dọn dẹp cũ
+        if (_playerFacingIndicator != null) Destroy(_playerFacingIndicator);
+        foreach (var marker in _npcMarkers.Values) if (marker != null) Destroy(marker);
+        _npcMarkers.Clear();
+        _allNPCs.Clear();
+        _npcToggleState.Clear();
+
+        // 1. Tìm Camera Minimap
         _minimapCamera = FindFirstObjectByType<MinimapCamera>();
         
-        // Càn quét toàn bộ NPC 
+        // 2. Càn quét toàn bộ NPC 
         var deTruis = FindObjectsByType<DeTruiNPC>(FindObjectsSortMode.None);
         var deChoats = FindObjectsByType<DeChoatNPC>(FindObjectsSortMode.None);
         
@@ -56,15 +96,33 @@ public class MinimapNPCListUI : MonoBehaviour
 
         _windowRect = new Rect(Screen.width - 270, 100, 250, 300);
         
+        // 3. Tìm Player
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p) playerTransform = p.transform;
         
-        CreatePlayerFacingIndicator();
+        // 4. Tạo lại con trỏ hướng nhìn
+        if (playerTransform != null)
+        {
+            CreatePlayerFacingIndicator();
+        }
     }
 
     void Update()
     {
-        if (playerTransform == null) return;
+        if (playerTransform == null)
+        {
+            // Thử tìm lại Player nếu bị lạc (do Load scene chậm hoặc spawn muộn)
+            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            if (p) 
+            {
+                playerTransform = p.transform;
+                if (_playerFacingIndicator == null) CreatePlayerFacingIndicator();
+            }
+            return;
+        }
+
+        // Tự động tìm lại camera nếu chưa thấy
+        if (_minimapCamera == null) _minimapCamera = FindFirstObjectByType<MinimapCamera>();
 
         // 1. Tự động tắt đánh dấu Minimap khi lại gần NPC đích
         List<int> keys = new List<int>(_npcToggleState.Keys);

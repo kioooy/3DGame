@@ -14,7 +14,7 @@ public class MainMenuManager : MonoBehaviour
     public GameObject mainMenuCanvas;
 
     [Header("Scene Transition")]
-    public string gameSceneName = "SampleScene";
+    public string gameSceneName = "StylizedNatureLite_Demo";
 
     [Header("Buttons")]
     public Button playButton;

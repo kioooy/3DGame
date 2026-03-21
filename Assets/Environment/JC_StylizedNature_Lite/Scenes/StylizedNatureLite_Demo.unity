@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
@@ -23111,7 +23111,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1871333143}
   - {fileID: 1573461494}
   - {fileID: 1423696760}
   m_Father: {fileID: 535416193}
@@ -23174,7 +23173,7 @@ MonoBehaviour:
   container: {fileID: 1430703273}
   titleTxt: {fileID: 1573461495}
   insectNameTxt: {fileID: 1423696761}
-  insectIcon: {fileID: 1871333144}
+  insectIcon: {fileID: 0}
   showDuration: 3
 --- !u!1 &1432515826
 GameObject:
@@ -32956,6 +32955,4 @@ SceneRoots:
   - {fileID: 1533667553}
   - {fileID: 12059700}
   - {fileID: 2029965808}
-  - {fileID: 785806660}
-  - {fileID: 1963830198}
   - {fileID: 1799883277}
