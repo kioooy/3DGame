@@ -15,9 +15,9 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.18, g: 0.25, b: 0.2, a: 1}
+  m_FogColor: {r: 0.5921569, g: 0.79607844, b: 0.5803922, a: 0.9607843}
   m_FogMode: 3
-  m_FogDensity: 0.015
+  m_FogDensity: 0.002
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.45464572, g: 0.46536127, b: 0.4867924, a: 1}
@@ -25,17 +25,17 @@ RenderSettings:
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 3
-  m_SubtractiveShadowColor: {r: 0.3834176, g: 0.44257846, b: 0.5924529, a: 1}
+  m_SubtractiveShadowColor: {r: 0.38431373, g: 0.5001341, b: 0.5921569, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: 59573b088aaea0442bf29e0a0e9d1339, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
-  m_HaloTexture: {fileID: 0}
+  m_HaloTexture: {fileID: 28933816116536082, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
   m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
   m_UseRadianceAmbientProbe: 0
@@ -12254,7 +12254,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 450ecc5315b5f444e949fa369374f7e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MountXenTocController
-  riderOffset: {x: 0, y: 1.8, z: 0.2}
+  riderOffset: {x: 0, y: 0.5, z: 0.2}
   flySpeed: 18
   verticalSpeed: 10
   rotationSpeed: 120
@@ -12267,6 +12267,7 @@ MonoBehaviour:
   flyParticle: {fileID: 0}
   xenTocFlyingClip: {fileID: -203655887218126122, guid: 0e0cf8dd9b17bd84dbe9cf856f36b1f5, type: 3}
   playerSittingClip: {fileID: -203655887218126122, guid: 18555a568a256fa4181086ad89ba543c, type: 3}
+  playerSitPoint: {fileID: 0}
 --- !u!1 &662379790
 GameObject:
   m_ObjectHideFlags: 0

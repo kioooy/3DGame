@@ -191,7 +191,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
         }
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        bool currentlyNearby = distanceToPlayer <= interactionDistance;
+        bool currentlyNearby = distanceToPlayer <= interactionDistance && IsClosestNPC();
 
         if (currentlyNearby != isPlayerNearby)
         {
@@ -379,5 +379,22 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
         
         // Tắt sau 3 giây (Mở lại di chuyển bằng EndInteraction)
         Invoke(nameof(EndInteraction), 3f);
+    }
+
+    private bool IsClosestNPC()
+    {
+        if (player == null) return false;
+        float myDist = Vector3.Distance(transform.position, player.position);
+        var allNPCs = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        foreach (var npc in allNPCs)
+        {
+            if (npc != this && npc is INPCMinigame)
+            {
+                float otherDist = Vector3.Distance(npc.transform.position, player.position);
+                if (otherDist < myDist) return false;
+                if (Mathf.Abs(otherDist - myDist) < 0.01f && npc.gameObject.GetInstanceID() < gameObject.GetInstanceID()) return false;
+            }
+        }
+        return true;
     }
 }

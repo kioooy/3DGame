@@ -146,7 +146,7 @@ public class CaroGameManager : MonoBehaviour
             fontSize = 40,
             fontStyle = FontStyle.Bold
         };
-        GUI.Label(new Rect(0, startY - 80, Screen.width, 60), "Cờ Caro Sinh Tử (5x5)", titleStyle);
+        GUI.Label(new Rect(0, startY - 80, Screen.width, 60), "Cờ Caro", titleStyle);
         
         // Lượt đi
         GUIStyle turnStyle = new GUIStyle(GUI.skin.label)

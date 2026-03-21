@@ -27,6 +27,11 @@ public class MinimapCamera : MonoBehaviour
     // Trạng thái Minimap
     private enum MapState { Small, Fullscreen, Hidden }
     private MapState currentState = MapState.Small;
+    
+    public bool IsFullscreen()
+    {
+        return currentState == MapState.Fullscreen;
+    }
 
     // Dữ liệu cho Input
     private float keyPressTime = 0f;
@@ -51,6 +56,13 @@ public class MinimapCamera : MonoBehaviour
     public float minZoom = 20f;
     public float maxZoom = 250f;
     private float defaultOrthoSize = 40f;
+
+    public static MinimapCamera Instance { get; private set; }
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {

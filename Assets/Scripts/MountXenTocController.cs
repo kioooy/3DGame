@@ -52,9 +52,11 @@ public class MountXenTocController : MonoBehaviour
 
     // Đồ thị Animation Override
     private PlayableGraph _xenTocGraph;
+    public Transform playerSitPoint; 
+    private RigidbodyConstraints _originalConstraints;
     private PlayableGraph _playerGraph;
 
-    void Awake()
+    private void Start()
     {
         _xenTocAnimator = GetComponent<Animator>();
         _xenTocRb       = GetComponent<Rigidbody>();
@@ -81,6 +83,11 @@ public class MountXenTocController : MonoBehaviour
         if (_playerCtrl != null) _playerCtrl.enabled = false;
         if (_playerCC   != null) _playerCC.enabled   = false;
 
+        // Vô hiệu hoá Rigidbody và Collider của Player để tránh Physics Explosion (hai collider đẩy nhau cực mạnh)
+        if (_player.TryGetComponent<Rigidbody>(out Rigidbody prb)) prb.isKinematic = true;
+        if (_player.TryGetComponent<Collider>(out Collider pcol)) pcol.enabled = false;
+
+        // Dùng transform tay thay vì SetParent để Xén Tóc ko bóp méo scale của Dế Mèn (do model scale x100)
         // Dùng transform tay thay vì SetParent để Xén Tóc ko bóp méo scale của Dế Mèn (do model scale x100)
         _player.position = transform.position + transform.up * riderOffset.y + transform.forward * riderOffset.z;
         _player.rotation = transform.rotation;
@@ -93,11 +100,27 @@ public class MountXenTocController : MonoBehaviour
             staminaSlider.value = _currentStamina;
         }
 
-        // Tắt gravity của Xén Tóc
+        // Disable NPC script to stop wandering
+        DeTruiNPC npcScript = GetComponent<DeTruiNPC>();
+        if (npcScript != null)
+        {
+            npcScript.enabled = false;
+        }
+
         if (_xenTocRb != null)
         {
-            _xenTocRb.useGravity  = false;
-            _xenTocRb.isKinematic = true; // Dùng script di chuyển trực tiếp
+            _originalConstraints = _xenTocRb.constraints;
+            _xenTocRb.useGravity = false;
+            _xenTocRb.isKinematic = false;
+            // Giải phóng Freeze Position X và Z để Rigidbody.velocity có tác dụng
+            _xenTocRb.constraints = RigidbodyConstraints.FreezeRotation; 
+        }
+
+        // Tắt script tự di chuyển / Wander của NPC (nếu có) để khỏi tranh giành Velocity với di chuyển bay
+        if (TryGetComponent<DeTruiNPC>(out DeTruiNPC npcAI))
+        {
+            npcAI.enabled = false;
+            if (npcAI.interactionPromptUI != null) npcAI.interactionPromptUI.SetActive(false);
         }
 
         // Unlock cursor để thể hiện đang trong chế độ đặc biệt
@@ -179,54 +202,37 @@ public class MountXenTocController : MonoBehaviour
         _currentStamina = Mathf.Clamp(_currentStamina, 0, maxStamina);
         if (staminaSlider != null) staminaSlider.value = _currentStamina;
 
-        // ── 1. Đọc Phím A/D để Bẻ Lái Xoay Vòng CẢ CAMERA VÀ XÉN TÓC (Yaw) ──
-        float steer = 0f;
-        if (kb.aKey.isPressed) steer -= 1f;
-        if (kb.dKey.isPressed) steer += 1f;
-        
-        float targetYaw = transform.eulerAngles.y;
-        float targetPitch = 0f;
+        // ── 1. Đọc Phím Di Chuyển (WASD) ──
+        float horizontal = 0f;
+        if (kb.aKey.isPressed) horizontal = -1f;
+        if (kb.dKey.isPressed) horizontal = 1f;
 
-        if (Camera.main != null)
+        float vertical = 0f;
+        if (kb.wKey.isPressed) vertical = 1f;
+        if (kb.sKey.isPressed) vertical = -1f;
+
+        // ── 2. Xoay thân Xén Tóc (A/D) ──
+        if (horizontal != 0f)
         {
-            // Nếu bấm A/D -> Ép cả Camera xoay theo để Camera luôn ở sau lưng
-            if (steer != 0f)
-            {
-                ThirdPersonCamera camScript = Camera.main.GetComponent<ThirdPersonCamera>();
-                if (camScript != null)
-                {
-                    camScript.horizontalAngle += steer * turnSpeed * Time.deltaTime;
-                }
-            }
-
-            // ── 2. Lấy Góc nhìn Chuẩn từ Camera ──
-            targetPitch = Camera.main.transform.eulerAngles.x;
-            if (targetPitch > 180f) targetPitch -= 360f;
-            targetPitch = Mathf.Clamp(targetPitch, -80f, 80f); // Ép giới hạn góc lộn nhào
-
-            targetYaw = Camera.main.transform.eulerAngles.y;
+            transform.Rotate(0, horizontal * turnSpeed * Time.deltaTime, 0);
         }
 
-        // Xoay Xén Tóc mượt mà: Luôn bám sát chính xác góc nhòm của Camera!
-        Quaternion targetRot = Quaternion.Euler(targetPitch, targetYaw, 0f);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, 8f * Time.deltaTime);
+        // ── 3. Đi Tiến/Lùi theo hướng mặt của thú (W/S) ──
+        Vector3 moveDir = transform.forward * vertical;
 
-        // ── 3. Điều khiển Dịch Chuyển (Tiến Lùi / Thăng Giáng) ──
-        float moveZ = 0f;
-        if (kb.wKey.isPressed) moveZ = 1f;
-        if (kb.sKey.isPressed) moveZ = -1f;
-
+        // ── 4. Điều Khiển Thăng Giáng (Bay lên / Hạ xuống) ──
         float moveY = 0f;
         if (kb.spaceKey.isPressed) moveY = 1f;
         if (kb.leftCtrlKey.isPressed || kb.cKey.isPressed) moveY = -1f;
 
-        // Tính vận tốc:
-        // + Bay tới/lui theo hướng HỘP SỌ XÉNTÓC (transform.forward) (Nếu Box sọ ngước lên trời -> Sẽ bay hướng lên)
-        // + Bay Thăng/Giáng tuyệt đối theo trục dọc thế giới (Vector3.up)
-        Vector3 finalVelocity = (transform.forward * moveZ * currentSpeed) + (Vector3.up * moveY * verticalSpeed);
+        // Tính tổng vận tốc: Phương ngang + Phương đứng
+        Vector3 finalVelocity = (moveDir * currentSpeed) + (Vector3.up * moveY * verticalSpeed);
 
-        // Di chuyển Xén Tóc trong không gian
-        transform.position += finalVelocity * Time.deltaTime;
+        // Di chuyển Xén Tóc bằng Rigidbody Velocity
+        if (_xenTocRb != null)
+        {
+            _xenTocRb.linearVelocity = finalVelocity;
+        }
 
         // ── Cập nhật tọa độ Player bám sát lưng Xén Tóc (Bất Chấp Scale Xén Tóc lớn) ──
         _player.position = transform.position + transform.up * riderOffset.y + transform.forward * riderOffset.z;
@@ -242,21 +248,34 @@ public class MountXenTocController : MonoBehaviour
         _mounted   = false;
         IsRiding   = false;
 
-        // Đặt player đứng ngay dưới Xén Tóc
-        _player.position = transform.position + Vector3.down * 1.5f;
+        // Đặt player xuống vị trí an toàn (bên hông Xén Tóc, bù cao độ để không lọt lòng đất)
+        _player.position = transform.position + transform.right * 1.5f + Vector3.up * 1f;
         _player.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
 
         // Bật lại PlayerController
         if (_playerCC   != null) _playerCC.enabled   = true;
         if (_playerCtrl != null) _playerCtrl.enabled = true;
 
+        // Bật lại script NPC tự di chuyển
+        if (TryGetComponent<DeTruiNPC>(out DeTruiNPC npcAI))
+        {
+            npcAI.enabled = true;
+        }
+
+        // Bật lại Vật lý của Player
+        if (_player.TryGetComponent<Rigidbody>(out Rigidbody prb)) prb.isKinematic = false;
+        if (_player.TryGetComponent<Collider>(out Collider pcol)) pcol.enabled = true;
+
         // Bật lại Rigidbody gravity
         if (_xenTocRb != null)
         {
+            _xenTocRb.linearVelocity = Vector3.zero; // Xoá dư âm vận tốc của Xén Tóc
             _xenTocRb.isKinematic = false;
-            _xenTocRb.useGravity  = true ;
+            _xenTocRb.useGravity = false; // Trả lại false để script NPC tự động bám địa hình bằng Raycast
+            _xenTocRb.constraints = _originalConstraints; // Trả lại Rigidbody constraints cũ
         }
-
+        
+        IsRiding = false;
         // Dừng Particle
         if (flyParticle != null) flyParticle.Stop();
 

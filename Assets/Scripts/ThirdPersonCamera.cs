@@ -59,12 +59,18 @@ public class ThirdPersonCamera : MonoBehaviour
         
         // Dừng xoay Camera nếu Pause Menu đang bật
         if (PauseMenuManager.IsPaused) return;
+
+        // Dừng xoay Camera nếu Inventory đang mở
+        if (InventoryUI.Instance != null && InventoryUI.Instance.IsOpen) return;
         
         // Dừng xoay Camera nếu đang chơi Minigame Caro
         if (CaroGameManager.Instance != null && CaroGameManager.Instance.IsGameActive) return;
 
         // Dừng xoay Camera nếu đang chơi Minigame Vật Tay (Audition)
         if (ArmWrestlingManager.Instance != null && ArmWrestlingManager.Instance.IsGameActive) return;
+
+        // Dừng xoay Camera nếu đang mở Bản đồ lớn (Minimap Fullscreen)
+        if (MinimapCamera.Instance != null && MinimapCamera.Instance.IsFullscreen()) return;
 
         // Đọc phím V để đổi góc nhìn
         var kb = Keyboard.current;
