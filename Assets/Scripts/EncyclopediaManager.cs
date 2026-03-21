@@ -101,5 +101,12 @@ public class EncyclopediaManager : MonoBehaviour
                 }
             }
         }
+
+        // Dế Mèn là nhân vật chính (người chơi) nên luôn được mở khóa mặc định
+        if (!unlockedInsectIDs.Contains("DeMen"))
+        {
+            unlockedInsectIDs.Add("DeMen");
+            SaveData(); // Lưu lại luôn để lần sau không cần check
+        }
     }
 }
