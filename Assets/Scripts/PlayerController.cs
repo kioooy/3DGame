@@ -77,6 +77,16 @@ public class PlayerController : MonoBehaviour
         _footstepSource.playOnAwake  = false;
         _footstepSource.loop         = false;
         _footstepSource.volume       = footstepVolume;
+
+#if UNITY_EDITOR
+        // TỰ ĐỘNG SỬA LỖI (AUTO-HEAL): Nếu Inspector chưa gán file hoặc bị mất khi chơi The Game, tự động Load File MP3/WAV mới nhất sếp yêu cầu
+        if (walkClip == null)
+            walkClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_02.wav");
+        if (runClip == null)
+            runClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Run/Footsteps_Grass_Run_03.wav");
+        if (jumpClip == null)
+            jumpClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Jump/Footsteps_Grass_Jump_Land_03.wav");
+#endif
     }
 
     void Start()
@@ -294,7 +304,9 @@ public class PlayerController : MonoBehaviour
         if (jumpClip != null && _footstepSource != null)
         {
             float playerVol = SettingsManager.Instance != null ? SettingsManager.Instance.playerVolume * SettingsManager.Instance.masterVolume : 1f;
-            _footstepSource.PlayOneShot(jumpClip, jumpVolume * playerVol);
+            // Khuếch đại x3.5 âm nhảy
+            float finalVol = jumpVolume * playerVol * 3.5f; 
+            _footstepSource.PlayOneShot(jumpClip, finalVol);
         }
 
         if (animator != null)
@@ -526,10 +538,18 @@ public class PlayerController : MonoBehaviour
         if (_footstepSource == null) return;
         
         AudioClip clipToPlay = _isRunning ? runClip : walkClip;
-        if (clipToPlay != null)
+        if (clipToPlay == null)
         {
-            float playerVol = SettingsManager.Instance != null ? SettingsManager.Instance.playerVolume * SettingsManager.Instance.masterVolume : 1f;
-            _footstepSource.PlayOneShot(clipToPlay, footstepVolume * playerVol);
+            Debug.LogError("PlayerController: Âm thanh bước chân BỊ TRỐNG! Hệ thống không tìm thấy file .wav.");
+            return;
         }
+        
+        float playerVol = SettingsManager.Instance != null ? SettingsManager.Instance.playerVolume * SettingsManager.Instance.masterVolume : 1f;
+
+        // Khuếch đại x4 âm thanh bước chân 
+        float finalVolume = footstepVolume * playerVol * 4.0f;
+        if (finalVolume <= 0.01f) finalVolume = footstepVolume * 4.0f; // Phòng hờ Settings Vol = 0 lúc mới cài game
+
+        _footstepSource.PlayOneShot(clipToPlay, finalVolume);
     }
 }

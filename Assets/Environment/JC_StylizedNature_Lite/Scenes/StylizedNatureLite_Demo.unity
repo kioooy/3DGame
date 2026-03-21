@@ -29124,7 +29124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8dd6bab4856c00046b2cb896f3d33c60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArmWrestlingManager
-  correctSFX: {fileID: 8300000, guid: 29bde6326b4c34ad8a12da475f79b50a, type: 3}
+  correctSFX: {fileID: 8300000, guid: ffb159a21c8a04135a5616979c828fab, type: 3}
   wrongSFX: {fileID: 8300000, guid: 80e397195ea2940b69ee7bdbded856a5, type: 3}
   winSFX: {fileID: 8300000, guid: 2667a0a008b044e218b63df62e2be749, type: 3}
   loseSFX: {fileID: 8300000, guid: df729d213c4be44a9b55cd109f5cd4f9, type: 3}
@@ -30947,12 +30947,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   cameraTransform: {fileID: 833095199}
   playerEquipment: {fileID: 0}
-  walkClip: {fileID: 8300000, guid: 551d550ab98e3cc4bb7793e752fe8628, type: 3}
-  runClip: {fileID: 8300000, guid: 9a30499e47789df48aa9bdb1ec7b0982, type: 3}
+  walkClip: {fileID: 8300000, guid: 18e761ff5ef14fd4588d9283fcc9b829, type: 3}
+  runClip: {fileID: 8300000, guid: 31be579b280d0bc459635877e8c45aee, type: 3}
   walkStepInterval: 0.45
   runStepInterval: 0.25
   footstepVolume: 0.55
-  jumpClip: {fileID: 8300000, guid: 6aeefb601c305f64487cebdfacae5b6c, type: 3}
+  jumpClip: {fileID: 8300000, guid: 856b6d74addb9ad4ab2b7b47bae3e839, type: 3}
   jumpVolume: 0.6
   isDialoguing: 0
 --- !u!136 &2037353272
