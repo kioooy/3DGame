@@ -134,7 +134,24 @@ public class ArmWrestlingManager : MonoBehaviour
 
     private void Update()
     {
-        if (!_isGameActive || _isGameOver) return;
+        if (!_isGameActive) return;
+
+        if (_isGameOver)
+        {
+            var kbUI = Keyboard.current;
+            if (kbUI != null)
+            {
+                if (_currentLives > 0 && kbUI.digit1Key.wasPressedThisFrame)
+                {
+                    StartGame(_currentNPC, false);
+                }
+                else if (kbUI.digit2Key.wasPressedThisFrame)
+                {
+                    QuitGame();
+                }
+            }
+            return;
+        }
 
         // Trọng lực: Sức bền của Dế Trũi đẩy power về 0 (Thua) liên tục
         _currentPower -= drainPerSecond * Time.deltaTime;
@@ -278,7 +295,7 @@ public class ArmWrestlingManager : MonoBehaviour
             normal = new GUIStyleState() { textColor = Color.yellow }
         };
         string npcNameUpper = GetNpcDisplayName().ToUpper();
-        GUI.Label(new Rect(0, centerY - 150, Screen.width, 60), $"THI VẬT TAY CÙNG {npcNameUpper}", titleStyle);
+        GUI.Label(new Rect(0, centerY - 150, Screen.width, 60), $"THI VẬT TAY CÙNG XÉN TÓC", titleStyle);
 
         // Vẽ Power Bar (Thanh Sức lực giữa 2 người)
         float barWidth = 400f;
@@ -320,13 +337,13 @@ public class ArmWrestlingManager : MonoBehaviour
 
             if (_currentLives > 0)
             {
-                if (GUI.Button(new Rect(centerX - 120, centerY + 100, 100, 40), "Chơi Lại"))
+                if (GUI.Button(new Rect(centerX - 120, centerY + 100, 100, 40), "[1] Chơi Lại"))
                 {
                     StartGame(_currentNPC, false);
                 }
             }
             
-            if (GUI.Button(new Rect(centerX + 20, centerY + 100, 100, 40), "Tạm Nghỉ"))
+            if (GUI.Button(new Rect(centerX + 20, centerY + 100, 100, 40), "[2] Tạm Nghỉ"))
             {
                 QuitGame();
             }

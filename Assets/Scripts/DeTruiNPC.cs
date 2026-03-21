@@ -112,7 +112,12 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         if (interactionPromptUI != null)
         {
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
-            if (promptTextComp != null) originalPromptText = promptTextComp.text;
+            if (promptTextComp != null) 
+            {
+                // Chỉ định Tên NPC lên đầu thay vì chữ F Giao tiếp cũ
+                originalPromptText = gameObject.name; 
+                promptTextComp.text = originalPromptText;
+            }
         }
 
         rb = GetComponent<Rigidbody>();
@@ -449,7 +454,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         if (animator != null) animator.SetBool(runBool, isWanderMoving);
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        bool currentlyNearby = distanceToPlayer <= interactionDistance;
+        bool currentlyNearby = distanceToPlayer <= interactionDistance && IsClosestNPC();
 
         if (currentlyNearby != isPlayerNearby)
         {
@@ -606,8 +611,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                 }
                 else if (enableCaro) 
                 {
-                    if (nameLower.Contains("dế choắt") || nameLower.Contains("dechoat")) choices += "\n[3] Giao lưu Cờ Caro (Chữa Bệnh)";
-                    else choices += "\n[3] Giao lưu Cờ Caro (3x3)";
+                    choices += "\n[3] Giao lưu cờ caro";
                 }
                 else if (enableArmWrestling) 
                 {
@@ -749,5 +753,65 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         
         // Tắt sau 3 giây
         Invoke(nameof(EndInteraction), 3f);
+    }
+
+    private bool IsClosestNPC()
+    {
+        if (player == null) return false;
+        float myDist = Vector3.Distance(transform.position, player.position);
+        var allNPCs = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        foreach (var npc in allNPCs)
+        {
+            if (npc != this && npc is INPCMinigame)
+            {
+                float otherDist = Vector3.Distance(npc.transform.position, player.position);
+                if (otherDist < myDist) return false;
+                if (Mathf.Abs(otherDist - myDist) < 0.01f && npc.gameObject.GetInstanceID() < gameObject.GetInstanceID()) return false;
+            }
+        }
+        return true;
+    }
+
+    private void OnGUI()
+    {
+        // Kiểm tra xem có đang bị Minigame nào chiếm dụng toàn cục không
+        bool isAnyMinigameActiveGlobally = isMinigameActive || 
+            (CaroGameManager.Instance != null && CaroGameManager.Instance.IsGameActive) ||
+            (ArmWrestlingManager.Instance != null && ArmWrestlingManager.Instance.IsGameActive);
+        
+        if (isAnyMinigameActiveGlobally) return;
+
+        // Vẽ chữ báo hiệu "Bấm F..." ở cạnh dưới giữa màn hình
+        if (isPlayerNearby && !isTalking && !isWaitingForChoice && !isFollowing)
+        {
+            DrawBottomPrompt("Ấn [F] để nói chuyện với " + gameObject.name);
+        }
+        else if (isFollowing && player != null && Vector3.Distance(transform.position, player.position) <= interactionDistance)
+        {
+            DrawBottomPrompt("Ấn [F] để bảo " + gameObject.name + " đứng lại");
+        }
+    }
+
+    private void DrawBottomPrompt(string msg)
+    {
+        GUIStyle style = new GUIStyle();
+        style.fontSize = 35; // Cỡ chữ bự để dễ đọc
+        style.normal.textColor = Color.white;
+        style.alignment = TextAnchor.MiddleCenter;
+        style.fontStyle = FontStyle.Bold;
+
+        // Đổ bóng (Viền viền đèn)
+        GUIStyle shadowStyle = new GUIStyle(style);
+        shadowStyle.normal.textColor = Color.black;
+
+        float w = 600f;
+        float h = 60f;
+        float x = (Screen.width - w) / 2f; // Căn giữa màn hình ngang
+        float y = Screen.height - 150f;    // Nằm ở phần dưới màn hình dọc
+
+        // Vẽ Bóng đen xê dịch đi 2 pixel
+        GUI.Label(new Rect(x + 2, y + 2, w, h), msg, shadowStyle);
+        // Vẽ Chữ trắng đè lên
+        GUI.Label(new Rect(x, y, w, h), msg, style);
     }
 }
