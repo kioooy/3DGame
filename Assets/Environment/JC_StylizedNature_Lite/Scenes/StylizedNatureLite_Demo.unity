@@ -26802,8 +26802,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -14, y: -17}
+  m_SizeDelta: {x: 245.6855, y: 86.995}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!328 &1702140226
 VideoPlayer:
@@ -32956,3 +32956,5 @@ SceneRoots:
   - {fileID: 12059700}
   - {fileID: 2029965808}
   - {fileID: 1799883277}
+  - {fileID: 535416193}
+  - {fileID: 1577934126}
