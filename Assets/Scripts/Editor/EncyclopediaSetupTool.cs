@@ -158,7 +158,7 @@ public class EncyclopediaSetupTool : EditorWindow
         bookObj.transform.SetParent(mainPanel.transform, false);
         RectTransform bookRT = bookObj.AddComponent<RectTransform>();
         bookRT.anchorMin = new Vector2(0.5f, 0.5f); bookRT.anchorMax = new Vector2(0.5f, 0.5f);
-        bookRT.sizeDelta = new Vector2(1400, 800);
+        bookRT.sizeDelta = new Vector2(1400, 920);
         bookRT.anchoredPosition = Vector2.zero;
         
         Image bookBg = bookObj.AddComponent<Image>();
@@ -203,7 +203,7 @@ public class EncyclopediaSetupTool : EditorWindow
         Image leftBg = leftPage.AddComponent<Image>();
         leftBg.color = new Color(0, 0, 0, 0.05f); // Làm nền danh sách chìm đi 1 tí
         LayoutElement leftLE = leftPage.AddComponent<LayoutElement>();
-        leftLE.flexibleWidth = 1f;
+        leftLE.flexibleWidth = 1f; leftLE.minWidth = 350;
 
         GameObject scrollView = CreateScrollView(leftPage.transform);
         Transform contentTransform = scrollView.transform.Find("Viewport/Content");
@@ -212,47 +212,47 @@ public class EncyclopediaSetupTool : EditorWindow
         GameObject rightPage = new GameObject("RightPage_Detail");
         rightPage.transform.SetParent(pagesObj.transform, false);
         LayoutElement rightLE = rightPage.AddComponent<LayoutElement>();
-        rightLE.flexibleWidth = 1.2f;
+        rightLE.flexibleWidth = 1.2f; rightLE.minWidth = 500;
 
         // Layout Dọc cho Chi tiết (Giúp không bị đè chữ)
         VerticalLayoutGroup detailVlg = rightPage.AddComponent<VerticalLayoutGroup>();
         detailVlg.spacing = 15;
         detailVlg.padding = new RectOffset(40, 40, 10, 10); // Margins
         detailVlg.childAlignment = TextAnchor.UpperCenter;
-        detailVlg.childControlHeight = false; detailVlg.childControlWidth = true;
+        detailVlg.childControlHeight = true; detailVlg.childControlWidth = true;
         detailVlg.childForceExpandHeight = false; detailVlg.childForceExpandWidth = false;
 
-        // Hình ảnh bự
-        GameObject detailImg = CreateImage("DetailIcon", rightPage.transform, new Rect(0, 0, 250, 250));
+        // Hình ảnh bự (Chuyển sang 500x350 để hợp ảnh ngang)
+        GameObject detailImg = CreateImage("DetailIcon", rightPage.transform, new Rect(0, 0, 500, 350));
         LayoutElement imgLE = detailImg.AddComponent<LayoutElement>();
-        imgLE.preferredHeight = 250; imgLE.preferredWidth = 250;
+        imgLE.minHeight = 250; imgLE.preferredHeight = 350; imgLE.preferredWidth = 500;
         Image dImgComp = detailImg.GetComponent<Image>();
         dImgComp.preserveAspect = true; // Giữ tỉ lệ ảnh gốc
 
-        // Tên Sinh vật
-        GameObject detailName = CreateText("DetailName", rightPage.transform, new Rect(0, 0, 0, 50), "Tên Côn Trùng", 45, new Color(0.2f,0.2f,0.2f), TextAlignmentOptions.Center);
+        // Tên Sinh vật (Chữ to hơn)
+        GameObject detailName = CreateText("DetailName", rightPage.transform, new Rect(0, 0, 0, 65), "Tên Côn Trùng", 55, new Color(0.2f,0.2f,0.2f), TextAlignmentOptions.Center);
         detailName.GetComponent<TextMeshProUGUI>().fontStyle = FontStyles.Bold;
         LayoutElement nameLE = detailName.AddComponent<LayoutElement>();
-        nameLE.preferredHeight = 50;
+        nameLE.minHeight = 40; nameLE.preferredHeight = 65;
 
         // Mức độ nguy hiểm
-        GameObject detailDanger = CreateText("DetailDanger", rightPage.transform, new Rect(0, 0, 0, 35), "Mức độ:", 24, Color.black, TextAlignmentOptions.Center);
+        GameObject detailDanger = CreateText("DetailDanger", rightPage.transform, new Rect(0, 0, 0, 40), "Mức độ:", 28, Color.black, TextAlignmentOptions.Center);
         detailDanger.GetComponent<TextMeshProUGUI>().richText = true;
         LayoutElement dangerLE = detailDanger.AddComponent<LayoutElement>();
-        dangerLE.preferredHeight = 35;
+        dangerLE.minHeight = 30; dangerLE.preferredHeight = 40;
 
-        // Mô tả chi tiết
-        GameObject detailDesc = CreateText("DetailDesc", rightPage.transform, new Rect(0, 0, 0, 130), "Mô tả...", 22, new Color(0.3f, 0.3f, 0.3f), TextAlignmentOptions.TopLeft);
+        // Mô tả chi tiết (Tăng font 22 -> 26)
+        GameObject detailDesc = CreateText("DetailDesc", rightPage.transform, new Rect(0, 0, 0, 160), "Mô tả...", 26, new Color(0.3f, 0.3f, 0.3f), TextAlignmentOptions.TopLeft);
         detailDesc.GetComponent<TextMeshProUGUI>().textWrappingMode = TextWrappingModes.Normal;
         LayoutElement descLE = detailDesc.AddComponent<LayoutElement>();
-        descLE.preferredHeight = 130;
+        descLE.minHeight = 100; descLE.flexibleHeight = 1f;
 
         // Sự thật thú vị
-        GameObject detailFact = CreateText("DetailFact", rightPage.transform, new Rect(0, 0, 0, 100), "Sự thật thú vị...", 22, new Color(0.2f, 0.4f, 0.8f), TextAlignmentOptions.TopLeft);
+        GameObject detailFact = CreateText("DetailFact", rightPage.transform, new Rect(0, 0, 0, 120), "Sự thật thú vị...", 26, new Color(0.2f, 0.4f, 0.8f), TextAlignmentOptions.TopLeft);
         detailFact.GetComponent<TextMeshProUGUI>().textWrappingMode = TextWrappingModes.Normal;
         detailFact.GetComponent<TextMeshProUGUI>().fontStyle = FontStyles.Italic;
         LayoutElement factLE = detailFact.AddComponent<LayoutElement>();
-        factLE.preferredHeight = 100;
+        factLE.minHeight = 80; factLE.flexibleHeight = 1f;
 
         // 5. Kết nối Script
         EncyclopediaUI uiScript = canvasObj.AddComponent<EncyclopediaUI>();
@@ -273,19 +273,22 @@ public class EncyclopediaSetupTool : EditorWindow
         pBg.color = new Color(0.9f, 0.9f, 0.9f); // Nút xám nhạt
         Button pBtn = prefabBtn.AddComponent<Button>();
         
-        // Horizontal Layout cho nút
-        HorizontalLayoutGroup btnHlg = prefabBtn.AddComponent<HorizontalLayoutGroup>();
-        btnHlg.padding = new RectOffset(10, 10, 10, 10);
-        btnHlg.spacing = 20;
-        btnHlg.childControlHeight = true; btnHlg.childControlWidth = false;
-        btnHlg.childForceExpandHeight = true; btnHlg.childForceExpandWidth = false;
-
+        // KHÔNG DÙNG HorizontalLayoutGroup vì dễ lỗi chữ khi scale. Dùng Anchor cố định!
         RectTransform pRT = prefabBtn.GetComponent<RectTransform>();
         pRT.sizeDelta = new Vector2(0, 100);
+        
+        // BẮT BUỘC PHẢI THÊM CÁI NÀY thì VerticalLayoutGroup bên ngoài mới không bóp chiều cao nút về 0
+        LayoutElement pBtnLE = prefabBtn.AddComponent<LayoutElement>();
+        pBtnLE.minHeight = 100; pBtnLE.preferredHeight = 100;
 
+        // Icon Mask bên trái
         GameObject pIconObj = CreateImage("IconMask", prefabBtn.transform, new Rect(0, 0, 80, 80));
-        LayoutElement piLE = pIconObj.AddComponent<LayoutElement>();
-        piLE.preferredWidth = 80; piLE.preferredHeight = 80;
+        RectTransform maskRT = pIconObj.GetComponent<RectTransform>();
+        maskRT.anchorMin = new Vector2(0, 0.5f);
+        maskRT.anchorMax = new Vector2(0, 0.5f);
+        maskRT.pivot = new Vector2(0, 0.5f);
+        maskRT.anchoredPosition = new Vector2(10, 0); // Cách lề trái 10
+        maskRT.sizeDelta = new Vector2(80, 80);
         Image pIconMask = pIconObj.GetComponent<Image>();
         pIconMask.color = Color.white; 
         
@@ -293,13 +296,18 @@ public class EncyclopediaSetupTool : EditorWindow
         Image realIcon = pIcon.GetComponent<Image>();
         realIcon.preserveAspect = true;
         RectTransform riRT = pIcon.GetComponent<RectTransform>();
-        riRT.anchorMin = Vector2.zero; riRT.anchorMax = Vector2.one; riRT.sizeDelta = Vector2.zero;
+        riRT.anchorMin = Vector2.zero; riRT.anchorMax = Vector2.one; 
+        riRT.sizeDelta = Vector2.zero; riRT.anchoredPosition = Vector2.zero;
 
-        GameObject pName = CreateText("Name", prefabBtn.transform, new Rect(0, 0, 300, 80), "Côn trùng", 28, new Color(0.2f,0.2f,0.2f), TextAlignmentOptions.Left);
-        pName.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.MidlineLeft;
+        // Chữ Tên bên phải
+        GameObject pName = CreateText("Name", prefabBtn.transform, new Rect(0, 0, 0, 0), "Côn trùng", 28, new Color(0.2f,0.2f,0.2f), TextAlignmentOptions.MidlineLeft);
         pName.GetComponent<TextMeshProUGUI>().fontStyle = FontStyles.Bold;
-        LayoutElement pnLE = pName.AddComponent<LayoutElement>();
-        pnLE.preferredWidth = 400; // Chiếm hết bề ngang còn lại
+        RectTransform nameRT = pName.GetComponent<RectTransform>();
+        // Neo từ sát icon (100) dãn tới cuối nút
+        nameRT.anchorMin = new Vector2(0, 0);
+        nameRT.anchorMax = new Vector2(1, 1);
+        nameRT.offsetMin = new Vector2(100, 0); 
+        nameRT.offsetMax = new Vector2(-10, 0);
 
         uiScript.insectBtnPrefab = prefabBtn;
         prefabBtn.SetActive(false); // Ẩn khỏi scene

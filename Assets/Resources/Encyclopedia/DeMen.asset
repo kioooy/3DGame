@@ -21,5 +21,5 @@ MonoBehaviour:
   funFact: "D\u1EBF M\xE8n r\u1EA5t th\xEDch u\u1ED1ng s\u01B0\u01A1ng \u0111\xEAm
     \u0111\u1ECDng tr\xEAn c\xE1c nh\xE1nh c\u1ECF non."
   dangerLevel: 0
-  unlockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 21300000, guid: 1a50e4216f484da4c949aea26e9d16ec, type: 3}
   lockedSprite: {fileID: 0}

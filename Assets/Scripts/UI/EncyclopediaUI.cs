@@ -132,7 +132,12 @@ public class EncyclopediaUI : MonoBehaviour
         var allInsects = EncyclopediaManager.Instance.GetAllInsects();
         if (allInsects.Count > 0)
         {
-            ShowDetail(allInsects[0]); // Mặc định show con đầu tiên
+            // Tìm Dế Mèn (vì nó mở khóa sẵn), nếu không thấy thì lấy con đầu tiên
+            var defaultInsect = allInsects.Find(x => x.insectID == "DeMen");
+            if (defaultInsect != null)
+                ShowDetail(defaultInsect);
+            else
+                ShowDetail(allInsects[0]);
         }
 
         foreach (var insect in allInsects)
