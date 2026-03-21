@@ -319,6 +319,7 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     {
         isTalking = false;
         isWaitingForChoice = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("DeChoat");
         
         if (chatBubble != null) chatBubble.Hide();
 

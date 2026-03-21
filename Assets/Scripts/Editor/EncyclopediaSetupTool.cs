@@ -41,20 +41,53 @@ public class EncyclopediaSetupTool : EditorWindow
 
         string[] samples = { "DeMen", "DeChoat", "XenToc", "ConKien", "DeTrui" };
         string[] names = { "Dế Mèn", "Dế Choắt", "Xén Tóc", "Kiến Quân Đội", "Dế Trũi" };
+        string[] descriptions = { 
+            "Nhân vật chính của chúng ta. Một chú dế mèn cường tráng, khỏe mạnh và luôn tràn đầy nhiệt huyết phiêu lưu. Dế Mèn có đôi càng sắc bén và đôi cánh chắc khỏe.",
+            "Một chú dế ốm yếu, gầy gò sống quanh quẩn bên nhà Dế Mèn. Tuy thể trạng xơ xác, ốm nom đau yếu, nhưng rất hiền lành và hay nhường nhịn.",
+            "Một gã bọ hung dữ với đôi ngàm khỏe mạnh, tính tình kiêu ngạo, thường xuyên bắt nạt kẻ yếu hơn mình trong bãi cỏ.",
+            "Kiến Chỉ Huy của đàn kiến quân đội. Kỷ luật, chăm chỉ và luôn mang trên mình trách nhiệm bảo vệ tổ kiến khỏi những hiểm nguy bên ngoài.",
+            "Người anh em kết nghĩa của Dế Mèn. Dế Trũi có ngoại hình vạm vỡ, giỏi đào bới và rất giỏi võ nghệ, luôn sát cánh cùng Dế Mèn." 
+        };
+        string[] funFacts = { 
+            "Dế Mèn rất thích uống sương đêm đọng trên các nhánh cỏ non.",
+            "Dế Choắt có sở thích chơi cờ Caro để giết thời gian.",
+            "Xén Tóc thực chất rất thích khoe khoang sức mạnh qua các trò vật tay.",
+            "Kiến Quân Đội không bao giờ ngủ, chúng làm việc theo ca luân phiên.",
+            "Dế Trũi có thể đào một cái hang dài bằng 10 lần cơ thể mình chỉ trong một đêm." 
+        };
+        InsectDangerLevel[] dangers = { 
+            InsectDangerLevel.HienLanh, 
+            InsectDangerLevel.HienLanh, 
+            InsectDangerLevel.NguyHiem, 
+            InsectDangerLevel.HienLanh, 
+            InsectDangerLevel.HienLanh 
+        };
         
         for (int i = 0; i < samples.Length; i++)
         {
             string path = $"{folderPath}/{samples[i]}.asset";
-            if (AssetDatabase.LoadAssetAtPath<InsectData>(path) == null)
+            InsectData data = AssetDatabase.LoadAssetAtPath<InsectData>(path);
+            bool isNew = false;
+            
+            if (data == null)
             {
-                InsectData data = ScriptableObject.CreateInstance<InsectData>();
-                data.insectID = samples[i];
-                data.insectName = names[i];
-                data.description = "Mô tả sinh học về " + names[i] + ". \nHãy cập nhật thêm tại file thiết kế (Data).";
-                data.funFact = "Trí khôn dân gian: " + names[i] + " thường xuất hiện ở đâu?";
-                data.dangerLevel = InsectDangerLevel.HienLanh;
-                
+                data = ScriptableObject.CreateInstance<InsectData>();
+                isNew = true;
+            }
+            
+            data.insectID = samples[i];
+            data.insectName = names[i];
+            data.description = descriptions[i];
+            data.funFact = funFacts[i];
+            data.dangerLevel = dangers[i];
+            
+            if (isNew)
+            {
                 AssetDatabase.CreateAsset(data, path);
+            }
+            else
+            {
+                EditorUtility.SetDirty(data);
             }
         }
         AssetDatabase.SaveAssets();
