@@ -138,6 +138,7 @@ public class EncyclopediaUI : MonoBehaviour
         foreach (var insect in allInsects)
         {
             GameObject btnObj = Instantiate(insectBtnPrefab, listContent);
+            btnObj.SetActive(true); // <--- QUAN TRỌNG: Hiện nút lên vì prefab đang bị ẩn
             _spawnedBtns.Add(btnObj);
 
             bool isUnlocked = EncyclopediaManager.Instance.IsUnlocked(insect.insectID);

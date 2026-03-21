@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InsectData
   insectID: DeChoat
   insectName: "D\u1EBF Cho\u1EAFt"
-  description: "M\xF4 t\u1EA3 sinh h\u1ECDc v\u1EC1 D\u1EBF Cho\u1EAFt. \nH\xE3y
-    c\u1EADp nh\u1EADt th\xEAm t\u1EA1i file thi\u1EBFt k\u1EBF (Data)."
-  funFact: "Tr\xED kh\xF4n d\xE2n gian: D\u1EBF Cho\u1EAFt th\u01B0\u1EDDng xu\u1EA5t
-    hi\u1EC7n \u1EDF \u0111\xE2u?"
+  description: "M\u1ED9t ch\xFA d\u1EBF \u1ED1m y\u1EBFu, g\u1EA7y g\xF2 s\u1ED1ng
+    quanh qu\u1EA9n b\xEAn nh\xE0 D\u1EBF M\xE8n. Tuy th\u1EC3 tr\u1EA1ng x\u01A1
+    x\xE1c, \u1ED1m nom \u0111au y\u1EBFu, nh\u01B0ng r\u1EA5t hi\u1EC1n l\xE0nh
+    v\xE0 hay nh\u01B0\u1EDDng nh\u1ECBn."
+  funFact: "D\u1EBF Cho\u1EAFt c\xF3 s\u1EDF th\xEDch ch\u01A1i c\u1EDD Caro \u0111\u1EC3
+    gi\u1EBFt th\u1EDDi gian."
   dangerLevel: 0
   unlockedSprite: {fileID: 0}
   lockedSprite: {fileID: 0}

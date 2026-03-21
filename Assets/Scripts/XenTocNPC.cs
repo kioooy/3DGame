@@ -325,6 +325,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     {
         isTalking = false;
         isWaitingForCombat = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("XenToc");
         
         if (chatBubble != null) chatBubble.Hide();
 

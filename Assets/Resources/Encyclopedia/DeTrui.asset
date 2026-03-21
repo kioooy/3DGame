@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InsectData
   insectID: DeTrui
   insectName: "D\u1EBF Tr\u0169i"
-  description: "M\xF4 t\u1EA3 sinh h\u1ECDc v\u1EC1 D\u1EBF Tr\u0169i. \nH\xE3y c\u1EADp
-    nh\u1EADt th\xEAm t\u1EA1i file thi\u1EBFt k\u1EBF (Data)."
-  funFact: "Tr\xED kh\xF4n d\xE2n gian: D\u1EBF Tr\u0169i th\u01B0\u1EDDng xu\u1EA5t
-    hi\u1EC7n \u1EDF \u0111\xE2u?"
+  description: "Ng\u01B0\u1EDDi anh em k\u1EBFt ngh\u0129a c\u1EE7a D\u1EBF M\xE8n.
+    D\u1EBF Tr\u0169i c\xF3 ngo\u1EA1i h\xECnh v\u1EA1m v\u1EE1, gi\u1ECFi \u0111\xE0o
+    b\u1EDBi v\xE0 r\u1EA5t gi\u1ECFi v\xF5 ngh\u1EC7, lu\xF4n s\xE1t c\xE1nh c\xF9ng
+    D\u1EBF M\xE8n."
+  funFact: "D\u1EBF Tr\u0169i c\xF3 th\u1EC3 \u0111\xE0o m\u1ED9t c\xE1i hang d\xE0i
+    b\u1EB1ng 10 l\u1EA7n c\u01A1 th\u1EC3 m\xECnh ch\u1EC9 trong m\u1ED9t \u0111\xEAm."
   dangerLevel: 0
   unlockedSprite: {fileID: 0}
   lockedSprite: {fileID: 0}

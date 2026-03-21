@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InsectData
   insectID: ConKien
   insectName: "Ki\u1EBFn Qu\xE2n \u0110\u1ED9i"
-  description: "M\xF4 t\u1EA3 sinh h\u1ECDc v\u1EC1 Ki\u1EBFn Qu\xE2n \u0110\u1ED9i.
-    \nH\xE3y c\u1EADp nh\u1EADt th\xEAm t\u1EA1i file thi\u1EBFt k\u1EBF (Data)."
-  funFact: "Tr\xED kh\xF4n d\xE2n gian: Ki\u1EBFn Qu\xE2n \u0110\u1ED9i th\u01B0\u1EDDng
-    xu\u1EA5t hi\u1EC7n \u1EDF \u0111\xE2u?"
+  description: "Ki\u1EBFn Ch\u1EC9 Huy c\u1EE7a \u0111\xE0n ki\u1EBFn qu\xE2n \u0111\u1ED9i.
+    K\u1EF7 lu\u1EADt, ch\u0103m ch\u1EC9 v\xE0 lu\xF4n mang tr\xEAn m\xECnh tr\xE1ch
+    nhi\u1EC7m b\u1EA3o v\u1EC7 t\u1ED5 ki\u1EBFn kh\u1ECFi nh\u1EEFng hi\u1EC3m
+    nguy b\xEAn ngo\xE0i."
+  funFact: "Ki\u1EBFn Qu\xE2n \u0110\u1ED9i kh\xF4ng bao gi\u1EDD ng\u1EE7, ch\xFAng
+    l\xE0m vi\u1EC7c theo ca lu\xE2n phi\xEAn."
   dangerLevel: 0
   unlockedSprite: {fileID: 0}
   lockedSprite: {fileID: 0}

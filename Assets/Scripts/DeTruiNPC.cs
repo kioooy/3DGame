@@ -639,6 +639,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
     {
         isTalking = false;
         isWaitingForChoice = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("DeTrui");
         
         if (chatBubble != null) chatBubble.Hide();
 

@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InsectData
   insectID: XenToc
   insectName: "X\xE9n T\xF3c"
-  description: "M\xF4 t\u1EA3 sinh h\u1ECDc v\u1EC1 X\xE9n T\xF3c. \nH\xE3y c\u1EADp
-    nh\u1EADt th\xEAm t\u1EA1i file thi\u1EBFt k\u1EBF (Data)."
-  funFact: "Tr\xED kh\xF4n d\xE2n gian: X\xE9n T\xF3c th\u01B0\u1EDDng xu\u1EA5t
-    hi\u1EC7n \u1EDF \u0111\xE2u?"
-  dangerLevel: 0
+  description: "M\u1ED9t g\xE3 b\u1ECD hung d\u1EEF v\u1EDBi \u0111\xF4i ng\xE0m
+    kh\u1ECFe m\u1EA1nh, t\xEDnh t\xECnh ki\xEAu ng\u1EA1o, th\u01B0\u1EDDng xuy\xEAn
+    b\u1EAFt n\u1EA1t k\u1EBB y\u1EBFu h\u01A1n m\xECnh trong b\xE3i c\u1ECF."
+  funFact: "X\xE9n T\xF3c th\u1EF1c ch\u1EA5t r\u1EA5t th\xEDch khoe khoang s\u1EE9c
+    m\u1EA1nh qua c\xE1c tr\xF2 v\u1EADt tay."
+  dangerLevel: 1
   unlockedSprite: {fileID: 0}
   lockedSprite: {fileID: 0}
