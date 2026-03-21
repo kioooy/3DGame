@@ -114,8 +114,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
             if (promptTextComp != null) 
             {
-                // Chỉ định Tên NPC lên đầu thay vì chữ F Giao tiếp cũ
-                originalPromptText = gameObject.name; 
+                originalPromptText = GetDisplayName(); 
                 promptTextComp.text = originalPromptText;
             }
         }
@@ -784,12 +783,23 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         // Vẽ chữ báo hiệu "Bấm F..." ở cạnh dưới giữa màn hình
         if (isPlayerNearby && !isTalking && !isWaitingForChoice && !isFollowing)
         {
-            DrawBottomPrompt("Ấn [F] để nói chuyện với " + gameObject.name);
+            DrawBottomPrompt("Ấn [F] để nói chuyện với " + GetDisplayName());
         }
         else if (isFollowing && player != null && Vector3.Distance(transform.position, player.position) <= interactionDistance)
         {
-            DrawBottomPrompt("Ấn [F] để bảo " + gameObject.name + " đứng lại");
+            DrawBottomPrompt("Ấn [F] để bảo " + GetDisplayName() + " đứng lại");
         }
+    }
+
+    public string GetDisplayName()
+    {
+        string lower = gameObject.name.ToLower();
+        if (lower.Contains("xen") || lower.Contains("xén")) return "Xén Tóc";
+        if (lower.Contains("choat") || lower.Contains("choắt")) return "Dế Choắt";
+        if (lower.Contains("kien") || lower.Contains("kiến")) return "Côn Kiến";
+        if (lower.Contains("trui") || lower.Contains("trũi")) return "Dế Trũi";
+        
+        return !string.IsNullOrEmpty(_npcName) ? _npcName : gameObject.name;
     }
 
     private void DrawBottomPrompt(string msg)

@@ -78,7 +78,11 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
         if (interactionPromptUI != null)
         {
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
-            if (promptTextComp != null) originalPromptText = promptTextComp.text;
+            if (promptTextComp != null) 
+            {
+                originalPromptText = GetDisplayName();
+                promptTextComp.text = originalPromptText;
+            }
         }
     }
 
@@ -397,5 +401,52 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
             }
         }
         return true;
+    }
+
+    private void OnGUI()
+    {
+        if (isMinigameActive) return;
+
+        // Vẽ chữ báo hiệu "Bấm F..." ở cạnh dưới giữa màn hình
+        if (isPlayerNearby && !isTalking && !isWaitingForChoice && !isFollowing)
+        {
+            DrawBottomPrompt("Ấn [F] để nói chuyện với " + GetDisplayName());
+        }
+        else if (isFollowing && player != null && Vector3.Distance(transform.position, player.position) <= interactionDistance)
+        {
+            DrawBottomPrompt("Ấn [F] để bảo " + GetDisplayName() + " đứng lại");
+        }
+    }
+
+    public string GetDisplayName()
+    {
+        string lower = gameObject.name.ToLower();
+        if (lower.Contains("xen") || lower.Contains("xén")) return "Xén Tóc";
+        if (lower.Contains("choat") || lower.Contains("choắt")) return "Dế Choắt";
+        if (lower.Contains("kien") || lower.Contains("kiến")) return "Côn Kiến";
+        if (lower.Contains("trui") || lower.Contains("trũi")) return "Dế Trũi";
+        
+        return !string.IsNullOrEmpty(_npcName) ? _npcName : gameObject.name;
+    }
+
+    private void DrawBottomPrompt(string msg)
+    {
+        GUIStyle style = new GUIStyle();
+        style.fontSize = 35; // Cỡ chữ bự để dễ đọc
+        style.normal.textColor = Color.white;
+        style.alignment = TextAnchor.MiddleCenter;
+        style.fontStyle = FontStyle.Bold;
+
+        // Đổ bóng (Viền viền đèn)
+        GUIStyle shadowStyle = new GUIStyle(style);
+        shadowStyle.normal.textColor = Color.black;
+
+        float w = 600f;
+        float h = 60f;
+        float x = (Screen.width - w) / 2f; 
+        float y = Screen.height - 150f;    
+
+        GUI.Label(new Rect(x + 2, y + 2, w, h), msg, shadowStyle);
+        GUI.Label(new Rect(x, y, w, h), msg, style);
     }
 }

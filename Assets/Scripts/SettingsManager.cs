@@ -155,6 +155,11 @@ public class SettingsManager : MonoBehaviour
 
     public void ApplyAudio()
     {
+        masterVolume = NormalizeVolume(masterVolume);
+        musicVolume = NormalizeVolume(musicVolume);
+        sfxVolume = NormalizeVolume(sfxVolume);
+        playerVolume = NormalizeVolume(playerVolume);
+
         if (audioMixer != null)
         {
             audioMixer.SetFloat("MasterVolume", VolumeToDb(masterVolume));
@@ -162,7 +167,16 @@ public class SettingsManager : MonoBehaviour
             audioMixer.SetFloat("SFXVolume",    VolumeToDb(sfxVolume));
             audioMixer.SetFloat("PlayerVolume", VolumeToDb(playerVolume));
         }
-        AudioListener.volume = masterVolume;
+        
+        // Đặt âm lượng của toàn môi trường game, giới hạn tuyệt đối 0 đến 1.
+        AudioListener.volume = Mathf.Clamp01(masterVolume);
+    }
+
+    // Thủ thuật chống quá tải dải âm làm Engine tự tắt tiếng (Audio Blowout Break)
+    private float NormalizeVolume(float vol)
+    {
+        if (vol > 1f) vol /= 100f; // Chống lỗi người dùng set thanh Slider 0-100 thay vì 0-1
+        return Mathf.Clamp(vol, 0.0001f, 1f);
     }
 
     public void ApplyGraphics()

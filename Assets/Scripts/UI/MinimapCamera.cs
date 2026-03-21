@@ -116,7 +116,7 @@ public class MinimapCamera : MonoBehaviour
         HandlePlayerIconFix();
     }
 
-    // Tự động fix kích thước và MÀU SẮC của player icon trên minimap
+    // Hàm này đã bị Remove logic để nhường chỗ cho System 3D GPS Arrow màu Vàng mới
     void HandlePlayerIconFix()
     {
         if (minimapUI != null)
@@ -124,28 +124,8 @@ public class MinimapCamera : MonoBehaviour
             Transform pIcon = minimapUI.transform.Find("BorderMask/PlayerIcon");
             if (pIcon != null)
             {
-                // Ẩn khi mở bản đồ lớn
-                if (currentState == MapState.Fullscreen)
-                {
-                    pIcon.gameObject.SetActive(false);
-                }
-                else
-                {
-                    pIcon.gameObject.SetActive(true);
-                    
-                    RectTransform pRect = pIcon.GetComponent<RectTransform>();
-                    if (pRect.sizeDelta.x > 50f || pRect.sizeDelta.y > 50f)
-                    {
-                        pRect.sizeDelta = new Vector2(30f, 30f); 
-                    }
-                    
-                    // Ép màu luôn là XANH LÁ để tránh bị đổi sang xanh dương
-                    Image pImg = pIcon.GetComponent<Image>();
-                    if (pImg != null && pImg.color != Color.green)
-                    {
-                        pImg.color = Color.green;
-                    }
-                }
+                // Tắt vĩnh viễn PlayerIcon 2D cũ (Cái có chứa tầm nhìn FOV)
+                pIcon.gameObject.SetActive(false);
             }
         }
     }
