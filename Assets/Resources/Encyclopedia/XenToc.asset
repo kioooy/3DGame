@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf0fb7d64c1b8e47804ca36d9aaf38d, type: 3}
+  m_Name: XenToc
+  m_EditorClassIdentifier: Assembly-CSharp::InsectData
+  insectID: XenToc
+  insectName: "X\xE9n T\xF3c"
+  description: "M\u1ED9t g\xE3 b\u1ECD hung d\u1EEF v\u1EDBi \u0111\xF4i ng\xE0m
+    kh\u1ECFe m\u1EA1nh, t\xEDnh t\xECnh ki\xEAu ng\u1EA1o, th\u01B0\u1EDDng xuy\xEAn
+    b\u1EAFt n\u1EA1t k\u1EBB y\u1EBFu h\u01A1n m\xECnh trong b\xE3i c\u1ECF."
+  funFact: "X\xE9n T\xF3c th\u1EF1c ch\u1EA5t r\u1EA5t th\xEDch khoe khoang s\u1EE9c
+    m\u1EA1nh qua c\xE1c tr\xF2 v\u1EADt tay."
+  dangerLevel: 1
+  unlockedSprite: {fileID: 21300000, guid: daa4dcf8523312b4d930912dfa189dc6, type: 3}
+  lockedSprite: {fileID: 0}

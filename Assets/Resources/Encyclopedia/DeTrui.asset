@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf0fb7d64c1b8e47804ca36d9aaf38d, type: 3}
+  m_Name: DeTrui
+  m_EditorClassIdentifier: Assembly-CSharp::InsectData
+  insectID: DeTrui
+  insectName: "D\u1EBF Tr\u0169i"
+  description: "Ng\u01B0\u1EDDi anh em k\u1EBFt ngh\u0129a c\u1EE7a D\u1EBF M\xE8n.
+    D\u1EBF Tr\u0169i c\xF3 ngo\u1EA1i h\xECnh v\u1EA1m v\u1EE1, gi\u1ECFi \u0111\xE0o
+    b\u1EDBi v\xE0 r\u1EA5t gi\u1ECFi v\xF5 ngh\u1EC7, lu\xF4n s\xE1t c\xE1nh c\xF9ng
+    D\u1EBF M\xE8n."
+  funFact: "D\u1EBF Tr\u0169i c\xF3 th\u1EC3 \u0111\xE0o m\u1ED9t c\xE1i hang d\xE0i
+    b\u1EB1ng 10 l\u1EA7n c\u01A1 th\u1EC3 m\xECnh ch\u1EC9 trong m\u1ED9t \u0111\xEAm."
+  dangerLevel: 0
+  unlockedSprite: {fileID: 21300000, guid: 8506ec6f89b0f5549ac142d1d779845b, type: 3}
+  lockedSprite: {fileID: 0}

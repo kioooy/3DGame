@@ -15,13 +15,13 @@ public class PlayerAudioSetupTool : EditorWindow
             return;
         }
 
-        string jumpAudioPath = "Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Jump/Footsteps_Grass_Jump_Land_01.wav";
+        string jumpAudioPath = "Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Jump/Footsteps_Grass_Jump_Land_03.wav";
         AudioClip jumpClip = AssetDatabase.LoadAssetAtPath<AudioClip>(jumpAudioPath);
 
-        string walkAudioPath = "Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_01.wav";
+        string walkAudioPath = "Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Walk/Footsteps_Walk_Grass_Mono_02.wav";
         AudioClip walkClip = AssetDatabase.LoadAssetAtPath<AudioClip>(walkAudioPath);
 
-        string runAudioPath = "Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Run/Footsteps_Grass_Run_01.wav";
+        string runAudioPath = "Assets/Audio 1/Footsteps - Essentials/Footsteps_Grass/Footsteps_Grass_Run/Footsteps_Grass_Run_03.wav";
         AudioClip runClip = AssetDatabase.LoadAssetAtPath<AudioClip>(runAudioPath);
 
         if (jumpClip == null || walkClip == null || runClip == null)

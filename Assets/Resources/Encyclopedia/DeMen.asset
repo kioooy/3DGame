@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf0fb7d64c1b8e47804ca36d9aaf38d, type: 3}
+  m_Name: DeMen
+  m_EditorClassIdentifier: Assembly-CSharp::InsectData
+  insectID: DeMen
+  insectName: "D\u1EBF M\xE8n"
+  description: "Nh\xE2n v\u1EADt ch\xEDnh c\u1EE7a ch\xFAng ta. M\u1ED9t ch\xFA d\u1EBF
+    m\xE8n c\u01B0\u1EDDng tr\xE1ng, kh\u1ECFe m\u1EA1nh v\xE0 lu\xF4n tr\xE0n \u0111\u1EA7y
+    nhi\u1EC7t huy\u1EBFt phi\xEAu l\u01B0u. D\u1EBF M\xE8n c\xF3 \u0111\xF4i c\xE0ng
+    s\u1EAFc b\xE9n v\xE0 \u0111\xF4i c\xE1nh ch\u1EAFc kh\u1ECFe."
+  funFact: "D\u1EBF M\xE8n r\u1EA5t th\xEDch u\u1ED1ng s\u01B0\u01A1ng \u0111\xEAm
+    \u0111\u1ECDng tr\xEAn c\xE1c nh\xE1nh c\u1ECF non."
+  dangerLevel: 0
+  unlockedSprite: {fileID: 21300000, guid: 1a50e4216f484da4c949aea26e9d16ec, type: 3}
+  lockedSprite: {fileID: 0}

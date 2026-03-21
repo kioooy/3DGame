@@ -51,6 +51,12 @@ public class SaveLoadManager : MonoBehaviour
         PlayerPrefs.SetInt("HasSavedGame", 1);
         PlayerPrefs.Save();
         
+        // 3. Lưu Save Sổ tay côn trùng (để đồng bộ nếu muốn)
+        if (EncyclopediaManager.Instance != null)
+        {
+            EncyclopediaManager.Instance.SaveData();
+        }
+
         Debug.Log("<color=green>[SaveLoadManager]</color> Đã lưu Game thành công!");
     }
 
@@ -112,6 +118,12 @@ public class SaveLoadManager : MonoBehaviour
             }
         }
         
+        // 3. Load Sổ tay Bách Khoa
+        if (EncyclopediaManager.Instance != null)
+        {
+            EncyclopediaManager.Instance.LoadData();
+        }
+
         Debug.Log("<color=green>[SaveLoadManager]</color> Đã nạp Game thành công!");
         return true;
     }

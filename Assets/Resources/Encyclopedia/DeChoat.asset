@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf0fb7d64c1b8e47804ca36d9aaf38d, type: 3}
+  m_Name: DeChoat
+  m_EditorClassIdentifier: Assembly-CSharp::InsectData
+  insectID: DeChoat
+  insectName: "D\u1EBF Cho\u1EAFt"
+  description: "M\u1ED9t ch\xFA d\u1EBF \u1ED1m y\u1EBFu, g\u1EA7y g\xF2 s\u1ED1ng
+    quanh qu\u1EA9n b\xEAn nh\xE0 D\u1EBF M\xE8n. Tuy th\u1EC3 tr\u1EA1ng x\u01A1
+    x\xE1c, \u1ED1m nom \u0111au y\u1EBFu, nh\u01B0ng r\u1EA5t hi\u1EC1n l\xE0nh
+    v\xE0 hay nh\u01B0\u1EDDng nh\u1ECBn."
+  funFact: "D\u1EBF Cho\u1EAFt c\xF3 s\u1EDF th\xEDch ch\u01A1i c\u1EDD Caro \u0111\u1EC3
+    gi\u1EBFt th\u1EDDi gian."
+  dangerLevel: 0
+  unlockedSprite: {fileID: 21300000, guid: 628d0e06fd0f5844db4d744232a0d5c6, type: 3}
+  lockedSprite: {fileID: 0}

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cf0fb7d64c1b8e47804ca36d9aaf38d, type: 3}
+  m_Name: ConKien
+  m_EditorClassIdentifier: Assembly-CSharp::InsectData
+  insectID: ConKien
+  insectName: "Ki\u1EBFn Qu\xE2n \u0110\u1ED9i"
+  description: "Ki\u1EBFn Ch\u1EC9 Huy c\u1EE7a \u0111\xE0n ki\u1EBFn qu\xE2n \u0111\u1ED9i.
+    K\u1EF7 lu\u1EADt, ch\u0103m ch\u1EC9 v\xE0 lu\xF4n mang tr\xEAn m\xECnh tr\xE1ch
+    nhi\u1EC7m b\u1EA3o v\u1EC7 t\u1ED5 ki\u1EBFn kh\u1ECFi nh\u1EEFng hi\u1EC3m
+    nguy b\xEAn ngo\xE0i."
+  funFact: "Ki\u1EBFn Qu\xE2n \u0110\u1ED9i kh\xF4ng bao gi\u1EDD ng\u1EE7, ch\xFAng
+    l\xE0m vi\u1EC7c theo ca lu\xE2n phi\xEAn."
+  dangerLevel: 0
+  unlockedSprite: {fileID: 0}
+  lockedSprite: {fileID: 0}

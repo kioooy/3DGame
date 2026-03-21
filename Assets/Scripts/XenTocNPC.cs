@@ -39,7 +39,8 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     
     private bool isPlayerNearby = false;
     private bool isTalking = false;
-    private bool isWaitingForCombat = false; // Thay vì đợi lựa chọn, Boss đợi đánh
+    private bool isWaitingForCombat = false;
+    private bool _isWaitingMinigameResultDelay = false;
     public bool isMinigameActive { get; set; }
 
     // --- CHẾ ĐỘ CƯỠI (Hidden Interaction) ---
@@ -192,7 +193,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         // --- LOGIC PHÍA DƯỚI LÀ DEFAULT KHI KHÔNG NÓI CHUYỆN ---
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        bool currentlyNearby = distanceToPlayer <= interactionDistance;
+        bool currentlyNearby = distanceToPlayer <= interactionDistance && IsClosestNPC() && !MountXenTocController.IsRiding;
 
         if (currentlyNearby != isPlayerNearby)
         {
@@ -251,6 +252,8 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     void StartInteraction()
     {
         isTalking = true;
+
+        // Đã dời xuống EndMinigame để unlock sau khi đấu xong
         
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
@@ -277,6 +280,8 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     
     void TriggerNextSentence()
     {
+        if (_isWaitingMinigameResultDelay) return;
+
         currentDialogueIndex++;
         if (currentDialogueIndex < dialogue.Length)
         {
@@ -323,6 +328,8 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     {
         isTalking = false;
         isWaitingForCombat = false;
+        _isWaitingRideChoice = false;
+        _isWaitingMinigameResultDelay = false;
         
         if (chatBubble != null) chatBubble.Hide();
 
@@ -369,8 +376,10 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     public void EndMinigame(bool isWin, bool isDraw = false)
     {
         isMinigameActive = false;
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("XenToc");
         isTalking = true;
         isWaitingForCombat = false;
+        _isWaitingMinigameResultDelay = true;
         
         string resultText = "";
         
@@ -410,6 +419,7 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     {
         isTalking = false;
         _isWaitingRideChoice = true;
+        _isWaitingMinigameResultDelay = false;
         if (chatBubble != null) chatBubble.Hide();
 
         if (interactionPromptUI != null)
@@ -444,5 +454,22 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     void HidePrompt()
     {
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
+    }
+
+    private bool IsClosestNPC()
+    {
+        if (player == null) return false;
+        float myDist = Vector3.Distance(transform.position, player.position);
+        var allNPCs = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+        foreach (var npc in allNPCs)
+        {
+            if (npc != this && npc is INPCMinigame)
+            {
+                float otherDist = Vector3.Distance(npc.transform.position, player.position);
+                if (otherDist < myDist) return false;
+                if (Mathf.Abs(otherDist - myDist) < 0.01f && npc.gameObject.GetInstanceID() < gameObject.GetInstanceID()) return false;
+            }
+        }
+        return true;
     }
 }

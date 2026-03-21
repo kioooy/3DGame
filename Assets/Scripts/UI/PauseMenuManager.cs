@@ -29,12 +29,8 @@ public class PauseMenuManager : MonoBehaviour
         if (Time.timeScale == 0f && !IsPaused) return;
 
         bool escPressed = false;
-#if ENABLE_INPUT_SYSTEM
         var kb = Keyboard.current;
         if (kb != null && kb.escapeKey.wasPressedThisFrame) escPressed = true;
-#else
-        if (Input.GetKeyDown(KeyCode.Escape)) escPressed = true;
-#endif
 
         if (escPressed)
         {
