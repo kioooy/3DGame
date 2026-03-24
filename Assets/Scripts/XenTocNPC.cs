@@ -14,9 +14,39 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     public string npcName { get => _npcName; set => _npcName = value; }
     [TextArea(3, 10)]
     public string[] dialogue = new string[] {
-        "Muahaha! Ngươi tưởng có thể vượt qua ta sao?",
-        "Tên Dế Mèn bé nhỏ kia, đây sẽ là nơi chôn xác ngươi!",
-        "Chuẩn bị chịu chết đi!" 
+        "(Xén Tóc): Ồ! Dế Mèn hả? Lâu rồi không gặp. Mày tìm ta vì chuyện gì?",
+        "(Dế Mèn): Chào anh, tôi đang đi tìm Dế Choắt, anh có biết hắn ở đâu không?",
+        "(Xén Tóc): Dế Choắt á? Heh... ta biết hắn ở đâu đó.",
+        "(Xén Tóc): Nhưng ta không chỉ đường miễn phí đâu nhé. Muốn biết, hãy thắng ta trong một cú vật tay cái đã!"
+    };
+
+    [Header("Story: Dialogue sau khi đã thắng")]
+    [TextArea(3, 10)]
+    public string[] dialogueAfterWin = new string[] {
+        "(Xén Tóc): Ừ, ngươi thắng rồi đó Mèn... Ta giữ lời.",
+        "(Xén Tóc): Dế Choắt đang ở trong trần nhà kia. Nhưng đường đó Côn Kiến đang canh giữ bấy lâu.",
+        "(Xén Tóc): Leo lên lưng ta đi, ta cõng ngươi bay thẳng vào trong nhà!"
+    };
+    [TextArea(3, 10)]
+    public string[] dialoguePhase2 = new string[] {
+        "(Xén Tóc): Sao cơ? Lão Côn Kiến bắt mày đi tìm mật ong của Dế Trũi à?",
+        "(Xén Tóc): Lão khập khiễng đó đúng là khó tính... Cơ mà ta biết hang Dế Trũi ở đâu đấy!",
+        "(Xén Tóc): Đường xa lắm, lên lưng tao đi, tao chở mày bay qua đó!"
+    };
+
+    [Header("Story: Dialogue khi đã có Mật Ong (Chưa qua lính gác)")]
+    [TextArea(3, 10)]
+    public string[] dialoguePhase3 = new string[] {
+        "(Xén Tóc): Giỏi lắm! Lấy được mật ong rồi đúng không? Mùi thơm bay tận ra đây.",
+        "(Xén Tóc): Nhanh leo lên lưng đi, tao sẽ chở mày trở lại chỗ Côn Kiến trên mái nhà!"
+    };
+
+    [Header("Story: Dialogue khi đã Vượt Lính Gác Côn Kiến")]
+    [TextArea(3, 10)]
+    public string[] dialoguePhase4 = new string[] {
+        "(Xén Tóc): Lão Côn Kiến chịu nhường đường rồi à? Khá lắm!",
+        "(Xén Tóc): Dế Choắt đang ở góc đó kìa. Cứ đi bộ vào là thấy.",
+        "(Xén Tóc): Nếu thích dạo chơi thêm thì cứ nhảy lên lưng tao nhé!"
     };
     public AudioClip typewriterBeep;
 
@@ -72,6 +102,20 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
             }
         }
         
+        int phase = StoryQuestManager.Instance != null ? StoryQuestManager.Instance.currentPhase : 0;
+        if (phase >= StoryQuestManager.PHASE_BEAT_XENTOC && PlayerPrefs.GetInt("HasSavedXenTocPos", 0) == 1)
+        {
+            float px = PlayerPrefs.GetFloat("XenTocPosX", transform.position.x);
+            float py = PlayerPrefs.GetFloat("XenTocPosY", transform.position.y);
+            float pz = PlayerPrefs.GetFloat("XenTocPosZ", transform.position.z);
+            Vector3 savedPos = new Vector3(px, py, pz);
+
+            if (Vector3.Distance(transform.position, savedPos) > 1f)
+            {
+                transform.position = savedPos;
+            }
+        }
+
         mainCamera = Camera.main;
 
         if (animator == null) animator = GetComponent<Animator>();
@@ -85,7 +129,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         if (interactionPromptUI != null)
         {
             promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
-            if (promptTextComp != null) originalPromptText = promptTextComp.text;
+            if (promptTextComp != null)
+            {
+                originalPromptText = _npcName;
+                promptTextComp.text = originalPromptText;
+            }
         }
 
         // Khôi phục trạng thái thắng từ lần chơi trước
@@ -144,11 +192,18 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
                     isWaitingForCombat = false;
                     EndInteractionForCombat();
                     
-                    if (animator != null) animator.SetTrigger(aggroTrigger);
+                    if (animator != null && HasParameter(aggroTrigger)) animator.SetTrigger(aggroTrigger);
                     chatBubble.Setup("TỚI ĐÂYYY!", typewriterBeep);
                     Invoke("HideBubble", 2f);
                     
-                    // TODO: GỌI HÀM BẮT ĐẦU COMBAT Ở ĐÂY
+                    if (ArmWrestlingManager.Instance != null)
+                    {
+                        ArmWrestlingManager.Instance.StartGame(this);
+                    }
+                    else
+                    {
+                        Debug.LogError("ArmWrestlingManager.Instance is NULL!");
+                    }
                 }
                 else if (kb.digit2Key.wasPressedThisFrame || kb.tabKey.wasPressedThisFrame)
                 {
@@ -192,24 +247,31 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
 
         // --- LOGIC PHÍA DƯỚI LÀ DEFAULT KHI KHÔNG NÓI CHUYỆN ---
 
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        bool currentlyNearby = distanceToPlayer <= interactionDistance && IsClosestNPC() && !MountXenTocController.IsRiding;
+        float distToPlayer = Vector3.Distance(transform.position, player.position);
+        bool nowNearby = distToPlayer <= interactionDistance && !MountXenTocController.IsRiding;
+        isPlayerNearby = nowNearby;
 
-        if (currentlyNearby != isPlayerNearby)
+        // KIỂM TRA ĐỘ ƯU TIÊN: Chỉ hiện nút F nếu là NPC được Dế Mèn nhìn vào rõ nhất
+        bool isBestCandidate = playerController != null && playerController.GetClosestNPC() == gameObject;
+        bool shouldShowPrompt = isPlayerNearby && isBestCandidate && !isTalking && !isWaitingForCombat && !isMinigameActive;
+
+        if (interactionPromptUI != null && interactionPromptUI.activeSelf != shouldShowPrompt)
         {
-            isPlayerNearby = currentlyNearby;
-            if (!isTalking && !isWaitingForCombat && interactionPromptUI != null)
-            {
-                interactionPromptUI.SetActive(isPlayerNearby);
-            }
+            interactionPromptUI.SetActive(shouldShowPrompt);
         }
 
-        if (isPlayerNearby && !isTalking && !isWaitingForCombat)
+        if (shouldShowPrompt)
         {
             if (kb != null && kb.fKey.wasPressedThisFrame)
             {
                 StartInteraction();
             }
+        }
+
+        // Xoay mặt mượt mà khi đang nói chuyện
+        if (isTalking || isWaitingForCombat || _isWaitingRideChoice)
+        {
+            FacePlayerTarget();
         }
     }
     
@@ -274,6 +336,29 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         }
 
         currentDialogueIndex = 0;
+        var story = StoryQuestManager.Instance;
+
+        int phase = story.currentPhase;
+        if (phase == StoryQuestManager.PHASE_START)
+        {
+            // Vẫn dùng dialogue mặc định cho Phase 0
+        }
+        else if (phase == StoryQuestManager.PHASE_BEAT_XENTOC)
+        {
+            dialogue = dialogueAfterWin;
+        }
+        else if (phase == StoryQuestManager.PHASE_MEET_CONKIEN)
+        {
+            dialogue = dialoguePhase2;
+        }
+        else if (phase == StoryQuestManager.PHASE_BEAT_DETRUI)
+        {
+            dialogue = dialoguePhase3;
+        }
+        else // Phase >= PHASE_GIVE_ITEM (Đã vượt lính gác)
+        {
+            dialogue = dialoguePhase4;
+        }
 
         DisplayCurrentSentence();
     }
@@ -289,11 +374,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         }
         else
         {
-            // Nếu đã từng thắng → hiện lựa chọn cưỡi luôn
-            if (_hasWon)
-                ShowReturnRideChoice();
-            else
+            int phase = StoryQuestManager.Instance.currentPhase;
+            if (phase == StoryQuestManager.PHASE_START)
                 ShowChoice();
+            else
+                ShowReturnRideChoice();
         }
     }
     
@@ -390,6 +475,11 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
             _hasWon = true;
             PlayerPrefs.SetInt("XenToc_PlayerWon", 1);
             PlayerPrefs.Save();
+            // ── Tiến cốt truyện ──────────────────────────────────────────
+            StoryQuestManager.Instance.AdvanceTo(StoryQuestManager.PHASE_BEAT_XENTOC);
+            // Đổi sang dialogue cốt truyện cho lần cưỡi
+            if (dialogueAfterWin != null && dialogueAfterWin.Length > 0)
+                dialogue = dialogueAfterWin;
         }
         else resultText = "Há há há! Dăm ba cái đồ tôm tép, ngoan ngoãn chắp tay gọi ta bằng ngài đi!";
         
@@ -456,20 +546,29 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
     }
 
-    private bool IsClosestNPC()
+    // Đã gỡ bỏ IsClosestNPC
+
+    void OnGUI()
     {
-        if (player == null) return false;
-        float myDist = Vector3.Distance(transform.position, player.position);
-        var allNPCs = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
-        foreach (var npc in allNPCs)
+        if (isPlayerNearby && !isTalking && !isWaitingForCombat && !_isWaitingRideChoice && !isMinigameActive)
         {
-            if (npc != this && npc is INPCMinigame)
-            {
-                float otherDist = Vector3.Distance(npc.transform.position, player.position);
-                if (otherDist < myDist) return false;
-                if (Mathf.Abs(otherDist - myDist) < 0.01f && npc.gameObject.GetInstanceID() < gameObject.GetInstanceID()) return false;
-            }
+            GUIStyle style = new GUIStyle();
+            style.fontSize = 24;
+            style.normal.textColor = Color.white;
+            style.alignment = TextAnchor.MiddleCenter;
+
+            // Draw shadow
+            GUIStyle shadowStyle = new GUIStyle(style);
+            shadowStyle.normal.textColor = Color.black;
+
+            float w = 200;
+            float h = 50;
+            float x = (Screen.width - w) / 2;
+            float y = (Screen.height - h) / 2;
+
+            string text = "[F] Nói chuyện";
+            GUI.Label(new Rect(x + 2, y + 2, w, h), text, shadowStyle);
+            GUI.Label(new Rect(x, y, w, h), text, style);
         }
-        return true;
     }
 }

@@ -55,7 +55,7 @@ public class MainMenuFixTool : EditorWindow
         }
 
         // 2. Chỉnh sửa chữ DẾ MÈN PHIÊU LƯU KÝ (Quét cả Text và TMP)
-        var allTitleObjs = GameObject.FindObjectsOfType<GameObject>();
+        var allTitleObjs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
         foreach (GameObject g in allTitleObjs)
         {
             if (!g.scene.IsValid()) continue;

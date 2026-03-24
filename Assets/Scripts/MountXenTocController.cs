@@ -101,7 +101,7 @@ public class MountXenTocController : MonoBehaviour
         }
 
         // Disable NPC script to stop wandering
-        DeTruiNPC npcScript = GetComponent<DeTruiNPC>();
+        XenTocNPC npcScript = GetComponent<XenTocNPC>();
         if (npcScript != null)
         {
             npcScript.enabled = false;
@@ -117,7 +117,7 @@ public class MountXenTocController : MonoBehaviour
         }
 
         // Tắt script tự di chuyển / Wander của NPC (nếu có) để khỏi tranh giành Velocity với di chuyển bay
-        if (TryGetComponent<DeTruiNPC>(out DeTruiNPC npcAI))
+        if (TryGetComponent<XenTocNPC>(out XenTocNPC npcAI))
         {
             npcAI.enabled = false;
             if (npcAI.interactionPromptUI != null) npcAI.interactionPromptUI.SetActive(false);
@@ -257,7 +257,7 @@ public class MountXenTocController : MonoBehaviour
         if (_playerCtrl != null) _playerCtrl.enabled = true;
 
         // Bật lại script NPC tự di chuyển
-        if (TryGetComponent<DeTruiNPC>(out DeTruiNPC npcAI))
+        if (TryGetComponent<XenTocNPC>(out XenTocNPC npcAI))
         {
             npcAI.enabled = true;
         }
@@ -266,12 +266,12 @@ public class MountXenTocController : MonoBehaviour
         if (_player.TryGetComponent<Rigidbody>(out Rigidbody prb)) prb.isKinematic = false;
         if (_player.TryGetComponent<Collider>(out Collider pcol)) pcol.enabled = true;
 
-        // Bật lại Rigidbody gravity
+        // Bật lại Rigidbody gravity cho Xén Tóc để rớt xuống đất
         if (_xenTocRb != null)
         {
             _xenTocRb.linearVelocity = Vector3.zero; // Xoá dư âm vận tốc của Xén Tóc
             _xenTocRb.isKinematic = false;
-            _xenTocRb.useGravity = false; // Trả lại false để script NPC tự động bám địa hình bằng Raycast
+            _xenTocRb.useGravity = true; // Bật trọng lực để rơi xuống từ từ
             _xenTocRb.constraints = _originalConstraints; // Trả lại Rigidbody constraints cũ
         }
         
@@ -293,6 +293,13 @@ public class MountXenTocController : MonoBehaviour
         if (_playerGraph.IsValid()) _playerGraph.Destroy();
 
         _velocity  = Vector3.zero;
+
+        // Bổ sung: Lưu lại vị trí của Xén Tóc do lúc Đua Xe sẽ Reset lại Scene
+        PlayerPrefs.SetFloat("XenTocPosX", transform.position.x);
+        PlayerPrefs.SetFloat("XenTocPosY", transform.position.y);
+        PlayerPrefs.SetFloat("XenTocPosZ", transform.position.z);
+        PlayerPrefs.SetInt("HasSavedXenTocPos", 1);
+        PlayerPrefs.Save();
 
         Debug.Log("[MountXenToc] 🪲 Đã xuống khỏi Xén Tóc!");
     }

@@ -168,6 +168,46 @@ public class InventoryManager : MonoBehaviour
     }
     
     /// <summary>
+    /// Kiểm tra xem có item theo loại (ItemType) không
+    /// </summary>
+    public bool HasItemType(ItemType type, int quantity = 1)
+    {
+        int count = 0;
+        foreach (var slot in _slots)
+        {
+            if (!slot.IsEmpty && slot.item != null && slot.item.itemType == type)
+            {
+                count += slot.quantity;
+                if (count >= quantity) return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Xóa item theo loại (ItemType)
+    /// </summary>
+    public bool RemoveItemType(ItemType type, int quantity)
+    {
+        if (quantity <= 0) return false;
+        
+        if (!HasItemType(type, quantity)) return false;
+        
+        int remainingQty = quantity;
+        for (int i = 0; i < _slots.Length && remainingQty > 0; i++)
+        {
+            if (!_slots[i].IsEmpty && _slots[i].item != null && _slots[i].item.itemType == type)
+            {
+                int removed = _slots[i].RemoveItem(remainingQty);
+                remainingQty -= removed;
+            }
+        }
+        
+        OnInventoryChanged?.Invoke();
+        return true;
+    }
+    
+    /// <summary>
     /// Xóa item từ slot cụ thể (dùng cho throwing)
     /// </summary>
     public bool RemoveItemFromSlot(int slotIndex, int quantity = 1)

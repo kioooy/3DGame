@@ -208,12 +208,16 @@ public class RacingMinigameManager : MonoBehaviour
 
         if (playerWon)
         {
+            PlayerPrefs.SetInt("WonRace", 1);
+            PlayerPrefs.Save();
             resultText.text = "CHIẾN THẮNG!";
             resultText.color = Color.green;
             if (winSFX != null && _audioSource != null) _audioSource.PlayOneShot(winSFX);
         }
         else
         {
+            PlayerPrefs.SetInt("WonRace", 0);
+            PlayerPrefs.Save();
             resultText.text = "THUA CUỘC!";
             resultText.color = Color.red;
             if (loseSFX != null && _audioSource != null) _audioSource.PlayOneShot(loseSFX);

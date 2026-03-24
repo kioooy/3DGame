@@ -1,57 +1,61 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class DeChoatNPC : MonoBehaviour, INPCMinigame
+/// <summary>
+/// Script riêng cho NPC Dế Choắt.
+/// Chỉ hiện tương tác khi Phase >= GIVE_ITEM.
+/// Nói chuyện xong sẽ trigger kết thúc game.
+/// </summary>
+public class DeChoatNPC : MonoBehaviour
 {
     [Header("Chat Bubble")]
     public ChatBubble chatBubble;
-    public GameObject interactionPromptUI; 
-    
-
+    public GameObject interactionPromptUI;
 
     [Header("Identidade")]
     [SerializeField] private string _npcName = "Dế Choắt";
-    public string npcName { get => _npcName; set => _npcName = value; }
+    public AudioClip typewriterBeep;
+
+    [Header("Dialogue: Chưa đủ điều kiện gặp")]
     [TextArea(3, 10)]
-    public string[] dialogue = new string[] {
-        "Chào anh Mèn... Em dạo này ốm yếu quá.",
-        "Anh đi đứng cẩn thận nhé, ngoài kia nhiều nguy hiểm lắm.",
-        "Nếu rảnh rỗi, anh nhớ ghé qua thăm em nhé..." 
+    public string[] dialogueNotReady = new string[]
+    {
+        "(Dế Choắt): (Trùm chăn rên rỉ) Ai đó? Đừng làm phiền tôi, tôi mệt lắm..."
+    };
+
+    [Header("Dialogue: Cảnh kết thúc cảm xúc (Phase >= GIVE_ITEM)")]
+    [TextArea(3, 10)]
+    public string[] dialogueRescued = new string[]
+    {
+        "(Dế Choắt): Mày... đến tìm tao thật à, Mèn?",
+        "(Dế Mèn): Choắt ơi, tao xin lỗi mày... Tất cả là tại tao ngỗ nghịch...",
+        "(Dế Choắt): Tự dưng thấy mày... tao không biết nói gì nữa.",
+        "(Dế Mèn): Cảm ơn mọi người, cảm ơn anh Xén Tóc, anh Côn Kiến, Dế Trũi...",
+        "(Dế Choắt): ...Nhưng mày mới là người đi đến tận đây vì tao."
     };
 
     [Header("Settings Khung Cảnh (Skyrim-like)")]
-    public float interactionDistance = 3.0f;
+    public float interactionDistance = 6.0f; // Nới rộng khoảng cách do nằm giường
     [Tooltip("Điều chỉnh vị trí camera khi Focus nói chuyện (So với mặt NPC)")]
-    public Vector3 cameraFocusOffset = new Vector3(0, 0.4f, 1.2f); 
+    public Vector3 cameraFocusOffset = new Vector3(0, 0.4f, 1.2f);
     public float cameraTransitionSpeed = 5f;
 
     [Header("Animation")]
     public Animator animator;
     public string talkTrigger = "Talk";
     public string idleTrigger = "Idle";
-    public string runBool = "IsRunning";
 
-    [Header("Follow Settings")]
-    public float followSpeed = 4f;
-    [Tooltip("Khoảng cách bám theo khi chạy")]
-    public float stopDistance = 2.5f;
-
-    // Các biến Logic ẩn danh
+    // Private state
     private Transform player;
     private PlayerController playerController;
     private Camera mainCamera;
-    
+
     private bool isPlayerNearby = false;
     private bool isTalking = false;
-    private bool isWaitingForChoice = false;
-    private bool isFollowing = false;
-    public bool isMinigameActive { get; set; }
-    
-    // Quản lý đoạn hội thoại Skyrim
-    private int currentDialogueIndex = 0;
 
-    
-    // Lưu tạm thời vị trí Camera (Trở về ban đầu kết thúc Dialog)
+    private int currentDialogueIndex = 0;
+    private string[] currentDialogue;
+
     private Vector3 originalCameraPos;
     private Quaternion originalCameraRot;
     private Transform originalCameraParent;
@@ -59,8 +63,34 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     private TMPro.TextMeshProUGUI promptTextComp;
     private string originalPromptText;
 
-
+    // ─────────────────────────────────────────────────────────────
     void Start()
+    {
+        if (chatBubble == null) chatBubble = GetComponentInChildren<ChatBubble>(true);
+        GameObject p = GameObject.FindGameObjectWithTag("Player");
+        if (p != null)
+        {
+            player = p.transform;
+            playerController = p.GetComponent<PlayerController>();
+        }
+
+        mainCamera = Camera.main;
+
+        if (animator == null) animator = GetComponent<Animator>();
+
+        if (interactionPromptUI != null)
+        {
+            promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            if (promptTextComp != null)
+            {
+                originalPromptText = _npcName;
+                promptTextComp.text = originalPromptText;
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    void Update()
     {
         if (player == null)
         {
@@ -69,174 +99,166 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
                  player = p.transform;
                  playerController = p.GetComponent<PlayerController>();
             }
+            if (player == null) return;
         }
-        
-        mainCamera = Camera.main;
-
-        if (animator == null) animator = GetComponent<Animator>();
-            
-        if (interactionPromptUI != null)
-        {
-            promptTextComp = interactionPromptUI.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
-            if (promptTextComp != null) 
-            {
-                originalPromptText = GetDisplayName();
-                promptTextComp.text = originalPromptText;
-            }
-        }
-    }
-
-    void Update()
-    {
-        if (player == null || isMinigameActive) return;
-        var kb = Keyboard.current;
+        var kb    = Keyboard.current;
         var mouse = Mouse.current;
 
-        // --- CÓ LỰA CHỌN (MENU: ĐI CÙNG HAY KHÔNG) ---
-        if (isWaitingForChoice)
-        {
-            HandleCameraFocusSkyrim(); // Vẫn giữ cam khóa chặt mặt
-            
-            if (kb != null)
-            {
-                if (kb.digit1Key.wasPressedThisFrame)
-                {
-                    isFollowing = true;
-                    isWaitingForChoice = false;
-                    EndInteraction();
-                    chatBubble.Setup("Em sẽ lê bước theo anh!");
-                    Invoke("HideBubble", 2f);
-                }
-                else if (kb.digit2Key.wasPressedThisFrame)
-                {
-                    isFollowing = false;
-                    isWaitingForChoice = false;
-                    EndInteraction();
-                    chatBubble.Setup("Vâng, anh đi cẩn thận nhé!");
-                    Invoke("HideBubble", 2f);
-                }
-                // Thoát ngang bằng phím Tab (Như yêu cầu Skyrim)
-                else if (kb.tabKey.wasPressedThisFrame)
-                {
-                    isFollowing = false;
-                    isWaitingForChoice = false;
-                    EndInteraction();
-                }
-            }
-            return;
-        }
-
-        // --- TRONG QUÁ TRÌNH HỘI THOẠI (NEXT BẰNG CHUỘT / THOÁT BẰNG TAB) ---
+        // === Trong hội thoại ===
         if (isTalking)
         {
             HandleCameraFocusSkyrim();
-            
+
             if (kb != null && kb.tabKey.wasPressedThisFrame)
             {
-                // Bấm TAB thoát ngay lập tức
                 EndInteraction();
                 return;
             }
 
-            bool nextPressed = (mouse != null && mouse.leftButton.wasPressedThisFrame) ||
-                               (kb != null && (kb.spaceKey.wasPressedThisFrame || kb.fKey.wasPressedThisFrame));
+            bool nextPressed = (mouse != null && mouse.leftButton.wasPressedThisFrame)
+                            || (kb != null && (kb.spaceKey.wasPressedThisFrame || kb.fKey.wasPressedThisFrame));
 
             if (nextPressed)
             {
-                if (chatBubble != null && chatBubble.isTyping)
-                {
-                    chatBubble.FastForward();
-                }
-                else
-                {
-                    TriggerNextSentence();
-                }
+                if (chatBubble != null && chatBubble.isTyping) chatBubble.FastForward();
+                else TriggerNextSentence();
             }
             return;
         }
 
-        // --- LOGIC PHÍA DƯỚI LÀ DEFAULT KHI KHÔNG NÓI CHUYỆN ---
+        // === Idle – phát hiện khoảng cách ===
+        float dist = Vector3.Distance(transform.position, player.position);
+        bool nearby = dist <= interactionDistance;
+        isPlayerNearby = nearby;
 
-        if (isFollowing)
+        // KIỂM TRA ĐỘ ƯU TIÊN: Chỉ hiện nút F nếu là NPC được Dế Mèn nhìn vào rõ nhất
+        bool isBestCandidate = playerController != null && playerController.GetClosestNPC() == gameObject;
+        bool shouldShowPrompt = isPlayerNearby && isBestCandidate && !isTalking;
+
+        if (interactionPromptUI != null && interactionPromptUI.activeSelf != shouldShowPrompt)
         {
-            if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
-            
-            float dist = Vector3.Distance(transform.position, player.position);
-            bool isMovingNow = false;
-            // Dế Choắt chạy chậm hơn Dế Trũi một chút vì ốm yếu
-            float choatFollowSpeed = followSpeed * 0.7f; 
-            
-            if (dist > stopDistance)
-            {
-                Vector3 targetPos = player.position;
-                targetPos.y = transform.position.y;
-                Vector3 dir = (targetPos - transform.position).normalized;
-                
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10f * Time.deltaTime);
-                transform.position = Vector3.MoveTowards(transform.position, targetPos, choatFollowSpeed * Time.deltaTime);
-                isMovingNow = true;
-            }
-            else
-            {
-                FacePlayerTarget();
-                isMovingNow = false;
-            }
-
-            if (animator != null) animator.SetBool(runBool, isMovingNow);
-            
-            if (dist <= interactionDistance && kb != null && kb.fKey.wasPressedThisFrame)
-            {
-                isFollowing = false;
-                if (animator != null) animator.SetBool(runBool, false);
-                chatBubble.Setup("Em khát nước... Dừng chút nhé anh!");
-                Invoke("HideBubble", 2f);
-            }
-            return;
+            interactionPromptUI.SetActive(shouldShowPrompt);
         }
 
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        bool currentlyNearby = distanceToPlayer <= interactionDistance && IsClosestNPC();
-
-        if (currentlyNearby != isPlayerNearby)
-        {
-            isPlayerNearby = currentlyNearby;
-            if (!isTalking && !isWaitingForChoice && interactionPromptUI != null)
-            {
-                interactionPromptUI.SetActive(isPlayerNearby);
-            }
-        }
-
-        if (isPlayerNearby && !isTalking && !isWaitingForChoice)
+        if (shouldShowPrompt)
         {
             if (kb != null && kb.fKey.wasPressedThisFrame)
             {
                 StartInteraction();
             }
         }
+
+        // Xoay mặt mượt mà khi đang nói chuyện
+        if (isTalking)
+        {
+            FacePlayerTarget();
+        }
     }
-    
+
+    // ─────────────────────────────────────────────────────────────
+    void StartInteraction()
+    {
+        isTalking = true;
+        if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
+
+        FacePlayerTarget();
+        if (animator != null && HasParameter(talkTrigger)) animator.SetTrigger(talkTrigger);
+        if (playerController != null) playerController.isDialoguing = true;
+
+        if (mainCamera != null)
+        {
+            originalCameraParent = mainCamera.transform.parent;
+            originalCameraPos    = mainCamera.transform.localPosition;
+            originalCameraRot    = mainCamera.transform.localRotation;
+        }
+
+        currentDialogueIndex = 0;
+
+        // Chỉ chơi cảnh kết thúc khi đã đủ điều kiện
+        int phase = StoryQuestManager.Instance != null ? StoryQuestManager.Instance.currentPhase : 0;
+
+        if (phase >= StoryQuestManager.PHASE_GIVE_ITEM)
+        {
+            currentDialogue = dialogueRescued;
+            // Advance sang ENDING ngay khi bắt đầu nói chuyện
+            StoryQuestManager.Instance?.AdvanceTo(StoryQuestManager.PHASE_ENDING);
+        }
+        else
+        {
+            currentDialogue = dialogueNotReady;
+        }
+
+        DisplayCurrentSentence();
+    }
+
+    void TriggerNextSentence()
+    {
+        currentDialogueIndex++;
+        if (currentDialogueIndex < currentDialogue.Length)
+        {
+            DisplayCurrentSentence();
+        }
+        else
+        {
+            isTalking = false;
+            EndInteraction();
+        }
+    }
+
+    void DisplayCurrentSentence()
+    {
+        if (chatBubble != null && currentDialogue != null && currentDialogueIndex < currentDialogue.Length)
+            chatBubble.Setup(currentDialogue[currentDialogueIndex], typewriterBeep);
+    }
+
+    public void EndInteraction()
+    {
+        isTalking = false;
+
+        if (chatBubble != null) chatBubble.Hide();
+
+        if (promptTextComp != null && !string.IsNullOrEmpty(originalPromptText))
+        {
+            promptTextComp.text     = originalPromptText;
+            promptTextComp.fontSize = 50;
+        }
+
+        if (interactionPromptUI != null)
+            interactionPromptUI.SetActive(isPlayerNearby);
+
+        if (animator != null && HasParameter(idleTrigger)) animator.SetTrigger(idleTrigger);
+
+        if (playerController != null) playerController.isDialoguing = false;
+
+        if (mainCamera != null)
+        {
+            mainCamera.transform.localPosition = originalCameraPos;
+            mainCamera.transform.localRotation = originalCameraRot;
+        }
+
+        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("DeChoat");
+    }
+
+    // ─────────────────────────────────────────────────────────────
     private void HandleCameraFocusSkyrim()
     {
         if (mainCamera == null) return;
-        
         FacePlayerTarget();
 
-        // Target Cận mặt nhân vật NPC một chút
-        Vector3 targetPos = transform.position + transform.rotation * cameraFocusOffset;
-        // Xoay Camera ngắm vào khuôn mặt
+        Vector3    targetPos = transform.position + transform.rotation * cameraFocusOffset;
         Quaternion targetRot = Quaternion.LookRotation((transform.position + Vector3.up * 0.5f) - targetPos);
 
         mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, targetPos, Time.deltaTime * cameraTransitionSpeed);
         mainCamera.transform.rotation = Quaternion.Slerp(mainCamera.transform.rotation, targetRot, Time.deltaTime * cameraTransitionSpeed);
     }
-    
+
     void FacePlayerTarget()
     {
         if (player == null) return;
-        Vector3 direction = (player.position - transform.position).normalized;
-        direction.y = 0; 
-        if (direction != Vector3.zero)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 10f * Time.deltaTime);
+        Vector3 dir = (player.position - transform.position).normalized;
+        dir.y = 0;
+        if (dir != Vector3.zero)
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 10f * Time.deltaTime);
     }
 
     void HideBubble() { if (chatBubble != null) chatBubble.Hide(); }
@@ -244,209 +266,35 @@ public class DeChoatNPC : MonoBehaviour, INPCMinigame
     private bool HasParameter(string paramName)
     {
         if (animator == null || animator.runtimeAnimatorController == null || string.IsNullOrEmpty(paramName)) return false;
-        foreach (AnimatorControllerParameter param in animator.parameters)
-        {
-            if (param.name == paramName) return true;
-        }
+        foreach (AnimatorControllerParameter p in animator.parameters)
+            if (p.name == paramName) return true;
         return false;
     }
 
-    void StartInteraction()
+    public string GetDisplayName() => _npcName;
+
+    void OnGUI()
     {
-        isTalking = true;
-
-        // Đã dời mở cửa số tay sang khi kết thúc trò chơi
-        
-        if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
-
-        FacePlayerTarget();
-        if (animator != null && HasParameter(talkTrigger)) animator.SetTrigger(talkTrigger);
-
-        if (playerController != null)
+        bool isBestCandidate = playerController != null && playerController.GetClosestNPC() == gameObject;
+        if (isPlayerNearby && isBestCandidate && !isTalking)
         {
-            // Skyrim action: FREEZE PLAYER
-            playerController.isDialoguing = true;
+            GUIStyle style = new GUIStyle();
+            style.fontSize = 24;
+            style.normal.textColor = Color.white;
+            style.alignment = TextAnchor.MiddleCenter;
+
+            // Draw shadow
+            GUIStyle shadowStyle = new GUIStyle(style);
+            shadowStyle.normal.textColor = Color.black;
+
+            float w = 200;
+            float h = 50;
+            float x = (Screen.width - w) / 2;
+            float y = (Screen.height - h) / 2;
+
+            string text = "[F] Nói chuyện (Dế Choắt)";
+            GUI.Label(new Rect(x + 2, y + 2, w, h), text, shadowStyle);
+            GUI.Label(new Rect(x, y, w, h), text, style);
         }
-
-        if (mainCamera != null)
-        {
-            originalCameraParent = mainCamera.transform.parent;
-            originalCameraPos = mainCamera.transform.localPosition;
-            originalCameraRot = mainCamera.transform.localRotation;
-        }
-
-        currentDialogueIndex = 0;
-
-        DisplayCurrentSentence();
-    }
-    
-    void TriggerNextSentence()
-    {
-        currentDialogueIndex++;
-        if (currentDialogueIndex < dialogue.Length)
-        {
-            DisplayCurrentSentence();
-        }
-        else
-        {
-            ShowChoice();
-        }
-    }
-    
-    void DisplayCurrentSentence()
-    {
-
-        if (chatBubble != null)
-        {
-            chatBubble.Setup(dialogue[currentDialogueIndex]);
-        }
-    }
-
-    void ShowChoice()
-    {
-        isTalking = false;
-        isWaitingForChoice = true;
-        if (chatBubble != null) chatBubble.Hide();
-
-        if (interactionPromptUI != null)
-        {
-            interactionPromptUI.SetActive(true);
-            if (promptTextComp != null)
-            {
-                promptTextComp.text = "[1] Rủ đi cùng\n[2] Bỏ qua";
-                promptTextComp.fontSize = 25; 
-            }
-        }
-    }
-
-    public void EndInteraction()
-    {
-        isTalking = false;
-        isWaitingForChoice = false;
-        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("DeChoat");
-        
-        if (chatBubble != null) chatBubble.Hide();
-
-        if (QuestUIManager.Instance != null && !QuestUIManager.Instance.IsQuestCompleted("talk_dechoat"))
-        {
-            QuestUIManager.Instance.CompleteQuest("talk_dechoat"); // Hoàn thành quest của Dế Choắt
-        }
-
-        // Phục hồi lại Chữ & Cỡ Chữ gốc Prompt
-        if (promptTextComp != null && !string.IsNullOrEmpty(originalPromptText))
-        {
-            promptTextComp.text = originalPromptText;
-            promptTextComp.fontSize = 50;
-        }
-
-        if (isPlayerNearby && !isFollowing)
-        {
-            if (interactionPromptUI != null) interactionPromptUI.SetActive(true);
-        }
-        else
-        {
-            if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
-        }
-
-        if (animator != null && HasParameter(idleTrigger)) animator.SetTrigger(idleTrigger);
-
-        // -- Skyrim Action RECOVER --
-        if (playerController != null)
-        {
-            playerController.isDialoguing = false; // UNFREEZE
-        }
-        if (mainCamera != null)
-        {
-            // Trả Camera lại điểm gốc
-            mainCamera.transform.localPosition = originalCameraPos;
-            mainCamera.transform.localRotation = originalCameraRot;
-        }
-    }
-
-    public void EndMinigame(bool isWin, bool isDraw = false)
-    {
-        isMinigameActive = false;
-        if (EncyclopediaManager.Instance != null) EncyclopediaManager.Instance.UnlockInsect("DeChoat");
-        isTalking = true;
-        isWaitingForChoice = false;
-        
-        string resultText = "";
-        
-        if (isDraw) resultText = "Hức... một ván hòa... coi như cậu nể mặt kẻ ốm yếu này...";
-        else if (isWin) resultText = "Khụ khụ... tuổi trẻ tài cao... cậu thắng rồi...";
-        else resultText = "Khà khà... Gừng càng già càng cay nhé chàng trai!";
-        
-        // Cập nhật lại khung chat
-        if (chatBubble != null) 
-        {
-            chatBubble.Setup(resultText);
-        }
-        
-        // Tắt sau 3 giây (Mở lại di chuyển bằng EndInteraction)
-        Invoke(nameof(EndInteraction), 3f);
-    }
-
-    private bool IsClosestNPC()
-    {
-        if (player == null) return false;
-        float myDist = Vector3.Distance(transform.position, player.position);
-        var allNPCs = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
-        foreach (var npc in allNPCs)
-        {
-            if (npc != this && npc is INPCMinigame)
-            {
-                float otherDist = Vector3.Distance(npc.transform.position, player.position);
-                if (otherDist < myDist) return false;
-                if (Mathf.Abs(otherDist - myDist) < 0.01f && npc.gameObject.GetInstanceID() < gameObject.GetInstanceID()) return false;
-            }
-        }
-        return true;
-    }
-
-    private void OnGUI()
-    {
-        if (isMinigameActive) return;
-
-        // Vẽ chữ báo hiệu "Bấm F..." ở cạnh dưới giữa màn hình
-        if (isPlayerNearby && !isTalking && !isWaitingForChoice && !isFollowing)
-        {
-            DrawBottomPrompt("Ấn [F] để nói chuyện với " + GetDisplayName());
-        }
-        else if (isFollowing && player != null && Vector3.Distance(transform.position, player.position) <= interactionDistance)
-        {
-            DrawBottomPrompt("Ấn [F] để bảo " + GetDisplayName() + " đứng lại");
-        }
-    }
-
-    public string GetDisplayName()
-    {
-        string lower = gameObject.name.ToLower();
-        if (lower.Contains("xen") || lower.Contains("xén")) return "Xén Tóc";
-        if (lower.Contains("choat") || lower.Contains("choắt")) return "Dế Choắt";
-        if (lower.Contains("kien") || lower.Contains("kiến")) return "Côn Kiến";
-        if (lower.Contains("trui") || lower.Contains("trũi")) return "Dế Trũi";
-        
-        return !string.IsNullOrEmpty(_npcName) ? _npcName : gameObject.name;
-    }
-
-    private void DrawBottomPrompt(string msg)
-    {
-        GUIStyle style = new GUIStyle();
-        style.fontSize = 35; // Cỡ chữ bự để dễ đọc
-        style.normal.textColor = Color.white;
-        style.alignment = TextAnchor.MiddleCenter;
-        style.fontStyle = FontStyle.Bold;
-
-        // Đổ bóng (Viền viền đèn)
-        GUIStyle shadowStyle = new GUIStyle(style);
-        shadowStyle.normal.textColor = Color.black;
-
-        float w = 600f;
-        float h = 60f;
-        float x = (Screen.width - w) / 2f; 
-        float y = Screen.height - 150f;    
-
-        GUI.Label(new Rect(x + 2, y + 2, w, h), msg, shadowStyle);
-        GUI.Label(new Rect(x, y, w, h), msg, style);
     }
 }

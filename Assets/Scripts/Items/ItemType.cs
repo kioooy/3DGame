@@ -9,5 +9,6 @@ public enum ItemType
     Tool,        // Công cụ (búa, rìu, cuốc)
     Consumable,  // Vật phẩm tiêu hao (thức ăn, thuốc)
     Weapon,      // Vũ khí
-    Material     // Nguyên liệu chế tạo
+    Material,    // Nguyên liệu chế tạo
+    QuestItem_MatOng // Vật phẩm Cốt Truyện: Giọt Mật Ong
 }

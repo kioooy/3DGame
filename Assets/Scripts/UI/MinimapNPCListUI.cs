@@ -85,9 +85,13 @@ public class MinimapNPCListUI : MonoBehaviour
         // 2. Càn quét toàn bộ NPC 
         var deTruis = FindObjectsByType<DeTruiNPC>(FindObjectsSortMode.None);
         var deChoats = FindObjectsByType<DeChoatNPC>(FindObjectsSortMode.None);
+        var xenTocs = FindObjectsByType<XenTocNPC>(FindObjectsSortMode.None);
+        var conKiens = FindObjectsByType<ConKienNPC>(FindObjectsSortMode.None);
         
         _allNPCs.AddRange(deTruis);
         _allNPCs.AddRange(deChoats);
+        _allNPCs.AddRange(xenTocs);
+        _allNPCs.AddRange(conKiens);
 
         foreach (var npc in _allNPCs)
         {
@@ -238,6 +242,8 @@ public class MinimapNPCListUI : MonoBehaviour
     {
         if (npc is DeTruiNPC trui) return trui.GetDisplayName();
         if (npc is DeChoatNPC choat) return choat.GetDisplayName();
+        if (npc is XenTocNPC xen) return xen.npcName;
+        if (npc is ConKienNPC kien) return kien.npcName;
         return npc.gameObject.name;
     }
 

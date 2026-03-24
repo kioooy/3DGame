@@ -50,6 +50,7 @@ public class PlayerController : MonoBehaviour
     
     // Interaction
     private PickableItem _currentLookingItem;
+    private GameObject _closestNPC; // NPC tốt nhất để tương tác
     private bool _inventoryOpen = false;
     public bool isDialoguing = false; // Skyrim-like conversation pause flag
 
@@ -151,6 +152,9 @@ public class PlayerController : MonoBehaviour
 
         // Detect pickable items
         DetectPickableItems();
+        
+        // MỚI: Quét NPC ưu tiên
+        DetectBestNPC();
 
         var kb = Keyboard.current;
         if (kb != null)
@@ -162,22 +166,7 @@ public class PlayerController : MonoBehaviour
                     InventoryUI.Instance.ToggleInventory();
             }
 
-            // Toggle quest panel với J
-            if (kb.jKey.wasPressedThisFrame)
-            {
-                Debug.Log("PlayerController: Phím J được nhấn!");
-                if (Demen.Quests.DemenQuestUIManager.Instance != null)
-                {
-                    Demen.Quests.DemenQuestUIManager.Instance.ToggleQuestPanel();
-                }
-                else
-                {
-                    Debug.LogWarning("PlayerController: DemenQuestUIManager.Instance is NULL. Try Setup Tool.");
-                    // Fallback to bridge if target found
-                    var bridge = FindFirstObjectByType<QuestUIManager>();
-                    if (bridge != null) bridge.ToggleQuestPanel();
-                }
-            }
+            // (Đã xóa phím J mở Quest Menu cũ theo yêu cầu người dùng)
 
             // --- Gắn Input Nhặt đồ (E) ---
             if (kb.eKey.wasPressedThisFrame && _currentLookingItem != null && !_inventoryOpen)
@@ -552,4 +541,54 @@ public class PlayerController : MonoBehaviour
 
         _footstepSource.PlayOneShot(clipToPlay, finalVolume);
     }
+
+    // ── NPC Interaction Priority ──
+    private void DetectBestNPC()
+    {
+        if (isDialoguing || _inventoryOpen) 
+        {
+            _closestNPC = null;
+            return;
+        }
+
+        float maxScore = -float.MaxValue;
+        GameObject bestNPC = null;
+
+        // Quét bán kính lớn hơn range tương tác một chút để hiện Prompt mượt mà
+        float scanRange = interactionRange * 1.5f;
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, scanRange);
+        
+        foreach (var hit in hitColliders)
+        {
+            // Kiểm tra các Component NPC quen thuộc
+            bool isTargetNPC = hit.GetComponent<XenTocNPC>() != null || 
+                               hit.GetComponent<DeTruiNPC>() != null || 
+                               hit.GetComponent<ConKienNPC>() != null || 
+                               hit.GetComponent<DeChoatNPC>() != null;
+
+            if (isTargetNPC)
+            {
+                Vector3 toNPC = (hit.transform.position - cameraTransform.position).normalized;
+                float dot = Vector3.Dot(cameraTransform.forward, toNPC);
+                float dist = Vector3.Distance(transform.position, hit.transform.position);
+                
+                // Công thức tính điểm tương tác:
+                // Ưu tiên Dot (hướng nhìn) > 0.4 (khoảng 60 độ trước mặt)
+                if (dot > 0.4f)
+                {
+                    // Trừ điểm dựa trên khoảng cách để ưu tiên thằng ở gần
+                    float score = dot * 10f - dist; 
+                    if (score > maxScore)
+                    {
+                        maxScore = score;
+                        bestNPC = hit.gameObject;
+                    }
+                }
+            }
+        }
+
+        _closestNPC = bestNPC;
+    }
+
+    public GameObject GetClosestNPC() => _closestNPC;
 }

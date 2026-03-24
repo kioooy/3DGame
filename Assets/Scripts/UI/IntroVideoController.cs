@@ -2,7 +2,12 @@ using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Phát một video intro toàn màn hình. Khi video kết thúc (hoặc người chơi bỏ qua),
+/// sẽ load sang gameSceneName. Dùng ở MainMenu – không cần PlayerController.
+/// </summary>
 public class IntroVideoController : MonoBehaviour
 {
     [Header("Video Core")]
@@ -13,28 +18,17 @@ public class IntroVideoController : MonoBehaviour
     public GameObject videoCanvas;
     public Button skipButton;
 
-    private PlayerController _playerController;
+    [Header("Scene To Load")]
+    /// <summary>Tên scene game cần load sau khi video kết thúc.</summary>
+    public string gameSceneName = "StylizedNatureLite_Demo";
 
-    void Awake()
+    void Start()
     {
-        // 1. Tạo tĩnh RenderTexture cho màn hình
-        RenderTexture rt = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
-        rt.Create();
-        if (videoPlayer != null) videoPlayer.targetTexture = rt;
-        if (displayImage != null) displayImage.texture = rt;
-
-        // 2. Mở khóa chuột để ấn nút Skip
+        // 1. Ẩn con trỏ (KHÔNG lock để nút Skip vẫn click được)
         Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        Cursor.visible = false;
 
-        // 3. Khóa PlayerController để không đi lại lung tung
-        _playerController = GameObject.FindAnyObjectByType<PlayerController>();
-        if (_playerController != null)
-        {
-            _playerController.enabled = false;
-        }
-
-        // 4. Lắng nghe sự kiện kết thúc
+        // 2. Lắng nghe sự kiện kết thúc video
         if (videoPlayer != null)
         {
             videoPlayer.loopPointReached += OnVideoFinished;
@@ -44,13 +38,62 @@ public class IntroVideoController : MonoBehaviour
         {
             skipButton.onClick.AddListener(SkipIntro);
         }
+
+        // 3. Chuẩn bị xong rồi mới Play (tránh màn hình trắng)
+        // NOTE: phải dùng Start() thay vì Awake() vì MainMenuManager
+        // gán videoPlayer SAU khi AddComponent<IntroVideoController>() trả về.
+        // Awake() chạy TRONG lúc AddComponent → videoPlayer vẫn null.
+        StartCoroutine(PrepareAndPlay());
+    }
+
+    System.Collections.IEnumerator PrepareAndPlay()
+    {
+        if (videoPlayer == null) yield break;
+
+        // Tắt playOnAwake để tránh phát trước khi RT sẵn sàng
+        videoPlayer.playOnAwake = false;
+        videoPlayer.Stop();
+
+        // Xóa RenderTexture cũ nếu có
+        if (displayImage != null && displayImage.texture is RenderTexture oldRt)
+        {
+            displayImage.texture = null;
+            videoPlayer.targetTexture = null;
+            oldRt.Release();
+            Destroy(oldRt);
+        }
+
+        // Chuẩn bị video (resolve kích thước thực)
+        videoPlayer.Prepare();
+        while (!videoPlayer.isPrepared)
+            yield return null;
+
+        // Tạo RT với đúng kích thước của video
+        uint w = videoPlayer.width  > 0 ? videoPlayer.width  : (uint)Screen.width;
+        uint h = videoPlayer.height > 0 ? videoPlayer.height : (uint)Screen.height;
+        RenderTexture rt = new RenderTexture((int)w, (int)h, 0, RenderTextureFormat.ARGB32);
+        rt.Create();
+
+        videoPlayer.targetTexture = rt;
+        if (displayImage != null) displayImage.texture = rt;
+
+        // Bắt đầu phát
+        videoPlayer.Play();
     }
 
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (Keyboard.current != null)
         {
-            SkipIntro();
+            // Giữ Alt → hiện con trỏ (dùng None chứ không dùng Locked để click vẫn hoạt động)
+            bool altHeld = Keyboard.current.leftAltKey.isPressed || Keyboard.current.rightAltKey.isPressed;
+            Cursor.visible = altHeld;
+            Cursor.lockState = CursorLockMode.None; // luôn None để UI nhận click
+
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                SkipIntro();
+            }
         }
     }
 
@@ -79,7 +122,7 @@ public class IntroVideoController : MonoBehaviour
             var oldRT = displayImage.texture as RenderTexture;
             displayImage.texture = null;
             if (videoPlayer != null) videoPlayer.targetTexture = null;
-            
+
             if (oldRT != null)
             {
                 oldRT.Release();
@@ -87,17 +130,7 @@ public class IntroVideoController : MonoBehaviour
             }
         }
 
-        // 2. Bật lại PlayerController
-        if (_playerController != null)
-        {
-            _playerController.enabled = true;
-        }
-
-        // 3. Khôi phục lại trạng thái chuột (Khóa chuột vào tâm để bắn/điều khiển)
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        // 4. Tiêu hủy giao diện Video luôn cho nhẹ RAM
+        // 2. Tiêu hủy giao diện Video
         if (videoCanvas != null)
         {
             Destroy(videoCanvas);
@@ -106,5 +139,10 @@ public class IntroVideoController : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        // 3. Load scene game 
+        Debug.Log($"[IntroVideo] Video kết thúc → Load scene: {gameSceneName}");
+        SceneManager.LoadScene(gameSceneName);
     }
 }
+

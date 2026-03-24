@@ -148,150 +148,22 @@ public class NPCSetupTool : EditorWindow
                 cap.radius = 0.3f;
             }
 
-            // 4. DeTruiNPC (Đa năng)
-            DeTruiNPC npcScript = obj.GetComponent<DeTruiNPC>();
-            if (npcScript == null) npcScript = Undo.AddComponent<DeTruiNPC>(obj);
-
-            npcScript.npcName = obj.name;
-            npcScript.enableWandering = true; // Bật đi dạo mặc định
-            
-            // XÉT ĐẶC ĐIỂM HỘI THOẠI & MINIGAME THEO TÊN NHÂN VẬT
+            // ── Script NPC đặc thù ──
+            // Dùng tool "GDC301 → Gán Script NPC Tự Động" để gắn đúng script
+            // (XenTocNPC / ConKienNPC / DeTruiNPC / DeChoatNPC) theo tên.
+            // Tool này chỉ setup các component cơ bản.
             string nameLower = obj.name.ToLower();
-            if (nameLower.Contains("detrui"))
+            if (nameLower.Contains("trui"))
             {
-                npcScript.enableRacing = true;
-                npcScript.enableCaro = false;
-                npcScript.enableArmWrestling = false;
-                npcScript.dialogue = new string[] {
-                    "Xin chào người anh em! Tôi là Dế Trũi.",
-                    "Lâu rồi không có ai đến thăm khu vườn này.",
-                    "Cậu có muốn đọ sức một chút không?"
-                };
+                DeTruiNPC npcScript = obj.GetComponent<DeTruiNPC>();
+                if (npcScript == null) npcScript = Undo.AddComponent<DeTruiNPC>(obj);
+                npcScript.enableWandering = true;
+                npcScript.enableRacing    = true;
+                npcScript.enableCaro      = true;
+                npcScript.groundLayer     = LayerMask.GetMask("Default", "Ground", "Terrain");
+                npcScript.animator        = anim;
+                EditorUtility.SetDirty(npcScript);
             }
-            else if (nameLower.Contains("kien"))
-            {
-                npcScript.enableRacing = false;
-                npcScript.enableCaro = false;
-                npcScript.enableArmWrestling = false;
-                npcScript.dialogue = new string[] {
-                    "Hây dô! Tôi là Kiến thợ đây.",
-                    "Khuân vác suốt ngày mệt quá đi mất.",
-                    "Này, cậu nhớ cẩn thận mấy tảng đá rơi đấy nhé!"
-                };
-            }
-            else if (nameLower.Contains("dechoat"))
-            {
-                npcScript.enableRacing = false;
-                npcScript.enableCaro = true;
-                npcScript.enableArmWrestling = false;
-                npcScript.dialogue = new string[] {
-                    "Chào người anh em... Tôi dạo này ốm yếu quá.",
-                    "Nhưng cái vụ chơi cờ Caro thì đầu óc tôi vẫn còn nhạy bén lắm nhé!",
-                    "Khụ khụ... cậu có muốn chơi một ván cho đầu óc thư giãn không?"
-                };
-            }
-            else if (nameLower.Contains("xentoc"))
-            {
-                npcScript.enableRacing = false;
-                npcScript.enableCaro = false;
-                npcScript.enableArmWrestling = true;
-                npcScript.dialogue = new string[] {
-                    "Khà khà, ta là Xén Tóc lực lưỡng đây!",
-                    "Trên đời này chỉ có sức mạnh mới giải quyết được vấn đề.",
-                    "Thấy hàm răng ta không? Dám gồng tay với ta không, hả nhóc?"
-                };
-            }
-            else
-            {
-                npcScript.enableRacing = false;
-                npcScript.enableCaro = false;
-                npcScript.enableArmWrestling = false;
-                npcScript.dialogue = new string[] {
-                    "Xin chào! Tôi là " + obj.name + ".",
-                    "Hôm nay trời đẹp nhỉ!",
-                    "Cứ đi dạo loanh quanh quanh đây thôi."
-                };
-            }
-
-            // TÍNH TOÁN VỊ TRÍ CHIỀU CAO CỦA KHUNG CHAT PHÙ HỢP CƠ THỂ CON BỌ
-            float uiHeightOffset = 1.5f; // Mặc định
-            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
-            if (renderers.Length > 0)
-            {
-                Bounds bounds = renderers[0].bounds;
-                foreach (var r in renderers) bounds.Encapsulate(r.bounds);
-                
-                // bounds.max.y là độ cao tuyệt đối của đỉnh đầu so với map
-                float headWorldY = bounds.max.y;
-                float objWorldY = obj.transform.position.y;
-                
-                // Độ cao Tương đối của vùng trên đỉnh đầu
-                float localDeltaY = (headWorldY - objWorldY) + 0.5f; // cơi thêm 0.5m khoảng trống
-                
-                // Quy đổi về không gian cục bộ (Phòng trường hợp scale của object bị chỉnh sửa lung tung kiểu nhân 100)
-                float lossyY = obj.transform.lossyScale.y;
-                if (lossyY > 0)
-                {
-                    uiHeightOffset = localDeltaY / lossyY;
-                }
-                
-                // Sẵn tiện căn chỉnh lại kích thước CapsuleCollider theo đúng chiều cao thực tế của con bọ
-                if (col is CapsuleCollider capSetup && lossyY > 0)
-                {
-                    float realHeight = headWorldY - bounds.min.y;
-                    if (realHeight > 0.1f)
-                    {
-                        capSetup.height = realHeight / lossyY;
-                        capSetup.center = new Vector3(0, capSetup.height / 2f, 0);
-                        capSetup.radius = capSetup.height / 3f;
-                    }
-                }
-            }
-
-            // 5. Clone ChatBubble & PromptUI từ Template (Nếu chưa có)
-            if (templateNPC != null)
-            {
-                // Clone Chat Bubble
-                if (npcScript.chatBubble == null && templateNPC.chatBubble != null)
-                {
-                    GameObject clonedBubble = null;
-#if UNITY_EDITOR
-                    if (PrefabUtility.IsPartOfAnyPrefab(templateNPC.chatBubble.gameObject))
-                    {
-                        clonedBubble = (GameObject)PrefabUtility.InstantiatePrefab(
-                            PrefabUtility.GetCorrespondingObjectFromSource(templateNPC.chatBubble.gameObject), obj.transform);
-                    }
-#endif
-                    if (clonedBubble == null) clonedBubble = Instantiate(templateNPC.chatBubble.gameObject, obj.transform);
-                    
-                    clonedBubble.name = "ChatBubble";
-                    // Đẩy lên theo cái chiều cao chuẩn xác với tỉ lệ Model
-                    clonedBubble.transform.localPosition = new Vector3(0, uiHeightOffset, 0); 
-                    npcScript.chatBubble = clonedBubble.GetComponent<ChatBubble>();
-                }
-
-                // Clone Interaction Prompt
-                if (npcScript.interactionPromptUI == null && templateNPC.interactionPromptUI != null)
-                {
-                    GameObject clonedPrompt = null;
-#if UNITY_EDITOR
-                    if (PrefabUtility.IsPartOfAnyPrefab(templateNPC.interactionPromptUI.gameObject))
-                    {
-                        clonedPrompt = (GameObject)PrefabUtility.InstantiatePrefab(
-                            PrefabUtility.GetCorrespondingObjectFromSource(templateNPC.interactionPromptUI.gameObject), obj.transform);
-                    }
-#endif
-                    if (clonedPrompt == null) clonedPrompt = Instantiate(templateNPC.interactionPromptUI.gameObject, obj.transform);
-                    
-                    clonedPrompt.name = "InteractionPrompt";
-                    clonedPrompt.transform.localPosition = new Vector3(0, uiHeightOffset, 0);
-                    npcScript.interactionPromptUI = clonedPrompt;
-                }
-            }
-
-            // Cấu hình layer (nếu mặt đất là mask mặc định)
-            npcScript.groundLayer = LayerMask.GetMask("Default", "Ground", "Terrain"); // Setup một mask căn bản đỡ rớt
-            npcScript.animator = anim;
 
             EditorUtility.SetDirty(obj);
         }

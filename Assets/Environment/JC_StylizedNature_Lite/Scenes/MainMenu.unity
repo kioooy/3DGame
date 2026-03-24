@@ -1243,6 +1243,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuManager
   mainMenuCanvas: {fileID: 1728620706}
   gameSceneName: StylizedNatureLite_Demo
+  introVideoClip: {fileID: 32900000, guid: 8cbb9397ed159254db90d749a0e972dc, type: 3}
   playButton: {fileID: 13737911}
   settingsButton: {fileID: 0}
   exitButton: {fileID: 213285894}
