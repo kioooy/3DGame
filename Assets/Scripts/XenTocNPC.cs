@@ -320,7 +320,16 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         if (interactionPromptUI != null) interactionPromptUI.SetActive(false);
 
         FacePlayerTarget();
-        if (animator != null && HasParameter(talkTrigger)) animator.SetTrigger(talkTrigger);
+        
+        // FIX: Tắt Root Motion khi nói chuyện để tránh lỗi bay xương tóc/râu do xung đột vật lý
+        if (animator != null)
+        {
+            animator.applyRootMotion = false;
+            // Reset các thành phần vật lý nếu có (SpringBone, DynamicBone...)
+            ResetPhysics();
+            
+            if (HasParameter(talkTrigger)) animator.SetTrigger(talkTrigger);
+        }
 
         if (playerController != null)
         {
@@ -435,7 +444,12 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
             if (interactionPromptUI != null) interactionPromptUI.SetActive(true);
         }
 
-        if (animator != null && HasParameter(idleTrigger)) animator.SetTrigger(idleTrigger);
+        if (animator != null)
+        {
+            // Trả lại Root Motion khi kết thúc hội thoại (để có thể di chuyển/wander bình thường)
+            animator.applyRootMotion = true;
+            if (HasParameter(idleTrigger)) animator.SetTrigger(idleTrigger);
+        }
 
         // -- Skyrim Action RECOVER --
         if (playerController != null)
@@ -547,6 +561,23 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
     }
 
     // Đã gỡ bỏ IsClosestNPC
+
+    // --- HÀM FIX LỖI XƯƠNG TÓC BAY LÊN ---
+    private void ResetPhysics()
+    {
+        // Tự động tìm các thành phần vật lý phổ biến và reset chúng
+        // Cách đơn giản nhất là tắt đi bật lại trong 1 frame
+        MonoBehaviour[] allComponents = GetComponentsInChildren<MonoBehaviour>();
+        foreach (var comp in allComponents)
+        {
+            string typeName = comp.GetType().Name;
+            if (typeName.Contains("Spring") || typeName.Contains("Physical") || typeName.Contains("Bone"))
+            {
+                comp.enabled = false;
+                comp.enabled = true;
+            }
+        }
+    }
 
     void OnGUI()
     {
