@@ -60,7 +60,7 @@ namespace Demen.Quests
                 {
                     case StoryQuestManager.PHASE_START:
                         storyQuest.questName = "Cốt truyện: Tìm kiếm Dế Choắt";
-                        storyQuest.description = "Mục tiêu: Gặp Xén Tóc\n\n- Tìm Xén Tóc ở xung quanh vũng nước.\n- Nhấn [F] hoặc Chuột trái để gọi thoại.\n- Chọn phím [1] Nghênh chiến! (Vật Tay) để thắng thông tin.";
+                        storyQuest.description = "Mục tiêu: Gặp Xén Tóc\n\n- Tìm Xén Tóc ở xung quanh vũng nước.\n- Nhấn [F] hoặc Chuột trái để gọi thoại.\n- Chọn phím [1] Nghênh chiến! (Vật Tay) để thắng\n- Thắng vật tay để lấy thông tin về Dế Choắt.";
                         break;
                     case StoryQuestManager.PHASE_BEAT_XENTOC:
                         storyQuest.questName = "Cốt truyện: Lên Bàn Ăn";
@@ -72,7 +72,7 @@ namespace Demen.Quests
                         break;
                     case StoryQuestManager.PHASE_BEAT_DETRUI:
                         storyQuest.questName = "Cốt truyện: Tranh đoạt Mật Ong";
-                        storyQuest.description = "Mục tiêu: Hợp lực đua xe\n\n- Xuống gặp Dế Trũi ở gốc tre/sân chơi.\n- Bấm [1] Thách thức đua xe để giành lấy phần thưởng là hũ mật ong.";
+                        storyQuest.description = "Mục tiêu: Thắng cuộc chạy đua\n\n- Tìm Dế Trũi ở dưới sân.\n- Bấm [1] Chấp nhận chạy đua để giành lấy phần thưởng là hũ mật ong.";
                         break;
                     case StoryQuestManager.PHASE_GIVE_ITEM:
                         storyQuest.questName = "Cốt truyện: Lời xin lỗi muộn màng";

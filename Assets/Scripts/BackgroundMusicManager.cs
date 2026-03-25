@@ -98,9 +98,22 @@ public class BackgroundMusicManager : MonoBehaviour
     {
         yield return new WaitForSeconds(initialDelay);
 
+        // Nếu chỉ có 1 track → loop thẳng, không cần silence giữa bài
+        if (musicTracks.Length == 1)
+        {
+            audioSource.clip = musicTracks[0];
+            audioSource.loop = true;
+            audioSource.Play();
+            float targetVol = isDucked ? 0.05f : maxVolume;
+            if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
+            currentFadeCoroutine = StartCoroutine(FadeVolume(0f, targetVol, fadeDuration));
+            yield return currentFadeCoroutine;
+            yield break; // Xong — AudioSource tự loop mãi
+        }
+
+        // Nhiều track: cycling với khoảng nghỉ Minecraft
         while (true)
         {
-            // Chọn bài ngẫu nhiên, không lặp lại bài vừa phát
             int index = PickRandomTrack();
             if (index < 0) yield break;
 
@@ -109,15 +122,16 @@ public class BackgroundMusicManager : MonoBehaviour
 
             // Fade in
             audioSource.clip = clip;
+            audioSource.loop = false;
             audioSource.Play();
-            
+
             float targetVol = isDucked ? 0.05f : maxVolume;
             if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
             currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, targetVol, fadeDuration));
             yield return currentFadeCoroutine;
 
-            // Phát đến hết bài
-            float playDuration = clip.length - fadeDuration * 2f;
+            // Phát đến hết bài (clamp để không âm)
+            float playDuration = Mathf.Max(0f, clip.length - fadeDuration * 2f);
             if (playDuration > 0f)
                 yield return new WaitForSeconds(playDuration);
 
@@ -125,7 +139,7 @@ public class BackgroundMusicManager : MonoBehaviour
             if (currentFadeCoroutine != null) StopCoroutine(currentFadeCoroutine);
             currentFadeCoroutine = StartCoroutine(FadeVolume(audioSource.volume, 0f, fadeDuration));
             yield return currentFadeCoroutine;
-            
+
             audioSource.Stop();
 
             // Nghỉ im lặng kiểu Minecraft

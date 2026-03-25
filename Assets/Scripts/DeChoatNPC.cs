@@ -6,14 +6,16 @@ using UnityEngine.InputSystem;
 /// Chỉ hiện tương tác khi Phase >= GIVE_ITEM.
 /// Nói chuyện xong sẽ trigger kết thúc game.
 /// </summary>
-public class DeChoatNPC : MonoBehaviour
+public class DeChoatNPC : MonoBehaviour, INPCMinigame
 {
     [Header("Chat Bubble")]
     public ChatBubble chatBubble;
     public GameObject interactionPromptUI;
 
     [Header("Identidade")]
-    [SerializeField] private string _npcName = "Dế Choắt";
+    [SerializeField] private string _npcName = "Dế Chắt";
+    public string npcName { get => _npcName; set => _npcName = value; } // INPCMinigame
+    public bool isMinigameActive { get; set; }                           // INPCMinigame
     public AudioClip typewriterBeep;
 
     [Header("Dialogue: Chưa đủ điều kiện gặp")]
@@ -34,6 +36,14 @@ public class DeChoatNPC : MonoBehaviour
         "(Dế Choắt): ...Nhưng mày mới là người đi đến tận đây vì tao."
     };
 
+    [Header("Dialogue: Mời chơi Cờ Caro sau cảnh gặp mặt")]
+    [TextArea(3, 10)]
+    public string[] dialogueCaroInvite = new string[]
+    {
+        "(Dế Choắt): Ò... Mèn nà, chơi cờ caro một ván cho vui không?",
+        "(Dế Mèn): Hỏ! Mày vừa khỏe lại mà đã đòi đánh hỏ."
+    };
+
     [Header("Settings Khung Cảnh (Skyrim-like)")]
     public float interactionDistance = 6.0f; // Nới rộng khoảng cách do nằm giường
     [Tooltip("Điều chỉnh vị trí camera khi Focus nói chuyện (So với mặt NPC)")]
@@ -52,6 +62,8 @@ public class DeChoatNPC : MonoBehaviour
 
     private bool isPlayerNearby = false;
     private bool isTalking = false;
+    private bool isWaitingCaroChoice = false;
+    private bool _caroInvitePlayed = false; // Chỉ mời 1 lần
 
     private int currentDialogueIndex = 0;
     private string[] currentDialogue;
@@ -104,10 +116,36 @@ public class DeChoatNPC : MonoBehaviour
         var kb    = Keyboard.current;
         var mouse = Mouse.current;
 
+        // === Đang chờ chọn cờ caro ===
+        if (isWaitingCaroChoice)
+        {
+            HandleCameraFocusSkyrim();
+            FacePlayerTarget();
+            if (kb == null) return;
+
+            if (kb.digit1Key.wasPressedThisFrame)
+            {
+                isWaitingCaroChoice = false;
+                EndInteraction();
+                StartCaroGame();
+            }
+            else if (kb.digit2Key.wasPressedThisFrame || kb.tabKey.wasPressedThisFrame)
+            {
+                isWaitingCaroChoice = false;
+                EndInteraction();
+                if (chatBubble != null) chatBubble.Setup("(Dế Chắt): Lần sau vậy! Nhớ tìm tao đấy nhé.", typewriterBeep);
+                Invoke(nameof(HideBubble), 3f);
+            }
+            return;
+        }
+
         // === Trong hội thoại ===
         if (isTalking)
         {
             HandleCameraFocusSkyrim();
+
+            // NPC quay nhìn về phía Player mỗi frame khi đang nói chuyện
+            FacePlayerTarget();
 
             if (kb != null && kb.tabKey.wasPressedThisFrame)
             {
@@ -146,12 +184,6 @@ public class DeChoatNPC : MonoBehaviour
             {
                 StartInteraction();
             }
-        }
-
-        // Xoay mặt mượt mà khi đang nói chuyện
-        if (isTalking)
-        {
-            FacePlayerTarget();
         }
     }
 
@@ -200,10 +232,62 @@ public class DeChoatNPC : MonoBehaviour
         }
         else
         {
+            // Sau dialogueRescued → chưa mời caro thì chạy dialogueCaroInvite rồi hiện choice
+            if (currentDialogue == dialogueRescued && !_caroInvitePlayed
+                && dialogueCaroInvite != null && dialogueCaroInvite.Length > 0)
+            {
+                _caroInvitePlayed = true;
+                currentDialogue = dialogueCaroInvite;
+                currentDialogueIndex = 0;
+                DisplayCurrentSentence();
+                return;
+            }
+            // Sau dialogueCaroInvite → hiện lựa chọn
+            if (currentDialogue == dialogueCaroInvite)
+            {
+                isTalking = false;
+                ShowCaroChoice();
+                return;
+            }
             isTalking = false;
             EndInteraction();
         }
     }
+
+    void ShowCaroChoice()
+    {
+        isWaitingCaroChoice = true;
+        if (chatBubble != null) chatBubble.Hide();
+        if (interactionPromptUI != null)
+        {
+            interactionPromptUI.SetActive(true);
+            if (promptTextComp != null)
+            {
+                promptTextComp.text = "[1] \"Chơi cờ caro thôi!\"\n[2] \"Thôi, lần sau nhé.\"";
+                promptTextComp.fontSize = 25;
+            }
+        }
+    }
+
+    void StartCaroGame()
+    {
+        if (CaroGameManager.Instance != null)
+        {
+            CaroGameManager.Instance.StartGame(this);
+            return;
+        }
+        Debug.LogWarning("[DeChoatNPC] Không tìm thấy CaroGameManager trong scene!");
+    }
+
+    // INPCMinigame: gọi khi cờ Caro kết thúc
+    public void EndMinigame(bool isWin, bool isDraw = false)
+    {
+        isMinigameActive = false;
+        // Khôi phục cursor và camera cho game chính
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible   = false;
+    }
+
 
     void DisplayCurrentSentence()
     {

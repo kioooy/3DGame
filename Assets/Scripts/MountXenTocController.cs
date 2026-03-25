@@ -34,6 +34,13 @@ public class MountXenTocController : MonoBehaviour
     [Tooltip("Particle phát ra khi bay (tùy chọn)")]
     public ParticleSystem flyParticle;
 
+    [Header("Âm Thanh Bay")]
+    [Tooltip("Tiếng cánh bay (loop tự động)")]
+    public AudioClip flySound;
+    [Range(0f, 1f)]
+    public float flySoundVolume = 0.55f;
+    private AudioSource _flyAudio;
+
     [Header("Hoạt ảnh (Gán tự động qua Tool)")]
     public AnimationClip xenTocFlyingClip;
     public AnimationClip playerSittingClip;
@@ -61,10 +68,17 @@ public class MountXenTocController : MonoBehaviour
         _xenTocAnimator = GetComponent<Animator>();
         _xenTocRb       = GetComponent<Rigidbody>();
 
+        // Khởi tạo AudioSource riêng cho tiếng bay
+        _flyAudio = gameObject.AddComponent<AudioSource>();
+        _flyAudio.spatialBlend = 0f;   // 2D
+        _flyAudio.loop         = true;
+        _flyAudio.playOnAwake  = false;
+        _flyAudio.volume       = 0f;
+
         // Tắt Rigidbody gravity khi bay — sẽ bật lại khi bỏ cưỡi
         if (_xenTocRb != null)
         {
-            _xenTocRb.useGravity = false; // Tắt hẳn để tự kiểm soát từ script
+            _xenTocRb.useGravity = false;
         }
     }
 
@@ -134,6 +148,14 @@ public class MountXenTocController : MonoBehaviour
 
         if (flyParticle != null) flyParticle.Play();
 
+        // Phát tiếng bay loop
+        if (_flyAudio != null && flySound != null)
+        {
+            _flyAudio.clip   = flySound;
+            _flyAudio.volume = flySoundVolume;
+            _flyAudio.Play();
+        }
+
         // ── Kích hoạt Hoạt Ảnh (PlayableGraph) ──
         if (xenTocFlyingClip != null && _xenTocAnimator != null)
         {
@@ -169,6 +191,9 @@ public class MountXenTocController : MonoBehaviour
     }
 
 
+    // Cache để FixedUpdate và LateUpdate dùng chung
+    private Vector3 _cachedVelocity;
+
     void Update()
     {
         if (!_mounted) return;
@@ -192,13 +217,13 @@ public class MountXenTocController : MonoBehaviour
         if (isBoosting && _currentStamina > 0)
         {
             _currentStamina -= staminaDrainRate * Time.deltaTime;
-            currentSpeed = flySpeed * 2.5f; // Bay nhanh gấp 2.5 lần
+            currentSpeed = flySpeed * 2.5f;
         }
         else
         {
             _currentStamina += staminaRecoverRate * Time.deltaTime;
         }
-        
+
         _currentStamina = Mathf.Clamp(_currentStamina, 0, maxStamina);
         if (staminaSlider != null) staminaSlider.value = _currentStamina;
 
@@ -211,32 +236,137 @@ public class MountXenTocController : MonoBehaviour
         if (kb.wKey.isPressed) vertical = 1f;
         if (kb.sKey.isPressed) vertical = -1f;
 
-        // ── 2. Xoay thân Xén Tóc (A/D) ──
+        // ── 2. Xoay thân Xén Tóc (A/D) – chỉ xoay trục Y để không gây roll ──
         if (horizontal != 0f)
         {
-            transform.Rotate(0, horizontal * turnSpeed * Time.deltaTime, 0);
+            transform.Rotate(Vector3.up, horizontal * turnSpeed * Time.deltaTime, Space.World);
         }
 
         // ── 3. Đi Tiến/Lùi theo hướng mặt của thú (W/S) ──
         Vector3 moveDir = transform.forward * vertical;
 
-        // ── 4. Điều Khiển Thăng Giáng (Bay lên / Hạ xuống) ──
+        // ── 4. Điều Khiển Thăng Giáng + Vật Lý Pitch ──
         float moveY = 0f;
-        if (kb.spaceKey.isPressed) moveY = 1f;
-        if (kb.leftCtrlKey.isPressed || kb.cKey.isPressed) moveY = -1f;
+        bool holdingSpace  = kb.spaceKey.isPressed;
+        bool holdingCrouch = kb.leftCtrlKey.isPressed || kb.cKey.isPressed;
 
-        // Tính tổng vận tốc: Phương ngang + Phương đứng
-        Vector3 finalVelocity = (moveDir * currentSpeed) + (Vector3.up * moveY * verticalSpeed);
+        if (holdingSpace)        moveY =  1f;
+        else if (holdingCrouch)  moveY = -1f;
+        else                     moveY = -0.4f;
 
-        // Di chuyển Xén Tóc bằng Rigidbody Velocity
-        if (_xenTocRb != null)
-        {
-            _xenTocRb.linearVelocity = finalVelocity;
-        }
+        // Pitch (nghiêng mũi) theo trạng thái bay
+        float targetPitch;
+        if (holdingSpace)       targetPitch = -30f;
+        else if (holdingCrouch) targetPitch =  45f;
+        else                    targetPitch =  25f;
 
-        // ── Cập nhật tọa độ Player bám sát lưng Xén Tóc (Bất Chấp Scale Xén Tóc lớn) ──
+        // Slerp pitch, roll luôn = 0
+        float currentYaw      = transform.eulerAngles.y;
+        Quaternion targetRot  = Quaternion.Euler(targetPitch, currentYaw, 0f);
+        transform.rotation    = Quaternion.Slerp(transform.rotation, targetRot, 5f * Time.deltaTime);
+
+        // Cache velocity để FixedUpdate apply
+        _cachedVelocity = (moveDir * currentSpeed) + (Vector3.up * moveY * verticalSpeed);
+    }
+
+    // Physics apply – đồng bộ với engine, không gây desync
+    void FixedUpdate()
+    {
+        if (!_mounted || _xenTocRb == null) return;
+        _xenTocRb.linearVelocity = _cachedVelocity;
+    }
+
+    // Cập nhật vị trí player SAU khi Rigidbody đã giải quyết xong → không giật
+    void LateUpdate()
+    {
+        if (!_mounted || _player == null) return;
         _player.position = transform.position + transform.up * riderOffset.y + transform.forward * riderOffset.z;
         _player.rotation = transform.rotation;
+    }
+
+    // ──────────────────────────────────────────────────
+    // Bảng hướng dẫn phím – hiện góc dưới phải khi cưỡi
+    // ──────────────────────────────────────────────────
+    private static readonly (string key, string desc)[] _guideLines = {
+        ("W / S",     "Tiến / Lùi"),
+        ("A / D",     "Rẽ trái / Rẽ phải"),
+        ("SPACE",     "Bay lên ▲"),
+        ("CTRL / C",  "Hạ xuống ▼"),
+        ("SHIFT",     "Tăng tốc ⚡"),
+        ("F / ESC",   "Xuống cưỡi"),
+    };
+
+    private GUIStyle _guideBox;
+    private GUIStyle _guideTitle;
+    private GUIStyle _guideRow;
+
+    void OnGUI()
+    {
+        if (!_mounted) return;
+
+        // Khởi style lần đầu
+        if (_guideBox == null)
+        {
+            _guideBox = new GUIStyle(GUI.skin.box)
+            {
+                padding   = new RectOffset(14, 14, 10, 10),
+                alignment = TextAnchor.UpperLeft
+            };
+            _guideBox.normal.background = MakeTex(2, 2, new Color(0f, 0f, 0f, 0.6f));
+
+            _guideTitle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize  = 14,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter,
+            };
+            _guideTitle.normal.textColor = new Color(1f, 0.85f, 0.2f);
+
+            _guideRow = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 12,
+            };
+            _guideRow.normal.textColor = Color.white;
+        }
+
+        // Kích thước panel
+        float panelW  = 240f;
+        float rowH    = 20f;
+        float titleH  = 26f;
+        float padV    = 10f;
+        float panelH  = titleH + _guideLines.Length * rowH + padV * 2f;
+        float margin  = 16f;
+        float x = Screen.width  - panelW - margin;
+        float y = Screen.height - panelH - margin;
+
+        // Vẽ panel nền
+        GUI.Box(new Rect(x, y, panelW, panelH), GUIContent.none, _guideBox);
+
+        // Tiêu đề
+        GUI.Label(new Rect(x, y + padV, panelW, titleH), "🪲  Điều khiển Xén Tóc", _guideTitle);
+
+        // Từng phím
+        float rowY = y + padV + titleH;
+        foreach (var (key, desc) in _guideLines)
+        {
+            // Key – màu vàng
+            GUI.Label(new Rect(x + 12, rowY, 90, rowH),
+                      key,
+                      new GUIStyle(_guideRow) { normal = { textColor = new Color(1f, 0.85f, 0.25f) }, fontStyle = FontStyle.Bold });
+            // Mô tả
+            GUI.Label(new Rect(x + 108, rowY, panelW - 108 - 12, rowH), desc, _guideRow);
+            rowY += rowH;
+        }
+    }
+
+    private static Texture2D MakeTex(int w, int h, Color col)
+    {
+        var pixels = new Color[w * h];
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = col;
+        var tex = new Texture2D(w, h);
+        tex.SetPixels(pixels);
+        tex.Apply();
+        return tex;
     }
 
     // ──────────────────────────────────────────────────
@@ -276,6 +406,9 @@ public class MountXenTocController : MonoBehaviour
         }
         
         IsRiding = false;
+        // Dừng tiếng bay
+        if (_flyAudio != null) _flyAudio.Stop();
+
         // Dừng Particle
         if (flyParticle != null) flyParticle.Stop();
 

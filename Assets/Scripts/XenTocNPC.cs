@@ -220,7 +220,16 @@ public class XenTocNPC : MonoBehaviour, INPCMinigame
         if (isTalking)
         {
             HandleCameraFocusSkyrim();
-            
+
+            // NPC quay nhìn về phía Player khi đang nói chuyện
+            if (player != null)
+            {
+                Vector3 toPlayer = (player.position - transform.position).normalized;
+                toPlayer.y = 0;
+                if (toPlayer != Vector3.zero)
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(toPlayer), 8f * Time.deltaTime);
+            }
+
             if (kb != null && kb.tabKey.wasPressedThisFrame)
             {
                 // Bấm TAB thoát ngay lập tức

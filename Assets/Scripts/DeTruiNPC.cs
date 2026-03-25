@@ -16,26 +16,26 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
     public string npcName { get => _npcName; set => _npcName = value; }
     public AudioClip typewriterBeep;
 
-    [Header("Dialogue: Giới thiệu - Mời đua xe (Phase MEET_CONKIEN)")]
+    [Header("Dialogue: Giới thiệu - Mời chạy đua (Phase MEET_CONKIEN)")]
     [TextArea(3, 10)]
     public string[] deTruiIntro = new string[]
     {
         "(Dế Trũi): Chào Mèn! Nghe nói mày đang cần Mật Ong à?",
         "(Dế Mèn): Đúng vậy, lão Kiến bắt tao phải có Mật Ong mới cho qua.",
         "(Dế Trũi): Tao có đây, nhưng dạo này tao cuồng tốc độ lắm.",
-        "(Dế Trũi): Đua xe vòng quanh sân với tao đi! Thắng thì tao cho!"
+        "(Dế Trũi): Chạy đua vòng quanh sân với tao đi! Thắng thì tao cho!"
     };
 
-    [Header("Dialogue: Sau khi thắng đua xe")]
+    [Header("Dialogue: Sau khi thắng cuộc đua")]
     [TextArea(3, 10)]
     public string[] deTruiWon = new string[]
     {
-        "(Dế Trũi): Haha! Mày đua cừ lắm Mèn ạ!",
+        "(Dế Trũi): Haha! Mày ch\u1ea1y c\u1eebu l\u1eafm Mèn ạ!",
         "(Dế Mèn): Cảm ơn mày, giờ đưa Mật Ong cho tao được chưa?",
         "(Dế Trũi): Đúng là anh em ruột của tao. Nhận lấy hũ Mật Ong này đi!"
     };
 
-    [Header("Dialogue: Sau khi thua đua xe")]
+    [Header("Dialogue: Sau khi thua cuộc đua")]
     [TextArea(3, 10)]
     public string[] deTruiLost = new string[]
     {
@@ -137,13 +137,13 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                 "(Dế Trũi): Chào Mèn! Nghe nói mày đang cần Mật Ong à?",
                 "(Dế Mèn): Đúng vậy, lão Kiến bắt tao phải có Mật Ong mới cho qua.",
                 "(Dế Trũi): Tao có đây, nhưng dạo này tao cuồng tốc độ lắm.",
-                "(Dế Trũi): Đua xe vòng quanh sân với tao đi! Thắng thì tao cho!"
+                "(Dế Trũi): Chạy đua vòng quanh sân với tao đi! Thắng thì tao cho!"
             };
         }
         if (deTruiWon == null || deTruiWon.Length <= 1)
         {
             deTruiWon = new string[] {
-                "(Dế Trũi): Haha! Mày đua cừ lắm Mèn ạ!",
+                "(Dế Trũi): Haha! Mày ch\u1ea1y c\u1eebu l\u1eafm Mèn ạ!",
                 "(Dế Mèn): Cảm ơn mày, giờ đưa Mật Ong cho tao được chưa?",
                 "(Dế Trũi): Đúng là anh em ruột của tao. Nhận lấy hũ Mật Ong này đi!"
             };
@@ -213,9 +213,10 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                 if (animator != null && HasParameter(runBool)) animator.SetBool(runBool, false);
                 if (rb != null)
                 {
+                    rb.isKinematic      = false;  // Tạm bật để có thể set velocity
                     rb.linearVelocity   = Vector3.zero;
                     rb.angularVelocity  = Vector3.zero;
-                    rb.isKinematic      = true;
+                    rb.isKinematic      = true;   // Khoá lại
                 }
             }
             return;
@@ -249,7 +250,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
 
             if (kb.digit1Key.wasPressedThisFrame)
             {
-                // [1] Chấp nhận đua xe
+                // [1] Chấp nhận chạy đua
                 if (phase == StoryQuestManager.PHASE_MEET_CONKIEN && PlayerPrefs.GetInt("ReturnedFromRace", 0) == 0)
                 {
                     isWaitingForChoice = false;
@@ -309,6 +310,17 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         if (isTalking)
         {
             HandleCameraFocusSkyrim();
+
+            // NPC quay nhìn về phía Player
+            if (player != null)
+            {
+                Vector3 npcDir = (player.position - transform.position).normalized;
+                npcDir.y = 0;
+                if (npcDir != Vector3.zero)
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(npcDir), 8f * Time.deltaTime);
+            }
+
+            // Player quay nhìn về phía NPC
             if (player != null)
             {
                 Vector3 dir = (transform.position - player.position).normalized;
@@ -583,7 +595,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
                 int phase = StoryQuestManager.Instance != null ? StoryQuestManager.Instance.currentPhase : 0;
 
                 if (phase == StoryQuestManager.PHASE_MEET_CONKIEN && PlayerPrefs.GetInt("ReturnedFromRace", 0) == 0)
-                    promptTextComp.text = "[1] \"Chấp nhận đua xe!\"\n[2] \"Kể về Mật Ong đi.\"\n[TAB] Rời đi";
+                    promptTextComp.text = "[1] \"Chấp nhận chạy đua!\"\n[2] \"Kể về Mật Ong đi.\"\n[TAB] Rời đi";
                 else
                     promptTextComp.text = "[1] \"Trũi, đi cùng tôi không?\"\n[2] \"Thôi, hẹn lần khác.\"\n[4] \"Làm ván Cờ Caro nào!\"";
 
