@@ -40,7 +40,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
     public string[] deTruiLost = new string[]
     {
         "(Dế Trũi): Tiếc quá Mèn ơi, hôm nay mày chậm thế?",
-        "(Dế Mèn): Tao sơ suất tí thôi, đua lại không?",
+        "(Dế Mèn): Tao sơ suất tí thôi, chạy đua lại không?",
         "(Dế Trũi): Chắc chắn rồi, muốn lấy Mật Ong thì phải thắng tao!"
     };
 
@@ -152,7 +152,7 @@ public class DeTruiNPC : MonoBehaviour, INPCMinigame
         {
             deTruiLost = new string[] {
                 "(Dế Trũi): Tiếc quá Mèn ơi, hôm nay mày chậm thế?",
-                "(Dế Mèn): Tao sơ suất tí thôi, đua lại không?",
+                "(Dế Mèn): Tao sơ suất tí thôi, chạy đua lại không?",
                 "(Dế Trũi): Chắc chắn rồi, muốn lấy Mật Ong thì phải thắng tao!"
             };
         }

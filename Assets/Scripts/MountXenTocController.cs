@@ -293,6 +293,7 @@ public class MountXenTocController : MonoBehaviour
         ("SPACE",     "Bay lên ▲"),
         ("CTRL / C",  "Hạ xuống ▼"),
         ("SHIFT",     "Tăng tốc ⚡"),
+        ("V",         "Đổi góc nhìn 👁️"),
         ("F / ESC",   "Xuống cưỡi"),
     };
 

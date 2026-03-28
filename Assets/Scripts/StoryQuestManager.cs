@@ -9,7 +9,7 @@ using System;
 ///   Phase 0 – Bắt đầu: Dế Mèn tìm Xén Tóc để hỏi vị trí Dế Choắt
 ///   Phase 1 – Vật tay: Dế Mèn thắng vật tay Xén Tóc, bay vào nhà gặp Kiến
 ///   Phase 2 – Côn Kiến: Kiến đòi Mật Ong, bắt đi tìm Dế Trũi
-///   Phase 3 – Đua xe: Thắng đua xe Dế Trũi -> lấy được Mật Ong
+///   Phase 3 – Chạy đua: Thắng cuộc chạy đua Dế Trũi -> lấy được Mật Ong
 ///   Phase 4 – Trả đồ: Đưa Mật Ong cho Kiến -> Được chỉ chỗ Dế Choắt
 ///   Phase 5 – Kết thúc: Nói chuyện xong với Dế Choắt
 /// </summary>

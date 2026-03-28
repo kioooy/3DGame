@@ -186,22 +186,22 @@ public class StoryQuestHUD : MonoBehaviour
         switch(phase)
         {
             case StoryQuestManager.PHASE_START:
-                questString = $"<color={colorHex}><b>TÌM KIẾM DẾ CHOẮT</b></color>\n  • Nói chuyện với Xén Tóc ở gần vũng nước\n  • Chiến thắng vật tay để lấy mưu hèn kế bẩn";
+                questString = $"<color={colorHex}><b>TÌM KIẾM DẾ CHOẮT</b></color>\n  • Nói chuyện với Xén Tóc ở gần vũng nước\n  • Chiến thắng vật tay để lấy thông tin về Dế Choắt";
                 break;
             case StoryQuestManager.PHASE_BEAT_XENTOC:
-                questString = $"<color={colorHex}><b>ĐẾN BÀN ĂN KHỔNG LỒ</b></color>\n  • Yêu cầu Xén Tóc chở bay lên Bàn Ăn";
+                questString = $"<color={colorHex}><b>ĐẾN CHỖ CON KIẾN</b></color>\n  • Nhờ Xén Tóc chở bay lên Bàn Ăn";
                 break;
             case StoryQuestManager.PHASE_MEET_CONKIEN:
-                questString = $"<color={colorHex}><b>LẤY MẬT ONG CỦA TRŨI</b></color>\n  • Tìm Dế Trũi ở vũng bùn/sân đua xa xa\n  • Thắng cuộc đua để lấy phần thưởng Mật Ong";
+                questString = $"<color={colorHex}><b>LẤY MẬT ONG CỦA DẾ TRŨI</b></color>\n  • Tìm Dế Trũi ở bãi cỏ trong vườn\n  • Thắng cuộc đua để lấy Mật Ong";
                 break;
             case StoryQuestManager.PHASE_BEAT_DETRUI:
-                questString = $"<color={colorHex}><b>MUA ĐƯỜNG CỨU BẠN</b></color>\n  • Đã có Mật Ong! Hãy đem về giao cho Côn Kiến đang canh lồng bàn";
+                questString = $"<color={colorHex}><b>ĐƯA MẬT ONG CHO CON KIẾN</b></color>\n  • Đã có Mật Ong! Hãy đem về giao cho Con Kiến trên bàn ăn";
                 break;
             case StoryQuestManager.PHASE_GIVE_ITEM:
-                questString = $"<color={colorHex}><b>HỘI NGỘ DẾ CHOẮT</b></color>\n  • Dế Choắt đang dưỡng bệnh ở góc nhà\n  • Tiến vào nói chuyện để kết thúc hành trình";
+                questString = $"<color={colorHex}><b>HỘI NGỘ DẾ CHOẮT</b></color>\n  • Dế Choắt đang nằm trên giường ở góc nhà\n  • Đến nói chuyện với Dế Choắt";
                 break;
             case StoryQuestManager.PHASE_ENDING:
-                questString = $"<color={colorHex}><b>HOÀN THÀNH CỐT TRUYỆN</b></color>\n  • Tự do khám phá nhà bếp\n  • Chuẩn bị cho những chuyến phiêu lưu tiếp theo";
+                questString = $"<color={colorHex}><b>HOÀN THÀNH CỐT TRUYỆN</b></color>\n  • Tự do khám phá map";
                 break;
             default:
                 questString = $"<color={colorHex}><b>KHÁM PHÁ THẾ GIỚI</b></color>\n  • Rong chơi";
